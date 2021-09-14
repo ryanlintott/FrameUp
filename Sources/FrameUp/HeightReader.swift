@@ -15,18 +15,18 @@ struct HeightKey: PreferenceKey {
     }
 }
 
-struct HeightReader<Content: View>: View {
+public struct HeightReader<Content: View>: View {
     let alignment: VerticalAlignment
     @ViewBuilder let content: (CGFloat) -> Content
     
     @State private var height: CGFloat = 0
     
-    init(alignment: VerticalAlignment = .top, @ViewBuilder content: @escaping (CGFloat) -> Content) {
+    public init(alignment: VerticalAlignment = .top, @ViewBuilder content: @escaping (CGFloat) -> Content) {
         self.alignment = alignment
         self.content = content
     }
     
-    var body: some View {
+    public var body: some View {
         HStack(alignment: alignment, spacing: 0) {
             GeometryReader { proxy in
                 Color.clear

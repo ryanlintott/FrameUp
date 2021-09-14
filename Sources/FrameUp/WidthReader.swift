@@ -7,26 +7,26 @@
 
 import SwiftUI
 
-struct WidthKey: PreferenceKey {
-    typealias Value = CGFloat
-    static let defaultValue: CGFloat = .zero
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+public struct WidthKey: PreferenceKey {
+    public typealias Value = CGFloat
+    public static let defaultValue: CGFloat = .zero
+    public static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
         value = nextValue()
     }
 }
 
-struct WidthReader<Content: View>: View {
+public struct WidthReader<Content: View>: View {
     let alignment: HorizontalAlignment
     @ViewBuilder let content: (CGFloat) -> Content
     
     @State private var width: CGFloat = 0
     
-    init(alignment: HorizontalAlignment = .leading, @ViewBuilder content: @escaping (CGFloat) -> Content) {
+    public init(alignment: HorizontalAlignment = .leading, @ViewBuilder content: @escaping (CGFloat) -> Content) {
         self.alignment = alignment
         self.content = content
     }
     
-    var body: some View {
+    public var body: some View {
         VStack(alignment: alignment, spacing: 0) {
             GeometryReader { proxy in
                 Color.clear

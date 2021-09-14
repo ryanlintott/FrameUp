@@ -9,7 +9,7 @@ import SwiftUI
 
 import SwiftUI
 
-struct VFlow<Element: Identifiable, Cell: View>: View {
+public struct VFlow<Element: Identifiable, Cell: View>: View {
     let items: [Element]
     let maxHeight: CGFloat
     let maxColumnWidth: CGFloat
@@ -39,7 +39,7 @@ struct VFlow<Element: Identifiable, Cell: View>: View {
         return result
     }
     
-    init(items: [Element], maxHeight: CGFloat, maxColumnWidth: CGFloat = .infinity, horizontalSpacing: CGFloat = 10, verticalSpacing: CGFloat = 10, cell: @escaping (Element) -> Cell) {
+    public init(items: [Element], maxHeight: CGFloat, maxColumnWidth: CGFloat = .infinity, horizontalSpacing: CGFloat = 10, verticalSpacing: CGFloat = 10, cell: @escaping (Element) -> Cell) {
         self.items = items
         self.maxHeight = maxHeight
         self.maxColumnWidth = maxColumnWidth
@@ -48,18 +48,18 @@ struct VFlow<Element: Identifiable, Cell: View>: View {
         self.cell = cell
     }
     
-    var body: some View {
+    public var body: some View {
         ZStack(alignment: .topLeading) {
             ForEach(Array(zip(items, items.indices)), id: \.0.id) { (item, index) in
                 cell(item)
-                    .frame(maxWidth: maxColumnWidth, maxHeight: maxHeight, alignment: .leading)
-                    .fixedSize()
                     .background(
                         GeometryReader { proxy in
                             Color.clear
                                 .preference(key: CellSizeKey.self, value: [index: proxy.size])
                         }
                     )
+                    .frame(maxWidth: maxColumnWidth, maxHeight: maxHeight, alignment: .topLeading)
+                    .fixedSize()
                     .alignmentGuide(.leading) { d in
                         -(cellPositions[index]?.x ?? .zero)
                     }

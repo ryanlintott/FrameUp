@@ -7,10 +7,10 @@
 
 import SwiftUI
 
-struct CellSizeKey: PreferenceKey {
-    typealias Value = [Int: CGSize]
-    static let defaultValue: [Int: CGSize] = [:]
-    static func reduce(value: inout Value, nextValue: () -> Value) {
+public struct CellSizeKey: PreferenceKey {
+    public typealias Value = [Int: CGSize]
+    public static let defaultValue: [Int: CGSize] = [:]
+    public static func reduce(value: inout Value, nextValue: () -> Value) {
         nextValue().forEach {
             value.updateValue($0.value, forKey: $0.key)
         }
