@@ -49,22 +49,3 @@ public struct TagViewForScrollView<Element: Hashable, Content: View>: View {
         }
     }
 }
-
-struct TagViewForScrollView_Previews: PreviewProvider {
-    static let elements = ["Thing", "Another", "Test", "Short", "Long Text is Long", "More", "Cool Tag"]
-    
-    static var previews: some View {
-        GeometryReader { previewProxy in
-            TagViewForScrollView(maxWidth: previewProxy.size.width, elements: elements) { element in
-                Text(element)
-                    .foregroundColor(.white)
-                    .padding(10)
-                    .background(Color.blue)
-                    .clipShape(Capsule())
-                    .padding(2)
-            }
-            .padding(2)
-            .background(Color.gray)
-        }
-    }
-}
