@@ -1,13 +1,13 @@
 //
-//  CellSizeKey.swift
-//  SwiftUITextDemo
+//  FlowContentSizeKey.swift
+//  FrameUp
 //
 //  Created by Ryan Lintott on 2021-06-11.
 //
 
 import SwiftUI
 
-public struct CellSizeKey: PreferenceKey {
+public struct FlowContentSizeKey: PreferenceKey {
     public typealias Value = [Int: CGSize]
     public static let defaultValue: [Int: CGSize] = [:]
     public static func reduce(value: inout Value, nextValue: () -> Value) {

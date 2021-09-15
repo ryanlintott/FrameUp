@@ -1,6 +1,6 @@
 //
 //  VFlow.swift
-//  SwiftUITextDemo
+//  FrameUp
 //
 //  Created by Ryan Lintott on 2021-06-11.
 //
@@ -9,17 +9,17 @@ import SwiftUI
 
 import SwiftUI
 
-public struct VFlow<Element: Identifiable, Cell: View>: View {
-    let items: [Element]
+public struct VFlow<Data: RandomAccessCollection, Content: View>: View where Data.Element: Identifiable, Data.Index == Int {
+    let data: Array<(Data.Element, Int)>
     let maxHeight: CGFloat
     let maxColumnWidth: CGFloat
     let horizontalSpacing: CGFloat
     let verticalSpacing: CGFloat
-    var cell: (Element) -> Cell
+    var content: (Data.Element) -> Content
     
     @State private var sizes: [Int: CGSize] = [:]
     
-    var cellPositions: [Int: CGPoint] {
+    var contentPositions: [Int: CGPoint] {
         var currentPoint: CGPoint = .zero
         var result = [Int: CGPoint]()
         var columnWidth: CGFloat = .zero
@@ -39,36 +39,36 @@ public struct VFlow<Element: Identifiable, Cell: View>: View {
         return result
     }
     
-    public init(items: [Element], maxHeight: CGFloat, maxColumnWidth: CGFloat = .infinity, horizontalSpacing: CGFloat = 10, verticalSpacing: CGFloat = 10, cell: @escaping (Element) -> Cell) {
-        self.items = items
+    public init(_ data: Data, maxHeight: CGFloat, maxColumnWidth: CGFloat = .infinity, horizontalSpacing: CGFloat = 10, verticalSpacing: CGFloat = 10, content: @escaping (Data.Element) -> Content) {
+        self.data = Array(zip(data, data.indices))
         self.maxHeight = maxHeight
         self.maxColumnWidth = maxColumnWidth
         self.horizontalSpacing = horizontalSpacing
         self.verticalSpacing = verticalSpacing
-        self.cell = cell
+        self.content = content
     }
     
     public var body: some View {
         ZStack(alignment: .topLeading) {
-            ForEach(Array(zip(items, items.indices)), id: \.0.id) { (item, index) in
-                cell(item)
+            ForEach(data, id: \.0.id) { (item, index) in
+                content(item)
                     .background(
                         GeometryReader { proxy in
                             Color.clear
-                                .preference(key: CellSizeKey.self, value: [index: proxy.size])
+                                .preference(key: FlowContentSizeKey.self, value: [index: proxy.size])
                         }
                     )
                     .frame(maxWidth: maxColumnWidth, maxHeight: maxHeight, alignment: .topLeading)
                     .fixedSize()
                     .alignmentGuide(.leading) { d in
-                        -(cellPositions[index]?.x ?? .zero)
+                        -(contentPositions[index]?.x ?? .zero)
                     }
                     .alignmentGuide(.top) { d in
-                        -(cellPositions[index]?.y ?? .zero)
+                        -(contentPositions[index]?.y ?? .zero)
                     }
             }
         }
-        .onPreferenceChange(CellSizeKey.self) {
+        .onPreferenceChange(FlowContentSizeKey.self) {
             self.sizes = $0
         }
     }
