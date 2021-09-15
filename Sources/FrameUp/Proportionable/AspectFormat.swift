@@ -1,6 +1,6 @@
 //
-//  File.swift
-//  File
+//  AspectFormat.swift
+//  FrameUp
 //
 //  Created by Ryan Lintott on 2021-09-11.
 //

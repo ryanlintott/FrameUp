@@ -1,6 +1,6 @@
 //
 //  CGSize+extensions.swift
-//  ShapeUp
+//  FrameUp
 //
 //  Created by Ryan Lintott on 2020-09-21.
 //

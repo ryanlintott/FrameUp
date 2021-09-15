@@ -1,6 +1,6 @@
 //
 //  Proportionable.swift
-//  ShapeUp
+//  FrameUp
 //
 //  Created by Ryan Lintott on 2021-09-03.
 //

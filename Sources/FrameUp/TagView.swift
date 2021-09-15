@@ -3,9 +3,7 @@
 //  FrameUp
 //
 //  Created by Ryan Lintott on 2021-04-23.
-//
-
-// Inspired by: https://stackoverflow.com/questions/62102647/swiftui-hstack-with-wrap-and-dynamic-height/62103264#62103264
+//  Inspired by: https://stackoverflow.com/questions/62102647/swiftui-hstack-with-wrap-and-dynamic-height/62103264#62103264
 
 import SwiftUI
 
