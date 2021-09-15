@@ -13,7 +13,7 @@ public struct HFlow<Data: RandomAccessCollection, Content: View>: View where Dat
     let maxRowHeight: CGFloat
     let horizontalSpacing: CGFloat
     let verticalSpacing: CGFloat
-    var content: (Data.Element) -> Content
+    let content: (Data.Element) -> Content
     
     @State private var sizes: [Int: CGSize] = [:]
     
