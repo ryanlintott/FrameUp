@@ -18,7 +18,7 @@ public struct TabMenuView<Tab: Hashable, Content: View>: View {
     public init(selection: Binding<Tab>, items: [TabMenuItem<Tab>], isShowingName: Bool? = nil, maskedView: @escaping (Bool) -> Content, onReselect: (() -> Void)? = nil, onDoubleTap: (() -> Void)? = nil) {
         self._selection = selection
         self.items = items
-        self.isShowingName = isShowingName ?? (items.first(where: { $0.name != nil }) == nil) ? false : true
+        self.isShowingName = isShowingName ?? (items.first(where: { $0.name != nil }) != nil)
         self.maskedView = maskedView
         self.onReselect = onReselect
         self.onDoubleTap = onDoubleTap
