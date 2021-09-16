@@ -34,13 +34,11 @@ public struct OverlappingImage: View {
     }
     
     public init(uiImage: UIImage, top: CGFloat = 0, bottom: CGFloat = 0) {
-        let aspectRatio = uiImage.size.width / uiImage.size.height
-        self.init(Image(uiImage: uiImage), aspectRatio: aspectRatio, top: top, bottom: bottom)
+        self.init(Image(uiImage: uiImage), aspectRatio: uiImage.size.aspectRatio, top: top, bottom: bottom)
     }
     
     public init(uiImage: UIImage, left: CGFloat = 0, right: CGFloat = 0) {
-        let aspectRatio = uiImage.size.width / uiImage.size.height
-        self.init(Image(uiImage: uiImage), aspectRatio: aspectRatio, left: left, right: right)
+        self.init(Image(uiImage: uiImage), aspectRatio: uiImage.size.aspectRatio, left: left, right: right)
     }
     
     public var body: some View {
