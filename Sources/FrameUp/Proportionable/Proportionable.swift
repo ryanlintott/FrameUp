@@ -18,7 +18,7 @@ public extension Proportionable {
     }
     
     var aspectRatio: CGFloat {
-        (width / height).magnitude
+        width / height
     }
 
     var minDimension: CGFloat {
