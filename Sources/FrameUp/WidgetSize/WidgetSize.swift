@@ -7,11 +7,15 @@
 
 import SwiftUI
 
-public enum WidgetSize: String {
+public enum WidgetSize: String, Identifiable {
     case small
     case medium
     case large
     case extraLarge
+    
+    public var id: String {
+        self.rawValue
+    }
 }
 
 public enum WidgetTarget {
