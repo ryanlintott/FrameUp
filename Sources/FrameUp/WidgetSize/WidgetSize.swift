@@ -1,52 +1,48 @@
 //
-//  WidgetFamily-extension.swift
-//  FrameUp
+//  File.swift
+//  
 //
-//  Created by Ryan Lintott on 2021-05-28.
+//  Created by Ryan Lintott on 2021-09-17.
 //
 
 import SwiftUI
-import WidgetKit
 
-@available(iOS 14, *)
-@available(tvOS, unavailable)
-@available(macCatalyst, unavailable)
-extension WidgetFamily {
-    public enum WidgetTarget {
-        case designCanvas, homeScreen
-    }
-    
-    public static var supportedFamiliesForCurrentDevice: [WidgetFamily] {
+public enum WidgetSize: String {
+    case small
+    case medium
+    case large
+    case extraLarge
+}
+
+public enum WidgetTarget {
+    case designCanvas, homeScreen
+}
+
+extension WidgetSize {
+    public static var supportedSizesForCurrentDevice: [WidgetSize] {
         switch UIDevice.current.userInterfaceIdiom {
         case .pad:
             if #available(iOS 15.0, *) {
-                return [.systemSmall, .systemMedium, .systemLarge, .systemExtraLarge]
+                return [.small, .medium, .large, .extraLarge]
             } else {
                 fallthrough
             }
         case .phone:
-            return [.systemSmall, .systemMedium, .systemLarge]
+            return [.small, .medium, .large]
         default:
             return []
         }
     }
     
     /// Smallest widget size possibe for each WidgetFamily
-    public static var minimumSizes: [WidgetFamily: CGSize] {
-        var sizes: [WidgetFamily: CGSize] = [
-            .systemSmall: CGSize(width: 141, height: 141),
-            .systemMedium: CGSize(width: 292, height: 141),
-            .systemLarge: CGSize(width: 292, height: 311)
+    public static let minimumSizes: [WidgetSize: CGSize] = [
+            .small: CGSize(width: 141, height: 141),
+            .medium: CGSize(width: 292, height: 141),
+            .large: CGSize(width: 292, height: 311),
+            .extraLarge: CGSize(width: 540, height: 260)
         ]
-        
-        if #available(iOS 15, *) {
-            sizes[.systemExtraLarge] = CGSize(width: 540, height: 260)
-        }
-        
-        return sizes
-    }
     
-    public static func sizesForiPhone(screenSize: CGSize) -> [WidgetFamily: CGSize] {
+    public static func sizesForiPhone(screenSize: CGSize) -> [WidgetSize: CGSize] {
         let widgetSizes: ((CGFloat, CGFloat), (CGFloat, CGFloat), (CGFloat, CGFloat))
         
         // source: https://developer.apple.com/design/human-interface-guidelines/widgets/overview/design/
@@ -64,13 +60,13 @@ extension WidgetFamily {
         }
         
         return [
-            .systemSmall: CGSize(width: widgetSizes.0.0, height: widgetSizes.0.1),
-            .systemMedium: CGSize(width: widgetSizes.1.0, height: widgetSizes.1.1),
-            .systemLarge: CGSize(width: widgetSizes.2.0, height: widgetSizes.2.1)
+            .small: CGSize(width: widgetSizes.0.0, height: widgetSizes.0.1),
+            .medium: CGSize(width: widgetSizes.1.0, height: widgetSizes.1.1),
+            .large: CGSize(width: widgetSizes.2.0, height: widgetSizes.2.1)
         ]
     }
 
-    public static func sizesForiPad(screenSize: CGSize, target: WidgetTarget) -> [WidgetFamily: CGSize] {
+    public static func sizesForiPad(screenSize: CGSize, target: WidgetTarget) -> [WidgetSize: CGSize] {
         let widgetSizes: ((CGFloat, CGFloat), (CGFloat, CGFloat), (CGFloat, CGFloat), (CGFloat, CGFloat))
         
         // source: https://developer.apple.com/design/human-interface-guidelines/widgets/overview/design/
@@ -99,17 +95,12 @@ extension WidgetFamily {
             }
         }
         
-        var sizes: [WidgetFamily: CGSize] = [
-            .systemSmall: CGSize(width: widgetSizes.0.0, height: widgetSizes.0.1),
-            .systemMedium: CGSize(width: widgetSizes.1.0, height: widgetSizes.1.1),
-            .systemLarge: CGSize(width: widgetSizes.2.0, height: widgetSizes.2.1)
+        return [
+            .small: CGSize(width: widgetSizes.0.0, height: widgetSizes.0.1),
+            .medium: CGSize(width: widgetSizes.1.0, height: widgetSizes.1.1),
+            .large: CGSize(width: widgetSizes.2.0, height: widgetSizes.2.1),
+            .extraLarge: CGSize(width: widgetSizes.3.0, height: widgetSizes.3.1)
         ]
-        
-        if #available(iOS 15, *) {
-            sizes[.systemExtraLarge] = CGSize(width: widgetSizes.3.0, height: widgetSizes.3.1)
-        }
-        
-        return sizes
     }
     
     public var minimumSize: CGSize {
@@ -137,3 +128,4 @@ extension WidgetFamily {
         }
     }
 }
+
