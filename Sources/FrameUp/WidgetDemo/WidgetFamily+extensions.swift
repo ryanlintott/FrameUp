@@ -124,7 +124,7 @@ extension WidgetFamily {
         Self.sizesForiPad(screenSize: screenSize, target: target)[self] ?? .zero
     }
     
-    public func sizeForCurrentDevice(iPadTarget: WidgetTarget = .homeScreen) -> CGSize {
+    public func sizeForCurrentDevice(iPadTarget: WidgetTarget = .designCanvas) -> CGSize {
         let screenSize = UIScreen.main.bounds.size
         
         switch UIDevice.current.userInterfaceIdiom {
