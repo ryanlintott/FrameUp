@@ -22,8 +22,8 @@ public enum WidgetTarget {
     case designCanvas, homeScreen
 }
 
-extension WidgetSize {
-    public static var supportedSizesForCurrentDevice: [WidgetSize] {
+public extension WidgetSize {
+    static var supportedSizesForCurrentDevice: [WidgetSize] {
         switch UIDevice.current.userInterfaceIdiom {
         case .pad:
             if #available(iOS 15.0, *) {
@@ -39,14 +39,14 @@ extension WidgetSize {
     }
     
     /// Smallest widget size possibe for each WidgetFamily
-    public static let minimumSizes: [WidgetSize: CGSize] = [
+    static let minimumSizes: [WidgetSize: CGSize] = [
             .small: CGSize(width: 141, height: 141),
             .medium: CGSize(width: 292, height: 141),
             .large: CGSize(width: 292, height: 311),
             .extraLarge: CGSize(width: 540, height: 260)
         ]
     
-    public static func sizesForiPhone(screenSize: CGSize) -> [WidgetSize: CGSize] {
+    static func sizesForiPhone(screenSize: CGSize) -> [WidgetSize: CGSize] {
         let widgetSizes: ((CGFloat, CGFloat), (CGFloat, CGFloat), (CGFloat, CGFloat))
         
         // source: https://developer.apple.com/design/human-interface-guidelines/widgets/overview/design/
@@ -70,7 +70,7 @@ extension WidgetSize {
         ]
     }
 
-    public static func sizesForiPad(screenSize: CGSize, target: WidgetTarget) -> [WidgetSize: CGSize] {
+    static func sizesForiPad(screenSize: CGSize, target: WidgetTarget) -> [WidgetSize: CGSize] {
         let widgetSizes: ((CGFloat, CGFloat), (CGFloat, CGFloat), (CGFloat, CGFloat), (CGFloat, CGFloat))
         
         // source: https://developer.apple.com/design/human-interface-guidelines/widgets/overview/design/
@@ -107,19 +107,19 @@ extension WidgetSize {
         ]
     }
     
-    public var minimumSize: CGSize {
+    var minimumSize: CGSize {
         Self.minimumSizes[self] ?? .zero
     }
     
-    public func sizeForiPhone(screenSize: CGSize) -> CGSize {
+    func sizeForiPhone(screenSize: CGSize) -> CGSize {
         Self.sizesForiPhone(screenSize: screenSize)[self] ?? .zero
     }
     
-    public func sizeForiPad(screenSize: CGSize, target: WidgetTarget) -> CGSize {
+    func sizeForiPad(screenSize: CGSize, target: WidgetTarget) -> CGSize {
         Self.sizesForiPad(screenSize: screenSize, target: target)[self] ?? .zero
     }
     
-    public func sizeForCurrentDevice(iPadTarget: WidgetTarget = .designCanvas) -> CGSize {
+    func sizeForCurrentDevice(iPadTarget: WidgetTarget = .designCanvas) -> CGSize {
         let screenSize = UIScreen.main.bounds.size
         
         switch UIDevice.current.userInterfaceIdiom {

@@ -8,12 +8,12 @@
 import SwiftUI
 import WidgetKit
 
-extension WidgetFamily {
-    public static var supportedFamiliesForCurrentDevice: [WidgetFamily] {
+public extension WidgetFamily {
+    static var supportedFamiliesForCurrentDevice: [WidgetFamily] {
         WidgetSize.supportedSizesForCurrentDevice.compactMap { $0.widgetFamily }
     }
     
-    public var size: WidgetSize? {
+    var size: WidgetSize? {
         switch self {
         case .systemSmall: return .small
         case .systemMedium: return .medium

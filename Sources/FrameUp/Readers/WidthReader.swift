@@ -7,6 +7,8 @@
 
 import SwiftUI
 
+/// Only one key is necessary and works even in nested situations because the value is captured and used inside reader view.
+/// Nested views will replace the value before reading it so the correct value should always be sent through.
 public struct WidthKey: PreferenceKey {
     public typealias Value = CGFloat
     public static let defaultValue: CGFloat = .zero
@@ -36,8 +38,7 @@ public struct WidthReader<Content: View>: View {
             .onPreferenceChange(WidthKey.self) { width in
                 self.width = width
             }
-            
-            
+
             content(width)
         }
     }

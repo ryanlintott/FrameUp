@@ -1,13 +1,14 @@
 //
-//  SwiftUIView.swift
-//  
+//  ProportionableSize.swift
+//  FrameUp
 //
 //  Created by Ryan Lintott on 2021-09-16.
 //
 
 import SwiftUI
 
-internal struct ProportionableSize: Proportionable {
+/// Used to easily add internal Proportionable conformance to CGSize
+fileprivate struct ProportionableSize: Proportionable {
     var width: CGFloat
     var height: CGFloat
     
@@ -18,7 +19,7 @@ internal struct ProportionableSize: Proportionable {
 }
 
 internal extension CGSize {
-    var proportionableSize: ProportionableSize {
+    fileprivate var proportionableSize: ProportionableSize {
         ProportionableSize(self)
     }
     
