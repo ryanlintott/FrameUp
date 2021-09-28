@@ -33,30 +33,27 @@ public struct SmartScrollView<Content: View>: View {
     @Binding var edgeInsets: EdgeInsets?
     let content: () -> Content
     
-    @State private var contentSize: CGSize? = nil
     @State private var recommendedAxes: Axis.Set? = nil
+    @State private var contentSize: CGSize? = nil
+    @State private var frameSize: CGSize? = nil
     
     var activeAxes: Axis.Set {
-        guard optionalScrolling else {
+        guard optionalScrolling, let recommendedAxes = recommendedAxes else {
             return axes
         }
-        return recommendedAxes?.intersection(axes) ?? axes
+        return recommendedAxes.intersection(axes)
     }
     
     var maxWidth: CGFloat? {
         if axes.contains(.vertical) || shrinkToFit {
-            if recommendedAxes?.contains(.horizontal) == false {
-                return contentSize?.width
-            }
+            return contentSize?.width
         }
         return nil
     }
     
     var maxHeight: CGFloat? {
         if axes.contains(.horizontal) || shrinkToFit {
-            if recommendedAxes?.contains(.vertical) == false {
-                return contentSize?.height
-            }
+            return contentSize?.height
         }
         return nil
     }
@@ -81,71 +78,60 @@ public struct SmartScrollView<Content: View>: View {
         GeometryReader { proxy in
             ScrollView(activeAxes, showsIndicators: showsIndicators) {
                 content()
-//                    .anchorPreference(key: EdgeInsetKey.self, value: .bounds) {
-//                        let rect = proxy[$0]
-//                        let top = rect.minY
-//                        let bottom = proxy.size.height - rect.maxY
-//                        let leading = rect.minX
-//                        let trailing = proxy.size.width - rect.maxX
-//                        return EdgeInsets(top: top, leading: leading, bottom: bottom, trailing: trailing)
-//                    }
                     .anchorPreference(key: SmartScrollViewKey.self, value: .bounds) {
-//                        let size = CGSize(width: min(proxy.size.width, proxy[$0].width), height: min(proxy.size.height, proxy[$0].height))
-                        
                         let contentSize = CGSize(width: proxy[$0].width, height: proxy[$0].height)
                         let frameSize = proxy.size
                         
                         var recommendedAxes: Axis.Set = []
-                        switch (axes, self.recommendedAxes) {
-                        case (.vertical, []):
-                            if contentSize.height > frameSize.height {
-                                recommendedAxes = [.vertical, .horizontal]
-                            }
-                        case (.vertical, .vertical):
-                            if contentSize.height > frameSize.height && contentSize.width <= frameSize.width {
-                                recommendedAxes = .vertical
-                            }
-                        case (.vertical, [.vertical, .horizontal]):
-                            if contentSize.height > frameSize.height {
-                                recommendedAxes.update(with: .vertical)
-                            }
-                            
+                        if contentSize.height > frameSize.height && !recommendedAxes.contains(.vertical) {
+                            recommendedAxes.update(with: .vertical)
                         }
                         
-                        if contentSize.height > frameSize.height || contentSize.width > frameSize.width {
-                            recommendedAxes = [.vertical, .horizontal]
-                        }
-                        if contentSize.width < frameSize.width {
-                            recommendedAxes.remove(.horizontal)
-                        }
-                        if contentSize.height < frameSize.height {
-                            recommendedAxes.remove(.vertical)
+                        if contentSize.width > frameSize.width {
+                            recommendedAxes.update(with: .horizontal)
                         }
                         
-//                        if axes == .vertical && recommendedAxes {
-//                            recommendedAxes.remove(.horizontal)
-//                        }
-//                        if contentSize.width > frameSize.width {
-//                            recommendedAxes.update(with: .horizontal)
-//                        }
+                        if shrinkToFit {
+                            if let previousContentSize = self.contentSize {
+                                if contentSize.height > previousContentSize.height || contentSize.width > previousContentSize.width {
+                                    return SmartScrollViewSettings(recommendedAxes: recommendedAxes, contentSize: nil)
+                                }
+                            }
+                        }
                         
                         return SmartScrollViewSettings(recommendedAxes: recommendedAxes, contentSize: contentSize)
                     }
+                    .anchorPreference(key: EdgeInsetKey.self, value: .bounds) {
+                        let rect = proxy[$0]
+                        let top = rect.minY
+                        let bottom = proxy.size.height - rect.maxY
+                        let leading = rect.minX
+                        let trailing = proxy.size.width - rect.maxX
+                        return EdgeInsets(top: top, leading: leading, bottom: bottom, trailing: trailing)
+                    }
                     .fixedSize(horizontal: axes.contains(.horizontal), vertical: axes.contains(.vertical))
             }
-            .background(Color.red.opacity(0.5))
-//            .anchorPreference(key: SizeKey.self, value: .bounds) {
-//                proxy[$0].size
-//            }
         }
-//        .frame(width: width, height: height)
         .frame(maxWidth: maxWidth, maxHeight: maxHeight)
-//        .onPreferenceChange(EdgeInsetKey.self) { value in
-//            edgeInsets = value
-//        }
+        .onPreferenceChange(EdgeInsetKey.self) { value in
+            edgeInsets = value
+        }
         .onPreferenceChange(SmartScrollViewKey.self) { value in
             recommendedAxes = value.recommendedAxes
             contentSize = value.contentSize
         }
+        /// Debugging overlay
+//        .overlay(
+//            VStack(alignment: .trailing) {
+//                Text("axes: \(axes.rawValue)")
+//                Text("recommended: \(recommendedAxes?.rawValue ?? -1)")
+//                Text("active: \(activeAxes.rawValue)")
+//                Text("contentSize: \(contentSize?.width ?? -1)  \(contentSize?.height ?? -1)")
+//            }
+//                .background(Color.gray.opacity(0.5))
+//                .allowsHitTesting(false)
+//
+//            , alignment: .bottomTrailing
+//        )
     }
 }
