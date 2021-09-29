@@ -124,7 +124,7 @@ public struct SmartScrollView<Content: View>: View {
         }
         .frame(maxWidth: maxWidth, maxHeight: maxHeight)
         .onPreferenceChange(SmartScrollViewKey.self) { value in
-            DispatchQueue.main.async {
+//            DispatchQueue.main.async {
                 onScroll?(value.edgeInsets)
                 
                 if optionalScrolling && recommendedAxes != value.recommendedAxes {
@@ -133,7 +133,7 @@ public struct SmartScrollView<Content: View>: View {
                 if contentSize != value.contentSize {
                     contentSize = value.contentSize
                 }
-            }
+//            }
         }
         /// Debugging overlay
 //        .overlay(
