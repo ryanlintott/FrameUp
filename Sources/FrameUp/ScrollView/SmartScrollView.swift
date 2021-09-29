@@ -25,13 +25,6 @@ public struct SmartScrollViewKey: PreferenceKey {
     }
 }
 
-public struct EdgeInsetKey: PreferenceKey {
-    public static var defaultValue: EdgeInsets? = nil
-    public static func reduce(value: inout EdgeInsets?, nextValue: () -> EdgeInsets?) {
-        value = nextValue()
-    }
-}
-
 public struct SmartScrollView<Content: View>: View {
     let axes: Axis.Set
     let showsIndicators: Bool
@@ -44,7 +37,10 @@ public struct SmartScrollView<Content: View>: View {
     @State private var contentSize: CGSize? = nil
     
     var activeAxes: Axis.Set {
-        recommendedAxes?.intersection(axes) ?? axes
+        guard optionalScrolling else {
+            return axes
+        }
+        return recommendedAxes?.intersection(axes) ?? axes
     }
     
     var maxWidth: CGFloat? {
@@ -82,50 +78,42 @@ public struct SmartScrollView<Content: View>: View {
             ScrollView(activeAxes, showsIndicators: showsIndicators) {
                 content
                     .anchorPreference(key: SmartScrollViewKey.self, value: .bounds) {
-                        var recommendedAxes: Axis.Set = []
                         let rect = proxy[$0]
-                        let contentSize = rect.size
-                        var edgeInsets = EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0)
+                        var newRecommendedAxes: Axis.Set = []
+                        var newContentSize = rect.size
                         let frameSize = proxy.size
                         
                         if optionalScrolling {
-                            if contentSize.height > frameSize.height && !recommendedAxes.contains(.vertical) {
-                                recommendedAxes.update(with: .vertical)
+                            if newContentSize.height > frameSize.height && !newRecommendedAxes.contains(.vertical) {
+                                newRecommendedAxes.update(with: .vertical)
                             }
                             
-                            if contentSize.width > frameSize.width {
-                                recommendedAxes.update(with: .horizontal)
+                            if newContentSize.width > frameSize.width {
+                                newRecommendedAxes.update(with: .horizontal)
                             }
                         }
                         
-                        if activeAxes.contains(.vertical) {
-                            if optionalScrolling && !recommendedAxes.contains(.vertical) {
-                                edgeInsets.top = 0
-                                edgeInsets.bottom = 0
-                            } else {
-                                edgeInsets.top = rect.minY
-                                edgeInsets.bottom = frameSize.height - rect.maxY
+                        var newEdgeInsets = EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0)
+                        if activeAxes.contains(.vertical) && newRecommendedAxes.contains(.vertical) {
+                            newEdgeInsets.top = rect.minY
+                            newEdgeInsets.bottom = frameSize.height - rect.maxY
+                        }
+                        
+                        if activeAxes.contains(.horizontal) && newRecommendedAxes.contains(.horizontal) {
+                            newEdgeInsets.leading = rect.minX
+                            newEdgeInsets.trailing = frameSize.width - rect.maxX
+                        }
+                        
+                        if let contentSize = self.contentSize {
+                            let heightReset = (axes.contains(.horizontal) || shrinkToFit) && newContentSize.height > contentSize.height
+                            let widthReset = (axes.contains(.vertical) || shrinkToFit) && newContentSize.width > contentSize.width
+                            
+                            if heightReset || widthReset {
+                                return SmartScrollViewSettings(recommendedAxes: newRecommendedAxes, contentSize: nil, edgeInsets: newEdgeInsets)
                             }
                         }
                         
-                        if activeAxes.contains(.horizontal) {
-                            if optionalScrolling && !recommendedAxes.contains(.horizontal) {
-                                edgeInsets.leading = 0
-                                edgeInsets.trailing = 0
-                            } else {
-                                edgeInsets.leading = rect.minX
-                                edgeInsets.trailing = frameSize.width - rect.maxX
-                            }
-                        }
-                        
-                        if shrinkToFit, let previousContentSize = self.contentSize {
-                            if contentSize.height > previousContentSize.height || contentSize.width > previousContentSize.width {
-                                /// set contentsize to nil as content may grow vertically when it really needs to grow horizontally but can't
-                                return SmartScrollViewSettings(recommendedAxes: recommendedAxes, contentSize: nil, edgeInsets: edgeInsets)
-                            }
-                        }
-                        
-                        return SmartScrollViewSettings(recommendedAxes: recommendedAxes, contentSize: contentSize, edgeInsets: edgeInsets)
+                        return SmartScrollViewSettings(recommendedAxes: newRecommendedAxes, contentSize: newContentSize, edgeInsets: newEdgeInsets)
                     }
                     .fixedSize(horizontal: axes.contains(.horizontal), vertical: axes.contains(.vertical))
             }

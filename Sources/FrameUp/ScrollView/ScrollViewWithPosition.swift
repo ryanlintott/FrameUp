@@ -7,6 +7,14 @@
 
 import SwiftUI
 
+
+//public struct EdgeInsetKey: PreferenceKey {
+//    public static var defaultValue: EdgeInsets? = nil
+//    public static func reduce(value: inout EdgeInsets?, nextValue: () -> EdgeInsets?) {
+//        value = nextValue()
+//    }
+//}
+
 //public struct SizeKey: PreferenceKey {
 //    public static var defaultValue: CGSize = .zero
 //    public static func reduce(value: inout CGSize, nextValue: () -> CGSize) {
