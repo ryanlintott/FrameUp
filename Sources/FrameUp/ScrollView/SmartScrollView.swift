@@ -24,18 +24,23 @@ public struct SmartScrollViewKey: PreferenceKey {
     }
 }
 
-/// Do not use directly inside a NavigationView
+public struct EdgeInsetKey: PreferenceKey {
+    public static var defaultValue: EdgeInsets? = nil
+    public static func reduce(value: inout EdgeInsets?, nextValue: () -> EdgeInsets?) {
+        value = nextValue()
+    }
+}
+
 public struct SmartScrollView<Content: View>: View {
     let axes: Axis.Set
     let showsIndicators: Bool
     let optionalScrolling: Bool
     let shrinkToFit: Bool
-    @Binding var edgeInsets: EdgeInsets?
     let content: () -> Content
+    let onScroll: ((EdgeInsets?) -> Void)?
     
     @State private var recommendedAxes: Axis.Set? = nil
     @State private var contentSize: CGSize? = nil
-    @State private var frameSize: CGSize? = nil
     
     var activeAxes: Axis.Set {
         guard optionalScrolling, let recommendedAxes = recommendedAxes else {
@@ -63,15 +68,15 @@ public struct SmartScrollView<Content: View>: View {
         showsIndicators: Bool = true,
         optionalScrolling: Bool = false,
         shrinkToFit: Bool = false,
-        edgeInsets: Binding<EdgeInsets?> = .constant(nil),
-        content: @escaping () -> Content)
-    {
+        content: @escaping () -> Content,
+        onScroll: ((EdgeInsets?) -> Void)? = nil
+    ) {
         self.axes = axes
         self.showsIndicators = showsIndicators
         self.optionalScrolling = optionalScrolling
         self.shrinkToFit = shrinkToFit
-        self._edgeInsets = edgeInsets
         self.content = content
+        self.onScroll = onScroll
     }
     
     public var body: some View {
@@ -79,23 +84,24 @@ public struct SmartScrollView<Content: View>: View {
             ScrollView(activeAxes, showsIndicators: showsIndicators) {
                 content()
                     .anchorPreference(key: SmartScrollViewKey.self, value: .bounds) {
-                        let contentSize = CGSize(width: proxy[$0].width, height: proxy[$0].height)
-                        let frameSize = proxy.size
-                        
                         var recommendedAxes: Axis.Set = []
-                        if contentSize.height > frameSize.height && !recommendedAxes.contains(.vertical) {
-                            recommendedAxes.update(with: .vertical)
+                        let contentSize = CGSize(width: proxy[$0].width, height: proxy[$0].height)
+                        
+                        if optionalScrolling {
+                            let frameSize = proxy.size
+                            if contentSize.height > frameSize.height && !recommendedAxes.contains(.vertical) {
+                                recommendedAxes.update(with: .vertical)
+                            }
+                            
+                            if contentSize.width > frameSize.width {
+                                recommendedAxes.update(with: .horizontal)
+                            }
                         }
                         
-                        if contentSize.width > frameSize.width {
-                            recommendedAxes.update(with: .horizontal)
-                        }
-                        
-                        if shrinkToFit {
-                            if let previousContentSize = self.contentSize {
-                                if contentSize.height > previousContentSize.height || contentSize.width > previousContentSize.width {
-                                    return SmartScrollViewSettings(recommendedAxes: recommendedAxes, contentSize: nil)
-                                }
+                        if shrinkToFit, let previousContentSize = self.contentSize {
+                            if contentSize.height > previousContentSize.height || contentSize.width > previousContentSize.width {
+                                /// set contentsize to nil as content may grow vertically when it really needs to grow horizontally but can't
+                                return SmartScrollViewSettings(recommendedAxes: recommendedAxes, contentSize: nil)
                             }
                         }
                         
@@ -103,22 +109,31 @@ public struct SmartScrollView<Content: View>: View {
                     }
                     .anchorPreference(key: EdgeInsetKey.self, value: .bounds) {
                         let rect = proxy[$0]
-                        let top = rect.minY
-                        let bottom = proxy.size.height - rect.maxY
-                        let leading = rect.minX
-                        let trailing = proxy.size.width - rect.maxX
-                        return EdgeInsets(top: top, leading: leading, bottom: bottom, trailing: trailing)
+                        var edgeInsets = EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0)
+                        if activeAxes.contains(.vertical) {
+                            edgeInsets.top = rect.minY
+                            edgeInsets.bottom = proxy.size.height - rect.maxY
+                        }
+                        if activeAxes.contains(.horizontal) {
+                            edgeInsets.leading = rect.minX
+                            edgeInsets.trailing = proxy.size.width - rect.maxX
+                        }
+                        return edgeInsets
                     }
                     .fixedSize(horizontal: axes.contains(.horizontal), vertical: axes.contains(.vertical))
             }
         }
         .frame(maxWidth: maxWidth, maxHeight: maxHeight)
         .onPreferenceChange(EdgeInsetKey.self) { value in
-            edgeInsets = value
+            onScroll?(value)
         }
         .onPreferenceChange(SmartScrollViewKey.self) { value in
-            recommendedAxes = value.recommendedAxes
-            contentSize = value.contentSize
+            if optionalScrolling && recommendedAxes != value.recommendedAxes {
+                recommendedAxes = value.recommendedAxes
+            }
+            if contentSize != value.contentSize {
+                contentSize = value.contentSize
+            }
         }
         /// Debugging overlay
 //        .overlay(
