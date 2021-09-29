@@ -10,9 +10,10 @@ import SwiftUI
 public struct SmartScrollViewSettings: Equatable {
     public var recommendedAxes: Axis.Set?
     public var contentSize: CGSize?
+    public var edgeInsets: EdgeInsets?
 
     public static var defaultValue: Self {
-        SmartScrollViewSettings(recommendedAxes: nil, contentSize: nil)
+        SmartScrollViewSettings(recommendedAxes: nil, contentSize: nil, edgeInsets: nil)
     }
 }
 
@@ -85,10 +86,21 @@ public struct SmartScrollView<Content: View>: View {
                 content()
                     .anchorPreference(key: SmartScrollViewKey.self, value: .bounds) {
                         var recommendedAxes: Axis.Set = []
-                        let contentSize = CGSize(width: proxy[$0].width, height: proxy[$0].height)
+                        let rect = proxy[$0]
+                        let contentSize = rect.size
+                        var edgeInsets = EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0)
+                        let frameSize = proxy.size
+                        
+                        if activeAxes.contains(.vertical) {
+                            edgeInsets.top = rect.minY
+                            edgeInsets.bottom = frameSize.height - rect.maxY
+                        }
+                        if activeAxes.contains(.horizontal) {
+                            edgeInsets.leading = rect.minX
+                            edgeInsets.trailing = frameSize.width - rect.maxX
+                        }
                         
                         if optionalScrolling {
-                            let frameSize = proxy.size
                             if contentSize.height > frameSize.height && !recommendedAxes.contains(.vertical) {
                                 recommendedAxes.update(with: .vertical)
                             }
@@ -101,38 +113,26 @@ public struct SmartScrollView<Content: View>: View {
                         if shrinkToFit, let previousContentSize = self.contentSize {
                             if contentSize.height > previousContentSize.height || contentSize.width > previousContentSize.width {
                                 /// set contentsize to nil as content may grow vertically when it really needs to grow horizontally but can't
-                                return SmartScrollViewSettings(recommendedAxes: recommendedAxes, contentSize: nil)
+                                return SmartScrollViewSettings(recommendedAxes: recommendedAxes, contentSize: nil, edgeInsets: edgeInsets)
                             }
                         }
                         
-                        return SmartScrollViewSettings(recommendedAxes: recommendedAxes, contentSize: contentSize)
-                    }
-                    .anchorPreference(key: EdgeInsetKey.self, value: .bounds) {
-                        let rect = proxy[$0]
-                        var edgeInsets = EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0)
-                        if activeAxes.contains(.vertical) {
-                            edgeInsets.top = rect.minY
-                            edgeInsets.bottom = proxy.size.height - rect.maxY
-                        }
-                        if activeAxes.contains(.horizontal) {
-                            edgeInsets.leading = rect.minX
-                            edgeInsets.trailing = proxy.size.width - rect.maxX
-                        }
-                        return edgeInsets
+                        return SmartScrollViewSettings(recommendedAxes: recommendedAxes, contentSize: contentSize, edgeInsets: edgeInsets)
                     }
                     .fixedSize(horizontal: axes.contains(.horizontal), vertical: axes.contains(.vertical))
             }
         }
         .frame(maxWidth: maxWidth, maxHeight: maxHeight)
-        .onPreferenceChange(EdgeInsetKey.self) { value in
-            onScroll?(value)
-        }
         .onPreferenceChange(SmartScrollViewKey.self) { value in
-            if optionalScrolling && recommendedAxes != value.recommendedAxes {
-                recommendedAxes = value.recommendedAxes
-            }
-            if contentSize != value.contentSize {
-                contentSize = value.contentSize
+            DispatchQueue.main.async {
+                onScroll?(value.edgeInsets)
+                
+                if optionalScrolling && recommendedAxes != value.recommendedAxes {
+                    recommendedAxes = value.recommendedAxes
+                }
+                if contentSize != value.contentSize {
+                    contentSize = value.contentSize
+                }
             }
         }
         /// Debugging overlay
