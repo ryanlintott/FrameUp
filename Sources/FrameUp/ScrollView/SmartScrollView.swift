@@ -94,12 +94,12 @@ public struct SmartScrollView<Content: View>: View {
                         }
                         
                         var newEdgeInsets = EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0)
-                        if activeAxes.contains(.vertical) && newRecommendedAxes.contains(.vertical) {
+                        if activeAxes.contains(.vertical) && (!optionalScrolling || newRecommendedAxes.contains(.vertical)) {
                             newEdgeInsets.top = rect.minY
                             newEdgeInsets.bottom = frameSize.height - rect.maxY
                         }
                         
-                        if activeAxes.contains(.horizontal) && newRecommendedAxes.contains(.horizontal) {
+                        if activeAxes.contains(.horizontal) && (!optionalScrolling || newRecommendedAxes.contains(.horizontal)) {
                             newEdgeInsets.leading = rect.minX
                             newEdgeInsets.trailing = frameSize.width - rect.maxX
                         }
