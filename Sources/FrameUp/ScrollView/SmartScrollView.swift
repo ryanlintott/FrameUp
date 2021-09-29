@@ -37,7 +37,7 @@ public struct SmartScrollView<Content: View>: View {
     let showsIndicators: Bool
     let optionalScrolling: Bool
     let shrinkToFit: Bool
-    let content: () -> Content
+    let content: Content
     let onScroll: ((EdgeInsets?) -> Void)?
     
     @State private var recommendedAxes: Axis.Set? = nil
@@ -66,36 +66,27 @@ public struct SmartScrollView<Content: View>: View {
         showsIndicators: Bool = true,
         optionalScrolling: Bool = false,
         shrinkToFit: Bool = false,
-        content: @escaping () -> Content,
+        content: () -> Content,
         onScroll: ((EdgeInsets?) -> Void)? = nil
     ) {
         self.axes = axes
         self.showsIndicators = showsIndicators
         self.optionalScrolling = optionalScrolling
         self.shrinkToFit = shrinkToFit
-        self.content = content
+        self.content = content()
         self.onScroll = onScroll
     }
     
     public var body: some View {
         GeometryReader { proxy in
             ScrollView(activeAxes, showsIndicators: showsIndicators) {
-                content()
+                content
                     .anchorPreference(key: SmartScrollViewKey.self, value: .bounds) {
                         var recommendedAxes: Axis.Set = []
                         let rect = proxy[$0]
                         let contentSize = rect.size
                         var edgeInsets = EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0)
                         let frameSize = proxy.size
-                        
-                        if activeAxes.contains(.vertical) {
-                            edgeInsets.top = rect.minY
-                            edgeInsets.bottom = frameSize.height - rect.maxY
-                        }
-                        if activeAxes.contains(.horizontal) {
-                            edgeInsets.leading = rect.minX
-                            edgeInsets.trailing = frameSize.width - rect.maxX
-                        }
                         
                         if optionalScrolling {
                             if contentSize.height > frameSize.height && !recommendedAxes.contains(.vertical) {
@@ -104,6 +95,26 @@ public struct SmartScrollView<Content: View>: View {
                             
                             if contentSize.width > frameSize.width {
                                 recommendedAxes.update(with: .horizontal)
+                            }
+                        }
+                        
+                        if activeAxes.contains(.vertical) {
+                            if optionalScrolling && !recommendedAxes.contains(.vertical) {
+                                edgeInsets.top = 0
+                                edgeInsets.bottom = 0
+                            } else {
+                                edgeInsets.top = rect.minY
+                                edgeInsets.bottom = frameSize.height - rect.maxY
+                            }
+                        }
+                        
+                        if activeAxes.contains(.horizontal) {
+                            if optionalScrolling && !recommendedAxes.contains(.horizontal) {
+                                edgeInsets.leading = 0
+                                edgeInsets.trailing = 0
+                            } else {
+                                edgeInsets.leading = rect.minX
+                                edgeInsets.trailing = frameSize.width - rect.maxX
                             }
                         }
                         
