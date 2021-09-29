@@ -44,10 +44,7 @@ public struct SmartScrollView<Content: View>: View {
     @State private var contentSize: CGSize? = nil
     
     var activeAxes: Axis.Set {
-        guard optionalScrolling, let recommendedAxes = recommendedAxes else {
-            return axes
-        }
-        return recommendedAxes.intersection(axes)
+        recommendedAxes?.intersection(axes) ?? axes
     }
     
     var maxWidth: CGFloat? {
@@ -124,16 +121,14 @@ public struct SmartScrollView<Content: View>: View {
         }
         .frame(maxWidth: maxWidth, maxHeight: maxHeight)
         .onPreferenceChange(SmartScrollViewKey.self) { value in
-//            DispatchQueue.main.async {
-                onScroll?(value.edgeInsets)
-                
-                if optionalScrolling && recommendedAxes != value.recommendedAxes {
+            onScroll?(value.edgeInsets)
+            
+            if (optionalScrolling && recommendedAxes != value.recommendedAxes) || contentSize != value.contentSize {
+                DispatchQueue.main.async {
+                    contentSize = value.contentSize
                     recommendedAxes = value.recommendedAxes
                 }
-                if contentSize != value.contentSize {
-                    contentSize = value.contentSize
-                }
-//            }
+            }
         }
         /// Debugging overlay
 //        .overlay(
