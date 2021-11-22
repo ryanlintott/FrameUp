@@ -119,8 +119,9 @@ public extension WidgetSize {
         Self.sizesForiPad(screenSize: screenSize, target: target)[self] ?? .zero
     }
     
-    func sizeForCurrentDevice(iPadTarget: WidgetTarget = .designCanvas) -> CGSize {
-        let screenSize = UIScreen.main.bounds.size
+    func sizeForCurrentDevice(iPadTarget: WidgetTarget = .homeScreen) -> CGSize {
+        // get the screen size ignoring orientation
+        let screenSize = UIScreen.main.fixedCoordinateSpace.bounds.size
         
         switch UIDevice.current.userInterfaceIdiom {
         case .pad:
