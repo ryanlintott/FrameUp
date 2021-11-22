@@ -8,7 +8,7 @@
 import SwiftUI
 
 public extension View {
-    func frame(_ size: CGSize, alignment: Alignment = .center) -> some View {
-        self.frame(width: size.width, height: size.height, alignment: alignment)
+    func frame(_ size: CGSize?, alignment: Alignment = .center) -> some View {
+        self.frame(width: size?.width, height: size?.height, alignment: alignment)
     }
 }
