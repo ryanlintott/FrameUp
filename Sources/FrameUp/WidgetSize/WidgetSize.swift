@@ -23,8 +23,13 @@ public enum WidgetTarget {
 }
 
 public extension WidgetSize {
-    static var supportedSizesForCurrentDevice: [WidgetSize] {
-        switch UIDevice.current.userInterfaceIdiom {
+    // get the screen size ignoring orientation
+    private static let currentScreenSize = UIScreen.main.fixedCoordinateSpace.bounds.size
+    
+    private static let currentDevice = UIDevice.current.userInterfaceIdiom
+    
+    static func supportedSizes(for device: UIUserInterfaceIdiom) -> [WidgetSize] {
+        switch device {
         case .pad:
             if #available(iOS 15.0, *) {
                 return [.small, .medium, .large, .extraLarge]
@@ -36,6 +41,10 @@ public extension WidgetSize {
         default:
             return []
         }
+    }
+    
+    static var supportedSizesForCurrentDevice: [WidgetSize] {
+        supportedSizes(for: currentDevice)
     }
     
     /// Smallest widget size possibe for each WidgetFamily
@@ -120,17 +129,26 @@ public extension WidgetSize {
     }
     
     func sizeForCurrentDevice(iPadTarget: WidgetTarget = .homeScreen) -> CGSize {
-        // get the screen size ignoring orientation
-        let screenSize = UIScreen.main.fixedCoordinateSpace.bounds.size
-        
-        switch UIDevice.current.userInterfaceIdiom {
+        switch Self.currentDevice {
         case .pad:
-            return sizeForiPad(screenSize: screenSize, target: iPadTarget)
+            return sizeForiPad(screenSize: Self.currentScreenSize, target: iPadTarget)
         case .phone:
-            return sizeForiPhone(screenSize: screenSize)
+            return sizeForiPhone(screenSize: Self.currentScreenSize)
         default:
             return .zero
         }
+    }
+    
+    func scaleFactorForiPad(screenSize: CGSize) -> CGFloat {
+        sizeForiPad(screenSize: Self.currentScreenSize, target: .homeScreen).width / sizeForiPad(screenSize: Self.currentScreenSize, target: .designCanvas).width
+    }
+    
+    var scaleFactorForCurrentDevice: CGFloat {
+        guard Self.currentDevice == .pad else {
+            return 1
+        }
+
+        return scaleFactorForiPad(screenSize: Self.currentScreenSize)
     }
 }
 

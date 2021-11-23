@@ -80,7 +80,7 @@ public struct SmartScrollView<Content: View>: View {
                     .anchorPreference(key: SmartScrollViewKey.self, value: .bounds) {
                         let rect = proxy[$0]
                         var newRecommendedAxes: Axis.Set = []
-                        var newContentSize = rect.size
+                        let newContentSize = rect.size
                         let frameSize = proxy.size
                         
                         if optionalScrolling {
