@@ -1,6 +1,6 @@
 //
 //  FixWidgetPreviewAlignmentBug.swift
-//  
+//  FrameUp
 //
 //  Created by Ryan Lintott on 2021-11-23.
 //
@@ -8,7 +8,8 @@
 import SwiftUI
 import WidgetKit
 
-/// Not working yet!
+/// *Not working yet!* View modifier that will adjust the widget's position in SwiftUI Previews
+///
 /// Attempts to fix the widget preview alignment bug
 /// Alignment offset is different on different iPads and doesn't correspond to any variables I've tried to link it to.
 /// .top, .center and .bottom are all offset by the same amount
@@ -55,6 +56,8 @@ struct FixWidgetPreviewAlignmentBug: ViewModifier {
 @available(iOS, unavailable)
 @available(iOSApplicationExtension 14.0, *)
 public extension View {
+    /// Adjusts the vertical alignment to fix an alignment bug with iPad widgets in SwiftUI Previews.
+    ///
     /// Only for use in Widget Previews. Adjustment is manual and may not be 100% accurate
     /// - Returns: View adjusted vertically to fit within the widget cropped area.
     func fixWidgetPreviewAlignmentBug(adjustment: CGFloat) -> some View {

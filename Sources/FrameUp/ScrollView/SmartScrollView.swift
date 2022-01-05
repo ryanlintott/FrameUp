@@ -7,9 +7,13 @@
 
 import SwiftUI
 
+/// Settings used in `SmartScrollView`
 public struct SmartScrollViewSettings: Equatable {
+    /// Axes where content is larger than available space and scrolling is recommended.
     public var recommendedAxes: Axis.Set?
+    /// Size of the content.
     public var contentSize: CGSize?
+    /// Insets from the scroll view edge to the content edge. Insets will often be negative as content edges are outside the scroll view edges.
     public var edgeInsets: EdgeInsets?
 
     public static var defaultValue: Self {
@@ -17,6 +21,7 @@ public struct SmartScrollViewSettings: Equatable {
     }
 }
 
+/// A PreferenceKey used to pass SmartScrollViewSettings up the view hierarchy
 public struct SmartScrollViewKey: PreferenceKey {
     public typealias Value = SmartScrollViewSettings
     public static let defaultValue: SmartScrollViewSettings = .defaultValue
@@ -25,6 +30,7 @@ public struct SmartScrollViewKey: PreferenceKey {
     }
 }
 
+/// A ScrollView with optional scrolling, a frame that can shrink to fit the content, and a way to track edge insets as the view is scrolled.
 public struct SmartScrollView<Content: View>: View {
     let axes: Axis.Set
     let showsIndicators: Bool
@@ -57,6 +63,14 @@ public struct SmartScrollView<Content: View>: View {
         return nil
     }
     
+    /// Creates a ScrollView with several smart options
+    /// - Parameters:
+    ///   - axes: The scroll view’s scrollable axis. The default axis is the vertical axis.
+    ///   - showsIndicators: A Boolean value that indicates whether the scroll view displays the scrollable component of the content offset, in a way suitable for the platform. The default value for this parameter is true.
+    ///   - optionalScrolling: A Boolean value that indicates whether scrolling should be disabled if the content fits the available space.
+    ///   - shrinkToFit: A Boolean value that indicates whether the outer frame should shrink to fit the content.
+    ///   - content: The view builder that creates the scrollable view.
+    ///   - onScroll: An action that will be run when the view has been scrolled. Edge insets are passed as a parameter.
     public init(
         _ axes: Axis.Set = .vertical,
         showsIndicators: Bool = true,

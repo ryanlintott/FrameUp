@@ -7,8 +7,11 @@
 
 import SwiftUI
 
-/// Only one key is necessary and works even in nested situations because the value is captured and used inside reader view.
-/// Nested views will replace the value before reading it so the correct value should always be sent through.
+/// Preference key used to pass the width of a child view up the hierarchy.
+///
+/// Used by `WidthReader`.
+///
+/// Only one key is necessary and works even in nested situations because the value is captured and used inside reader view. Nested views will replace the value before reading it so the correct value should always be sent through.
 public struct WidthKey: PreferenceKey {
     public typealias Value = CGFloat
     public static let defaultValue: CGFloat = .zero
@@ -17,12 +20,17 @@ public struct WidthKey: PreferenceKey {
     }
 }
 
+/// Provides the available width while fitting to the height of the content.
 public struct WidthReader<Content: View>: View {
     let alignment: HorizontalAlignment
     @ViewBuilder let content: (CGFloat) -> Content
     
     @State private var width: CGFloat = 0
     
+    /// Creates a view that fills the available width while fitting to the height of the content
+    /// - Parameters:
+    ///   - alignment: Horizontal alignment
+    ///   - content: any `View`
     public init(alignment: HorizontalAlignment = .leading, @ViewBuilder content: @escaping (CGFloat) -> Content) {
         self.alignment = alignment
         self.content = content

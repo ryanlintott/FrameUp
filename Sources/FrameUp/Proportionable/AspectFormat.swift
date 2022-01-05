@@ -7,9 +7,15 @@
 
 import SwiftUI
 
+/// An enumeration to indicate the aspect format of a frame.
+///
+/// Used in `Proportionable` protocol
 public enum AspectFormat: CaseIterable {
     case portrait, square, landscape
     
+    /// The aspect ratio format for a given aspect ratio
+    /// - Parameter aspectRatio: Aspect ratio (width / height)
+    /// - Returns: Aspect ratio format
     public static func forRatio(_ aspectRatio: CGFloat) -> Self {
         switch aspectRatio {
         case 1:

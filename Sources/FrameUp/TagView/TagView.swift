@@ -7,11 +7,23 @@
 
 import SwiftUI
 
-// Does not work reliably in ScrollView
+/// A view that creates views based on an array of elments from left to right, adding rows when needed.
+///
+/// *Warning: Does not work in ScrollView.*
+/// Each row height will be determined by the tallest element. Using variables inside the view body is not recommended by Apple. You can use `HFlow` for a more Apple-approved methodology and more advanced features.
+///
+///     TagView(elements: ["One", "Two", "Three"]) { element in
+///         Text(element)
+///     }
+///
 public struct TagView<Element: Hashable, Content: View>: View {
     let elements: [Element]
     let content: (Element) -> Content
     
+    /// Creates a copy of the content view for each hashable element and lays them out from left to right adding additional rows where necessary.
+    /// - Parameters:
+    ///   - elements: any hashable element
+    ///   - content: content view that takes an element as a parameter
     public init(elements: [Element], content: @escaping (Element) -> Content) {
         self.elements = elements
         self.content = content

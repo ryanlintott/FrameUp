@@ -7,6 +7,31 @@
 
 import SwiftUI
 
+/// Customizable tab menu bar view designed to mimic the style of the default tab menu bar.
+///
+/// Images or views and name provied are used to mask another provided view which is often a color.
+///
+///     let items = [
+///        TabMenuItem(image: Image(systemName: "globe"), name: "Info", tab: 0),
+///        TabMenuItem(image: Image(systemName: "star"), name: "Favourites", tab: 1),
+///        TabMenuItem(image: Image(systemName: "bookmark"), name: "Categories", tab: 2),
+///        TabMenuItem(image: Image(systemName: "books.vertical"), name: "About", tab: 3)
+///     ]
+///
+///     TabMenuView(selection: $selection, items: items) { isSelected in
+///        Group {
+///            if isSelected {
+///                Color.accentColor
+///            } else {
+///                Color(.secondaryLabel)
+///            }
+///        }
+///     } onReselect: {
+///         print("TabMenu item \(selection) reselected")
+///     } onDoubleTap: {
+///         print("TabMenu item \(selection) doubletapped")
+///     }
+///
 public struct TabMenuView<Tab: Hashable, Content: View>: View {
     @Binding var selection: Tab
     let items: [TabMenuItem<Tab>]
@@ -15,6 +40,14 @@ public struct TabMenuView<Tab: Hashable, Content: View>: View {
     let onReselect: (() -> Void)?
     let onDoubleTap: (() -> Void)?
     
+    /// Creates a customized tab menu view
+    /// - Parameters:
+    ///   - selection: binding for the selected tab
+    ///   - items: array of `TabMenuItem`
+    ///   - isShowingName: A Boolean value that indicates whether the name should be shown. Default is true if any tab menu item has a non-nil name.
+    ///   - maskedView: A view that will be shown, masked by the icon and text. A simple color or a more complex view can be provided. A Boolean value with the selected state is passed in so that the view can change accordingly.
+    ///   - onReselect: A function run when a selected tab is reselected.
+    ///   - onDoubleTap: A function run when a tab is tapped twice.
     public init(selection: Binding<Tab>, items: [TabMenuItem<Tab>], isShowingName: Bool? = nil, maskedView: @escaping (Bool) -> Content, onReselect: (() -> Void)? = nil, onDoubleTap: (() -> Void)? = nil) {
         self._selection = selection
         self.items = items
@@ -85,6 +118,7 @@ public struct TabMenuView<Tab: Hashable, Content: View>: View {
         return Text("Tab\n\(tabIndex + 1) of \(items.count)")
     }
     
+    // Old Tab VoiceOver function
 //    func tabVoiceOver(tabItem: TabMenuItem<Tab>) -> Text {
 //        var tabString = ""
 //        if let tabIndex = items.firstIndex(where: { $0.tab == tabItem.tab }) {

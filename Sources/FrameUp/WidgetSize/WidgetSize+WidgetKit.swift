@@ -1,6 +1,6 @@
 //
-//  File.swift
-//  
+//  WidgetSize+WidgetKit.swift
+//  FrameUp
 //
 //  Created by Ryan Lintott on 2021-09-17.
 //
@@ -9,6 +9,7 @@ import Foundation
 import WidgetKit
 
 public extension WidgetSize {
+    /// Equivalent widget family. Optional as extraLarge will return nil unless running iOS 15.0 or later.
     var widgetFamily: WidgetFamily? {
         switch self {
         case .small: return .systemSmall

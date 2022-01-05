@@ -3,15 +3,29 @@
 //  FrameUp
 //
 //  Created by Ryan Lintott on 2021-05-25.
-//
 
 import SwiftUI
 
+/// A view that creates views based on an array of elments from left to right, adding rows when needed.
+///
+/// Each row height will be determined by the tallest element. A maximum width must be provided but `WidthReader` can be used to get the value (especially helpful when  inside a `ScrollView`). Using variables inside the view body is not recommended by Apple. You can use `HFlow` for a more Apple-approved methodology and more advanced features.
+///
+///     WidthReader { width in
+///         TagViewForScrollView(maxWidth: width, elements: ["One", "Two", "Three"]) { element in
+///             Text(element)
+///         }
+///     }
+///
 public struct TagViewForScrollView<Element: Hashable, Content: View>: View {
     let maxWidth: CGFloat
     let elements: [Element]
     let content: (Element) -> Content
     
+    /// Creates a copy of the content view for each hashable element and lays them out from left to right adding additional rows where necessary.
+    /// - Parameters:
+    ///   - maxWidth: Maximum available width. Final width will be based on width of content
+    ///   - elements: Any hashable element
+    ///   - content: Content view that takes an element as a parameter
     public init(maxWidth: CGFloat, elements: [Element], content: @escaping (Element) -> Content) {
         self.maxWidth = maxWidth
         self.elements = elements

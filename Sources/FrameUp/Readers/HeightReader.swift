@@ -7,6 +7,11 @@
 
 import SwiftUI
 
+/// Preference key used to pass the height of a child view up the hierarchy.
+///
+/// Used by `HeightReader`.
+///
+/// Only one key is necessary and works even in nested situations because the value is captured and used inside reader view. Nested views will replace the value before reading it so the correct value should always be sent through.
 struct HeightKey: PreferenceKey {
     typealias Value = CGFloat
     static let defaultValue: CGFloat = .zero
@@ -15,12 +20,17 @@ struct HeightKey: PreferenceKey {
     }
 }
 
+/// Provides the available height while fitting to the width of the content.
 public struct HeightReader<Content: View>: View {
     let alignment: VerticalAlignment
     @ViewBuilder let content: (CGFloat) -> Content
     
     @State private var height: CGFloat = 0
     
+    /// Creates a view that fills the available height while fitting to the width of the content
+    /// - Parameters:
+    ///   - alignment: Vertical alignment
+    ///   - content: any `View`
     public init(alignment: VerticalAlignment = .top, @ViewBuilder content: @escaping (CGFloat) -> Content) {
         self.alignment = alignment
         self.content = content

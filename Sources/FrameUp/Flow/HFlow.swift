@@ -7,6 +7,26 @@
 
 import SwiftUI
 
+/// A view that creates views based on a collection of data from left to right, adding rows when needed.
+///
+/// Each row height will be determined by the tallest element. The overall frame size will fit to the size of the laid out content.
+///
+/// A maximum width must be provided but `WidthReader` can be used to get the value (especially helpful when  inside a `ScrollView`).
+///
+/// Example:
+///
+///     WidthReader { width in
+///         HFlow(["Hello", "World", "More Text"], maxWidth: width) { item in
+///             Text(item.value)
+///                 .padding(12)
+///                 .foregroundColor(.white)
+///                 .background(Color.blue)
+///                 .cornerRadius(12)
+///                 .clipped()
+///         }
+///     }
+///
+/// Adding or removing elements may not animate as intended as element ids are based on their index.
 public struct HFlow<Data: RandomAccessCollection, Content: View>: View where Data.Element: Identifiable, Data.Index == Int {
     let data: Array<(Data.Element, Int)>
     let maxWidth: CGFloat
@@ -37,6 +57,14 @@ public struct HFlow<Data: RandomAccessCollection, Content: View>: View where Dat
         return result
     }
     
+    /// Creates a flowing arrangement of views based on the supplied data from left to right, adding rows when needed.
+    /// - Parameters:
+    ///   - data: Collection of data eg. an array of strings.
+    ///   - maxWidth: Maximum available width. Final width will be based on the width of content views.
+    ///   - maxRowHeight: Maximum available row height. Actual row heights will be based on the height of the tallest content view.
+    ///   - horizontalSpacing: Horizontal spacing between elements. Default: 10
+    ///   - verticalSpacing: Vertical spacing between rows. Default: 10
+    ///   - content: Content view that takes a data element as a parameter.
     public init(_ data: Data, maxWidth: CGFloat, maxRowHeight: CGFloat = .infinity, horizontalSpacing: CGFloat = 10, verticalSpacing: CGFloat = 10, content: @escaping (Data.Element) -> Content) {
         self.data = Array(zip(data, data.indices))
         self.maxWidth = maxWidth

@@ -1,5 +1,5 @@
 //
-//  ProportionableSize.swift
+//  CGSize+extensions.swift
 //  FrameUp
 //
 //  Created by Ryan Lintott on 2021-09-16.
@@ -7,7 +7,9 @@
 
 import SwiftUI
 
-/// Used to easily add internal Proportionable conformance to CGSize
+/// An internal alternative type to CGSize
+///
+/// Used to add Proportionable conformance to CGSize internally only.
 fileprivate struct ProportionableSize: Proportionable {
     var width: CGFloat
     var height: CGFloat
