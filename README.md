@@ -310,8 +310,3 @@ extension CGSize: Proportionable { }
 ## View Extensions
 ### frame(size:,alignment:)
 Alternative to `frame(width:,height:,alignment:)` that takes a `CGSize` parameter instead.
-
-- - -
-# License
-
-
