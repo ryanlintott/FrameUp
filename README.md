@@ -16,7 +16,7 @@ A collection of SwiftUI framing views and tools to help with layout.
 - [`WidgetDemoFrame`](#widgetdemoframe) creates widget frames sized for the current device (and scaled for iPad)
 - [`WidgetRelativeShape`](#widgetrelativeshape) fixes a bug with the corner radius of `ContainerRelativeShape` on iPad.
 - [`Proportionable`](#proportionable) protocol with `aspectFormat`, `aspectRatio`, `minDimension`, and `maxDimension`
-- View extension [`frame(size:,alignment:)`](#frame-size-alignment)
+- View extension [`frame(size:,alignment:)`](#framesizealignment)
 
 # [FrameUpExample](https://github.com/ryanlintott/FrameUpExample)
 Check out the example app to see how you can use this package in your iOS app.
