@@ -6,7 +6,7 @@
 # Overview
 A collection of SwiftUI framing views and tools to help with layout.
 
-- Size Readers like [`WidthReader`](#widthreader), [`HeightReader`](#heightreader), and [`onSizeChange(perform:)`](#onsizechangeperform)
+- Size readers like [`WidthReader`](#widthreader), [`HeightReader`](#heightreader), and [`onSizeChange(perform:)`](#onsizechangeperform)
 - [`SmartScrollView`](#smartscrollview) with optional scrolling, a content-fitable frame, and live edge inset values.
 - Flow views for presenting tags or any view. [`HFlow`](#hflow) or [`VFlow`](#vflow)
 - [`OverlappingImage`](#overlappingimage) that overlaps neighbouring content by a percent of the image size.
@@ -42,11 +42,70 @@ Unlike 'GeometryReader' these views will provide measurement of only one axis an
 ### WidthReader
 Provides the available width while fitting to the height of the content.
 
+Useful inside vertical scroll views where you want to get the width without specifying a frame height.
+
+Example:
+```swift
+ScrollView {
+    WidthReader { width in
+        HStack(spacing: 0) {
+            Text("This text frame is set to 70% of the width.")
+                .frame(width: width * 0.7)
+                .background(Color.green)
+
+            Circle()
+        }
+    }
+    .foregroundColor(.white)
+    .background(Color.blue)
+
+    Text("The WidthReader above does not have a fixed height and will grow to fit the content.")
+        .padding()
+}
+```
+
 ### HeightReader
 Provides the available height while fitting to the width of the content.
 
+Useful inside horizontal scroll views where you want to get the height without specifying a frame width.
+Example:
+```swift
+ScrollView(.horizontal) {
+    HeightReader { height in
+        VStack(spacing: 0) {
+            Text("This\ntext\nframe\nis\nset\nto\n70%\nof\nthe\nheight.")
+                .frame(height: height * 0.7)
+                .background(Color.green)
+
+            Circle()
+        }
+        .foregroundColor(.white)
+        .background(Color.blue)
+
+        Text("\nThe\nHeightReader\nto\nthe\nleft\ndoes\nnot\nhave\na\nfixed\nwidth\nand\nwill\ngrow\nto\nfit\nthe\ncontent.")
+            .padding()
+    }
+}
+```
+
 ### .onSizeChange(perform:)
 Adds an action to perform when parent view size value changes.
+
+```swift
+struct OnSizeChangeExample: View {
+    @State private var size: CGSize = .zero
+    
+    var body: some View {
+        Text("Hello, World!")
+            .padding(100)
+            .background(Color.blue)
+            .onSizeChange { size in
+                self.size = size
+            }
+            .overlay(Text("size: \(size.width) x \(size.height)"), alignment: .bottom)
+    }
+}
+```
 
 ## SmartScrollView
 A ScrollView with extra features.
