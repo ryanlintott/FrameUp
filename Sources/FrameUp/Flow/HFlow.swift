@@ -11,7 +11,7 @@ import SwiftUI
 ///
 /// Each row height will be determined by the tallest element. The overall frame size will fit to the size of the laid out content.
 ///
-/// A maximum width must be provided but `WidthReader` can be used to get the value (especially helpful when  inside a `ScrollView`).
+/// A maximum width must be provided but `WidthReader` can be used to get the value (especially helpful when inside a `ScrollView`).
 ///
 /// Example:
 ///

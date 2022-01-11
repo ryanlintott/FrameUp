@@ -9,7 +9,7 @@ import SwiftUI
 
 /// A frame used for presenting widgets with their correct device size within an iOS app.
 ///
-/// For iPad, widget views use a design size and are scaled to a smaller Home Screen size. This demo frame using the same scaling to properly preview the widget. All sizes will work on all devices and all versions of iOS (even extraLarge on iPhone with iOS 14.0).
+/// For iPad, widget views use a design size and are scaled to a smaller Home Screen size using `ScaledView`. This demo frame uses the same scaling to properly preview the widget. All sizes will work on all devices and all versions of iOS (even extraLarge on iPhone with iOS 14.0).
 public struct WidgetDemoFrame<Content: View>: View {
     public typealias SizeAndCornerRadius = (CGSize, CGFloat) -> Content
     let cornerRadiusDefault: CGFloat = 20

@@ -9,6 +9,8 @@ import SwiftUI
 
 /// Customizable tab menu bar view designed to mimic the style of the default tab menu bar.
 ///
+/// Extra functions available for `onReselect` and `onDoubleTap`
+///
 /// Images or views and name provied are used to mask another provided view which is often a color.
 ///
 ///     let items = [

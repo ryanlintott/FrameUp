@@ -9,7 +9,7 @@ import SwiftUI
 
 /// A type that has a width and height.
 ///
-/// Adds easy access to aspect ratio, aspect format, and min/max dimensions.
+/// Adds helpful parameters like `aspectFormat`, `aspectRatio`, `minDimension`, and `maxDimension`
 ///
 /// Useful with `CGSize`
 public protocol Proportionable {

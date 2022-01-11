@@ -12,7 +12,7 @@ public enum ScaleMode: String, CaseIterable {
     case shrink, grow, both
 }
 
-/// A view modifier that scales a view using `scaleEffect` to match a frame size
+/// A view modifier that scales a view using `scaleEffect` to match a frame size.
 ///
 /// View must have an intrinsic content size or be provided a specific frame size. Final frame size may be different depending on modes chosen.
 /// Used in `scaleToFrame`
@@ -23,7 +23,7 @@ public struct ScaledView: ViewModifier {
     
     /// Creates a view modifier that scales a view using `scaleEffect` to match a desired frame size
     ///
-    /// Can be used to mimic the widget scaling used on iPads
+    /// Used in `WidgetDemoFrame`
     /// - Parameters:
     ///   - frameSize: A preferred frame size for the final view. Actual frame size may be different depending on modes chosen.
     ///   - contentMode: A flag that indicates whether this view fits, fills, or stretches to fit the parent context.

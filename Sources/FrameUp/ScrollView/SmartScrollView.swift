@@ -13,7 +13,7 @@ public struct SmartScrollViewSettings: Equatable {
     public var recommendedAxes: Axis.Set?
     /// Size of the content.
     public var contentSize: CGSize?
-    /// Insets from the scroll view edge to the content edge. Insets will often be negative as content edges are outside the scroll view edges.
+    /// Insets from the scroll view edge to the content edge. Insets are negative when content edges are beyond the scroll view edges.
     public var edgeInsets: EdgeInsets?
 
     public static var defaultValue: Self {
@@ -67,8 +67,8 @@ public struct SmartScrollView<Content: View>: View {
     /// - Parameters:
     ///   - axes: The scroll view’s scrollable axis. The default axis is the vertical axis.
     ///   - showsIndicators: A Boolean value that indicates whether the scroll view displays the scrollable component of the content offset, in a way suitable for the platform. The default value for this parameter is true.
-    ///   - optionalScrolling: A Boolean value that indicates whether scrolling should be disabled if the content fits the available space.
-    ///   - shrinkToFit: A Boolean value that indicates whether the outer frame should shrink to fit the content.
+    ///   - optionalScrolling: A Boolean value that indicates whether scrolling should be disabled if the content fits the available space. The default value is false.
+    ///   - shrinkToFit: A Boolean value that indicates whether the outer frame should shrink to fit the content. The default value is false.
     ///   - content: The view builder that creates the scrollable view.
     ///   - onScroll: An action that will be run when the view has been scrolled. Edge insets are passed as a parameter.
     public init(

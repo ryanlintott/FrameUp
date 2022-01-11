@@ -21,6 +21,8 @@ struct HeightKey: PreferenceKey {
 }
 
 /// Provides the available height while fitting to the width of the content.
+///
+/// Useful inside horizontal scroll views where you want to get the height without specifying a frame width.
 public struct HeightReader<Content: View>: View {
     let alignment: VerticalAlignment
     @ViewBuilder let content: (CGFloat) -> Content
