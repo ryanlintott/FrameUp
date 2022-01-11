@@ -4,7 +4,7 @@
 ![Version](https://img.shields.io/github/v/tag/ryanlintott/FrameUp?label=version)
 
 # Overview
-A collection of SwiftUI framing views and tools to help with layout.
+A Swift Package with a collection of SwiftUI framing views and tools to help with layout.
 
 - Size readers like [`WidthReader`](#widthreader), [`HeightReader`](#heightreader), and [`onSizeChange(perform:)`](#onsizechangeperform)
 - [`SmartScrollView`](#smartscrollview) with optional scrolling, a content-fitable frame, and live edge inset values.
