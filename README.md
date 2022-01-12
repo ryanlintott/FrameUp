@@ -29,10 +29,12 @@ Check out the example app to see how you can use this package in your iOS app.
 Import the package using `import FrameUp`
 
 # Is this Production-Ready?
-Really it's up to you. I originally developed, and currently use, many of the features in my own [Old English Wordhord app](https://oldenglishwordhord.com/app).
+Really it's up to you. I currently use this package in my own [Old English Wordhord app](https://oldenglishwordhord.com/app).
 
 # Support
-If you like this package you can always buy me a beer (I'm not a coffee drinker).
+If you like this package, buy me a coffee to say thanks!
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/X7X04PU6T)
 
 - - -
 # Details
