@@ -1,7 +1,11 @@
 <img width="400" alt="FrameUp Logo" src="https://user-images.githubusercontent.com/2143656/149010960-2b0e1200-b6d4-40a5-bbe7-4aabc5ce6b09.png"> 
 
+![Platform iOS 14](https://img.shields.io/badge/platform-iOS%2014-blue.svg)
+[![SPM compatible](https://img.shields.io/badge/SPM-compatible-4BC51D.svg?style=flat)](https://github.com/apple/swift-package-manager)
 ![License - MIT](https://img.shields.io/github/license/ryanlintott/FrameUp)
 ![Version](https://img.shields.io/github/v/tag/ryanlintott/FrameUp?label=version)
+![GitHub last commit](https://img.shields.io/github/last-commit/ryanlintott/FrameUp)
+[![Twitter](https://img.shields.io/badge/twitter-@ryanlintott-blue.svg?style=flat)](http://twitter.com/ryanlintott)
 
 # Overview
 A Swift Package with a collection of SwiftUI framing views and tools to help with layout.
@@ -27,6 +31,9 @@ Check out the example app to see how you can use this package in your iOS app.
 
 # Usage
 Import the package using `import FrameUp`
+
+# Platforms
+This package is compatible with iOS 14 or later. It's technically compatible with macOS but hasn't been tested yet.
 
 # Is this Production-Ready?
 Really it's up to you. I currently use this package in my own [Old English Wordhord app](https://oldenglishwordhord.com/app).
