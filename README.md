@@ -33,7 +33,7 @@ Check out the example app to see how you can use this package in your iOS app.
 Import the package using `import FrameUp`
 
 # Platforms
-This package is compatible with iOS 14 or later. It's technically compatible with macOS but hasn't been tested yet.
+This package is compatible with iOS 14 or later. It's technically compatible with macOS 10.15 but hasn't been tested yet.
 
 # Is this Production-Ready?
 Really it's up to you. I currently use this package in my own [Old English Wordhord app](https://oldenglishwordhord.com/app).
