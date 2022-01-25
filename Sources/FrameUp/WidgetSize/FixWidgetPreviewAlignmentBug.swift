@@ -8,6 +8,7 @@
 import SwiftUI
 import WidgetKit
 
+#if os(iOS)
 /// *Not working yet!* View modifier that will adjust the widget's position in SwiftUI Previews
 ///
 /// Attempts to fix the widget preview alignment bug
@@ -64,3 +65,4 @@ public extension View {
         self.modifier(FixWidgetPreviewAlignmentBug(adjustment: adjustment))
     }
 }
+#endif

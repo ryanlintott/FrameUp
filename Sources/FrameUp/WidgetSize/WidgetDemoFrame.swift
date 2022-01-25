@@ -42,7 +42,7 @@ public struct WidgetDemoFrame<Content: View>: View {
     
     public var body: some View {
         Group {
-            if #available(iOS 15.0, *) {
+            if #available(iOS 15.0, macOS 12, *) {
                 content(designCanvasSize, designCornerRadius)
                     .containerShape(widgetShape)
             } else {
@@ -55,6 +55,7 @@ public struct WidgetDemoFrame<Content: View>: View {
         .scaledToFrame(homeScreenSize, contentMode: .fit)    }
 }
 
+#if os(iOS)
 public extension WidgetDemoFrame {
     /// Creates a widget demo view for a specified widget size and corner radius for the current device.
     /// - Parameters:
@@ -70,3 +71,4 @@ public extension WidgetDemoFrame {
         )
     }
 }
+#endif

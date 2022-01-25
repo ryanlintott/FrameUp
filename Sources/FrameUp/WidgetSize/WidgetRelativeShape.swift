@@ -8,6 +8,7 @@
 import WidgetKit
 import SwiftUI
 
+#if os(iOS)
 @available(iOS, unavailable)
 @available(iOSApplicationExtension 14.0, *)
 /// A scalable version of ContainerRelativeShape.
@@ -50,3 +51,4 @@ public extension ScaledShape where Content == ScaledContainerRelativeShape {
         self.init(shape: ScaledContainerRelativeShape(scaleFactor: scaleFactor), scale: scaleSize, anchor: .topLeading)
     }
 }
+#endif

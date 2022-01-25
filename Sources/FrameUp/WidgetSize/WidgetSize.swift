@@ -29,35 +29,6 @@ public enum WidgetTarget {
 }
 
 public extension WidgetSize {
-    /// The screen size ignoring orientation.
-    private static let currentScreenSize = UIScreen.main.fixedCoordinateSpace.bounds.size
-    
-    /// The current device.
-    private static let currentDevice = UIDevice.current.userInterfaceIdiom
-    
-    /// Find the supported sizes for a specified device
-    /// - Parameter device: iPhone, iPad, etc
-    /// - Returns: An array of widget sizes
-    static func supportedSizes(for device: UIUserInterfaceIdiom) -> [WidgetSize] {
-        switch device {
-        case .pad:
-            if #available(iOS 15.0, *) {
-                return [.small, .medium, .large, .extraLarge]
-            } else {
-                fallthrough
-            }
-        case .phone:
-            return [.small, .medium, .large]
-        default:
-            return []
-        }
-    }
-    
-    /// Supported widget sizes for the current device.
-    static var supportedSizesForCurrentDevice: [WidgetSize] {
-        supportedSizes(for: currentDevice)
-    }
-    
     /// Smallest widget size possibe for each WidgetFamily
     static let minimumSizes: [WidgetSize: CGSize] = [
             .small: CGSize(width: 141, height: 141),
@@ -153,40 +124,6 @@ public extension WidgetSize {
     func sizeForiPad(screenSize: CGSize, target: WidgetTarget) -> CGSize {
         Self.sizesForiPad(screenSize: screenSize, target: target)[self] ?? .zero
     }
-    
-    
-    /// Size for this widget on the current device.
-    /// - Parameter iPadTarget: Widget frame target. iPad widgets have a design canvas frame used for laying out the content, and a smaller Home Screen frame that the content is scaled to fit.
-    /// - Returns: Size for this widget for the current device. Zero if device does not have widgets or if no size is available.
-    func sizeForCurrentDevice(iPadTarget: WidgetTarget = .homeScreen) -> CGSize {
-        switch Self.currentDevice {
-        case .pad:
-            return sizeForiPad(screenSize: Self.currentScreenSize, target: iPadTarget)
-        case .phone:
-            return sizeForiPhone(screenSize: Self.currentScreenSize)
-        default:
-            return .zero
-        }
-    }
-    
-    /// How much the widget is scaled down to fit on the Home Screen.
-    ///
-    /// Home Screen width divided by design canvas width
-    /// - Parameter screenSize: iPad screen size ignoring orientation.
-    /// - Returns: Widget scale factor between design canvas and Home Screen.
-    func scaleFactorForiPad(screenSize: CGSize) -> CGFloat {
-        sizeForiPad(screenSize: Self.currentScreenSize, target: .homeScreen).width / sizeForiPad(screenSize: Self.currentScreenSize, target: .designCanvas).width
-    }
-    
-    /// How much the widget is scaled down to fit on the Home Screen.
-    ///
-    /// Home Screen width divided by design canvas width. iPhone value will always be 1.
-    var scaleFactorForCurrentDevice: CGFloat {
-        guard Self.currentDevice == .pad else {
-            return 1
-        }
 
-        return scaleFactorForiPad(screenSize: Self.currentScreenSize)
-    }
 }
 
