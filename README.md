@@ -14,6 +14,7 @@ A Swift Package with a collection of SwiftUI framing views and tools to help wit
 - [`SmartScrollView`](#smartscrollview) with optional scrolling, a content-fitable frame, and live edge inset values.
 - Flow views for presenting tags or any view. [`HFlow`](#hflow) or [`VFlow`](#vflow)
 - [`OverlappingImage`](#overlappingimage) that overlaps neighbouring content by a percent of the image size.
+- [`.relativePadding`](#relativepaddingedgeslengthfactor) adds padding relative to the content view size.
 - [`TabMenuView`](#tabmenuview), a customizable tab menu with `onReselect` and `onDoubleTap` functions.
 - [`ScaledView`](#scaledview) to scale views and their frames to specific sizes.
 - [`WidgetSize`](#widgetsize) - Similar to WidgetFamily but returns widget frame sizes by device and doesn't require `WidgetKit`
@@ -199,6 +200,16 @@ VStack(spacing: 0) {
     Text("The image above will overlap content above and below.")
         .padding(20)
 }
+```
+
+## .relativePadding(edges:, lengthFactor:)
+A view modifier that pads its content by the specified edge insets with a percentage of the content view size. Width is used for .leading/.trailing and height is used for .top/.bottom
+
+Negative values can be used to overlap content.
+
+```swift
+Text("This text will have padding based on the width and height of its frame.")
+    .relativePadding([.leading, .top], 0.2)
 ```
 
 ## TabMenuView
