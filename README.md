@@ -17,6 +17,7 @@ A Swift Package with a collection of SwiftUI framing views and tools to help wit
 - [`.relativePadding`](#relativepaddingedgeslengthfactor) adds padding relative to the content view size.
 - [`TabMenuView`](#tabmenuview), a customizable tab menu with `onReselect` and `onDoubleTap` functions.
 - [`ScaledView`](#scaledview) to scale views and their frames to specific sizes.
+- [`rotationMatchingOrientation`](#rotationmatchingorientation) to give some views a different set of allowable orientations.
 - [`WidgetSize`](#widgetsize) - Similar to WidgetFamily but returns widget frame sizes by device and doesn't require `WidgetKit`
 - [`WidgetDemoFrame`](#widgetdemoframe) creates widget frames sized for the current device (and scaled for iPad)
 - [`WidgetRelativeShape`](#widgetrelativeshape) fixes a bug with the corner radius of `ContainerRelativeShape` on iPad.
@@ -262,6 +263,15 @@ Uses ScaleMode to limit the view so it can only grow/shrink or both.
 - `scaledToFill(size:,scaleMode:)`
 - `scaledToFill(width:,height:,scaleMode:)`
 
+## rotationMatchingOrientation
+Rotates any view so that it matches the device orientation if it's in an array of allowed orientations. This is most useful for allowing fullscreen image views to use landscape orientations as well inside a portrait-only app. It can also be used to limit orientations such as landscape-only in an app that allows portrait as well.
+
+```swift
+Image("MyFullscreenImage")
+    .resizable()
+    .scaledToFit()
+    .rotationMatchingOrientation([.portrait, .landscapeLeft, .landscapeRight])
+```
 
 ## WidgetSize
 An enum similar to WidgetFamily but returns widget frame sizes by device and doesn't require `WidgetKit`
