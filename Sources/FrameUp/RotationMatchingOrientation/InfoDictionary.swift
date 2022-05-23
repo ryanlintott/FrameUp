@@ -8,9 +8,9 @@
 import SwiftUI
 
 struct InfoDictionary {
-    static let supportedOrientations: Set<UIDeviceOrientation> = {
+    static let supportedInterfaceOrientations: [InterfaceOrientation] = {
         if let orientations = Bundle.main.infoDictionary?["UISupportedInterfaceOrientations"] as? [String] {
-            return Set(orientations.compactMap({ UIDeviceOrientation(key: $0) }))
+            return orientations.compactMap { InterfaceOrientation(key: $0) }
         } else {
             return []
         }
