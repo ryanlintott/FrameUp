@@ -14,7 +14,7 @@ A Swift Package with a collection of SwiftUI framing views and tools to help wit
 - [`SmartScrollView`](#smartscrollview) with optional scrolling, a content-fitable frame, and live edge inset values.
 - Flow views for presenting tags or any view. [`HFlow`](#hflow) or [`VFlow`](#vflow)
 - [`OverlappingImage`](#overlappingimage) that overlaps neighbouring content by a percent of the image size.
-- [`.relativePadding`](#relativepaddingedgeslengthfactor) adds padding relative to the content view size.
+- [`.relativePadding`](#relativepaddingedges-lengthfactor) adds padding relative to the content view size.
 - [`TabMenuView`](#tabmenuview), a customizable tab menu with `onReselect` and `onDoubleTap` functions.
 - [`ScaledView`](#scaledview) to scale views and their frames to specific sizes.
 - [`rotationMatchingOrientation`](#rotationmatchingorientation) to give some views a different set of allowable orientations.
