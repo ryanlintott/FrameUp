@@ -33,7 +33,7 @@ public struct WidthReader<Content: View>: View {
     /// - Parameters:
     ///   - alignment: Horizontal alignment
     ///   - content: any `View`
-    public init(alignment: HorizontalAlignment = .leading, @ViewBuilder content: @escaping (CGFloat) -> Content) {
+    public init(alignment: HorizontalAlignment = .center, @ViewBuilder content: @escaping (CGFloat) -> Content) {
         self.alignment = alignment
         self.content = content
     }
