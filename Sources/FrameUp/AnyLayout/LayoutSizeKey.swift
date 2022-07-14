@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct LayoutSizeKey: PreferenceKey {
+public struct LayoutSizeKey: PreferenceKey {
     public typealias Value = [Int: CGSize]
     public static let defaultValue: [Int: CGSize] = [:]
     public static func reduce(value: inout Value, nextValue: () -> Value) {
