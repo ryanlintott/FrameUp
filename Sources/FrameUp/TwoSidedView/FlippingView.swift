@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct FlippingView<Front: View, Back: View>: View {
+public struct FlippingView<Front: View, Back: View>: View {
     let axis: Axis
     @Binding var flips: Int
     let flipDistance: CGFloat
