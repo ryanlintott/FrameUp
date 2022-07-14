@@ -73,7 +73,7 @@ public struct FlippingView<Front: View, Back: View>: View {
         axis == .horizontal ? (0,1,0) : (-1,0,0)
     }
     
-    var body: some View {
+    public var body: some View {
         VStack {
             front()
                 .rotation3DEffect(
