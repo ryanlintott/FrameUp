@@ -26,18 +26,11 @@ fileprivate struct _FULayoutView<Content: View>: View {
     @State private var frameSize: CGSize? = nil
     
     var body: some View {
-        ZStack(alignment: layout.alignment) {
+        AnyFULayoutRootView(layout, contentOffsets: $contentOffsets, frameSize: $frameSize) {
             _VariadicView.Tree(_VariadicFULayoutRoot(layout, contentOffsets: contentOffsets)) {
                 content
             }
         }
-        .frame(frameSize, alignment: layout.alignment)
-        .fixedSize()
-        .onPreferenceChange(FULayoutSizeKey.self) {
-            contentOffsets = layout.contentOffsets(sizes: $0)
-            frameSize = layout.rect(contentOffsets: contentOffsets, sizes: $0).size
-        }
-        .id(layout.id)
     }
 }
 
@@ -49,7 +42,6 @@ fileprivate struct _VariadicFULayoutRoot: _VariadicView_MultiViewRoot {
         self.layout = layout
         self.contentOffsets = contentOffsets
     }
-    
     
     @ViewBuilder
     func body(children: _VariadicView.Children) -> some View {

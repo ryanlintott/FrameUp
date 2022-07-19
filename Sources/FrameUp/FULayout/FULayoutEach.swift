@@ -37,104 +37,10 @@ fileprivate struct FULayoutEach<Data: RandomAccessCollection, Content: View>: Vi
     }
     
     var body: some View {
-        ZStack(alignment: layout.alignment) {
+        AnyFULayoutRootView(layout, contentOffsets: $contentOffsets, frameSize: $frameSize) {
             ForEach(data, id: \.0.id) { (item, index) in
                 AnyFULayoutChildView(layout: layout, index: index, contentOffsets: contentOffsets, content: content(item))
-//                content(item)
-//                    .overlay(
-//                        GeometryReader { proxy in
-//                            Color.clear
-//                                .preference(key: LayoutSizeKey.self, value: [index: proxy.size])
-//                        }
-//                    )
-//                    .fixedSize(
-//                        horizontal: layout.fixedSize.contains(.horizontal),
-//                        vertical: layout.fixedSize.contains(.vertical)
-//                    )
-//                    .frame(
-//                        maxWidth: layout.maxItemWidth,
-//                        maxHeight: layout.maxItemHeight,
-//                        alignment: layout.itemAlignment
-//                    )
-//                    .alignmentGuide(layout.alignment.horizontal) { d in
-//                        -(contentOffsets[index]?.x ?? .zero)
-//                    }
-//                    .alignmentGuide(layout.alignment.vertical) { d in
-//                        -(contentOffsets[index]?.y ?? .zero)
-//                    }
             }
         }
-        .frame(frameSize, alignment: layout.alignment)
-        .fixedSize()
-        .onPreferenceChange(FULayoutSizeKey.self) {
-            contentOffsets = layout.contentOffsets(sizes: $0)
-            frameSize = layout.rect(contentOffsets: contentOffsets, sizes: $0).size
-        }
-        .id(layout.id)
-//        .onChange(of: layout) { newValue in
-//            contentOffsets = [:]
-//            frameSize = nil
-//        }
-    }
-}
-
-/// This generalization doesn't work for some reason
-struct AnyFULayoutRootView<Content: View>: View {
-    let layout: AnyFULayout
-    @Binding var contentOffsets: [Int: CGPoint]
-    @Binding var frameSize: CGSize?
-    let content: Content
-
-    init(_ layout: AnyFULayout, contentOffsets: Binding<[Int: CGPoint]>, frameSize: Binding<CGSize?>, content: () -> Content) {
-        self.layout = layout
-        self._contentOffsets = contentOffsets
-        self._frameSize = frameSize
-        self.content = content()
-    }
-
-    var body: some View {
-        ZStack(alignment: layout.alignment) {
-            content
-        }
-        .frame(frameSize, alignment: layout.alignment)
-        .fixedSize()
-        .onPreferenceChange(LayoutSizeKey.self) {
-            self.contentOffsets = layout.contentOffsets(sizes: $0)
-            self.frameSize = layout.rect(contentOffsets: contentOffsets, sizes: $0).size
-        }
-        .id(layout.id)
-    }
-}
-
-struct AnyFULayoutChildView<Content: View>: View {
-    let layout: AnyFULayout
-    let index: Int
-    let contentOffsets: [Int: CGPoint]
-    let content: Content
-    
-    var body: some View {
-        content
-            .overlay(
-                GeometryReader { proxy in
-                    Color.clear
-                        .preference(key: FULayoutSizeKey.self, value: [index: proxy.size])
-                }
-            )
-            .fixedSize(
-                horizontal: layout.fixedSize.contains(.horizontal),
-                vertical: layout.fixedSize.contains(.vertical)
-            )
-            .frame(
-                maxWidth: layout.maxItemWidth,
-                maxHeight: layout.maxItemHeight,
-                alignment: layout.itemAlignment
-            )
-            .alignmentGuide(layout.alignment.horizontal) { d in
-                -(contentOffsets[index]?.x ?? .zero)
-            }
-            .alignmentGuide(layout.alignment.vertical) { d in
-                -(contentOffsets[index]?.y ?? .zero)
-            }
-            .id(layout.id)
     }
 }
