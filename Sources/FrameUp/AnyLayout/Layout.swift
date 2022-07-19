@@ -47,13 +47,13 @@ public struct Layout: LayoutStyle {
         var minY: CGFloat = 0
         var maxX: CGFloat = 0
         var maxY: CGFloat = 0
-        let frames = sizes.forEach { size in
+        let _ = sizes.forEach { size in
             guard let offset = positions[size.key] else {
                 return
             }
             var x = offset.x
             var y = offset.y
-            #warning("Add support for custom alignments")
+            
             switch alignment.horizontal {
             case .center:
                 x -= size.value.width / 2
