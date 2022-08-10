@@ -43,43 +43,43 @@ public struct AnyFULayout: FULayout {
     }
 }
 
-extension AnyFULayout {
-    public struct ForEach<Data: RandomAccessCollection, Content: View>: View where Data.Element: Identifiable, Data.Index == Int {
-        let data: Data
-        let layout: AnyFULayout
-        let content: (Data.Element) -> Content
-        
-        public init<L: FULayout>(
-            _ data: Data,
-            layout: L,
-            content: @escaping (Data.Element) -> Content
-        ) {
-            self.data = data
-            self.layout = AnyFULayout(layout)
-            self.content = content
-        }
-        
-        public var body: some View {
-            layout.forEach(data, content: content)
-        }
-    }
-    
-    public struct _View<Content: View>: View {
-        @ViewBuilder
-        let layout: AnyFULayout
-        let content: Content
-        
-        public init<L: FULayout>(
-            _ data: Data,
-            layout: L,
-            @ViewBuilder content: () -> Content
-        ) {
-            self.layout = AnyFULayout(layout)
-            self.content = content()
-        }
-        
-        public var body: some View {
-            layout._view { content }
-        }
-    }
-}
+//extension AnyFULayout {
+//    public struct ForEach<Data: RandomAccessCollection, Content: View>: View where Data.Element: Identifiable, Data.Index == Int {
+//        let data: Data
+//        let layout: AnyFULayout
+//        let content: (Data.Element) -> Content
+//        
+//        public init<L: FULayout>(
+//            _ data: Data,
+//            layout: L,
+//            content: @escaping (Data.Element) -> Content
+//        ) {
+//            self.data = data
+//            self.layout = AnyFULayout(layout)
+//            self.content = content
+//        }
+//        
+//        public var body: some View {
+//            layout.forEach(data, content: content)
+//        }
+//    }
+//    
+//    public struct _View<Content: View>: View {
+//        @ViewBuilder
+//        let layout: AnyFULayout
+//        let content: Content
+//        
+//        public init<L: FULayout>(
+//            _ data: Data,
+//            layout: L,
+//            @ViewBuilder content: () -> Content
+//        ) {
+//            self.layout = AnyFULayout(layout)
+//            self.content = content()
+//        }
+//        
+//        public var body: some View {
+//            layout._view { content }
+//        }
+//    }
+//}

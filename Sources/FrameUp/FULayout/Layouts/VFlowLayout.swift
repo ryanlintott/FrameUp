@@ -23,18 +23,18 @@ public struct VFlowLayout: FULayout {
     public let fixedSize: Axis.Set = .vertical
     
     public init(
-        alignment: Alignment? = nil,
+        alignment: HorizontalAlignment? = nil,
         start: Alignment? = nil,
         maxWidth: CGFloat,
-        itemAlignment: Alignment? = nil,
+        itemAlignment: VerticalAlignment? = nil,
         maxItemWidth: CGFloat? = nil,
         horizontalSpacing: CGFloat? = nil,
         verticalSpacing: CGFloat? = nil
     ) {
-        self.alignment = alignment ?? .topLeading
+        self.alignment = Alignment(horizontal: alignment ?? .leading, vertical: .top)
         self.start = start ?? .topLeading
         self.maxWidth = maxWidth
-        self.itemAlignment = itemAlignment ?? .topLeading
+        self.itemAlignment = Alignment(horizontal: .leading, vertical: itemAlignment ?? .top)
         self.maxItemWidth = min(maxWidth, maxItemWidth ?? .infinity)
         self.horizontalSpacing = horizontalSpacing ?? 10
         self.verticalSpacing = verticalSpacing ?? 10
@@ -62,70 +62,70 @@ public struct VFlowLayout: FULayout {
     }
 }
 
-extension VFlowLayout {
-    public struct ForEach<Data: RandomAccessCollection, Content: View>: View where Data.Element: Identifiable, Data.Index == Int {
-        let data: Data
-        let layout: VFlowLayout
-        let content: (Data.Element) -> Content
-        
-        public init(
-            _ data: Data,
-            alignment: Alignment? = nil,
-            start: Alignment? = nil,
-            maxWidth: CGFloat,
-            itemAlignment: Alignment? = nil,
-            maxItemWidth: CGFloat? = nil,
-            horizontalSpacing: CGFloat? = nil,
-            verticalSpacing: CGFloat? = nil,
-            content: @escaping (Data.Element) -> Content
-        ) {
-            self.data = data
-            layout = .init(
-                alignment: alignment,
-                start: start,
-                maxWidth: maxWidth,
-                itemAlignment: itemAlignment,
-                maxItemWidth: maxItemWidth,
-                horizontalSpacing: horizontalSpacing,
-                verticalSpacing: verticalSpacing
-            )
-            self.content = content
-        }
-        
-        public var body: some View {
-            layout.forEach(data, content: content)
-        }
-    }
-    
-    public struct _View<Content: View>: View {
-        @ViewBuilder
-        let layout: VFlowLayout
-        let content: Content
-        
-        public init(
-            alignment: Alignment? = nil,
-            start: Alignment? = nil,
-            maxWidth: CGFloat,
-            itemAlignment: Alignment? = nil,
-            maxItemWidth: CGFloat? = nil,
-            horizontalSpacing: CGFloat? = nil,
-            verticalSpacing: CGFloat? = nil,
-            @ViewBuilder content: () -> Content
-        ) {
-            layout = .init(
-                alignment: alignment,
-                start: start,
-                maxWidth: maxWidth,
-                itemAlignment: itemAlignment,
-                maxItemWidth: maxItemWidth,
-                horizontalSpacing: horizontalSpacing,
-                verticalSpacing: verticalSpacing
-            )
-            self.content = content()
-        }
-        
-        public var body: some View {
-            layout._view { content }
-        }
-    }
-}
+//extension VFlowLayout {
+//    public struct ForEach<Data: RandomAccessCollection, Content: View>: View where Data.Element: Identifiable, Data.Index == Int {
+//        let data: Data
+//        let layout: VFlowLayout
+//        let content: (Data.Element) -> Content
+//        
+//        public init(
+//            _ data: Data,
+//            alignment: HorizontalAlignment? = nil,
+//            start: Alignment? = nil,
+//            maxWidth: CGFloat,
+//            itemAlignment: VerticalAlignment? = nil,
+//            maxItemWidth: CGFloat? = nil,
+//            horizontalSpacing: CGFloat? = nil,
+//            verticalSpacing: CGFloat? = nil,
+//            content: @escaping (Data.Element) -> Content
+//        ) {
+//            self.data = data
+//            layout = .init(
+//                alignment: alignment,
+//                start: start,
+//                maxWidth: maxWidth,
+//                itemAlignment: itemAlignment,
+//                maxItemWidth: maxItemWidth,
+//                horizontalSpacing: horizontalSpacing,
+//                verticalSpacing: verticalSpacing
+//            )
+//            self.content = content
+//        }
+//        
+//        public var body: some View {
+//            layout.forEach(data, content: content)
+//        }
+//    }
+//    
+//    public struct _View<Content: View>: View {
+//        @ViewBuilder
+//        let layout: VFlowLayout
+//        let content: Content
+//        
+//        public init(
+//            alignment: HorizontalAlignment? = nil,
+//            start: Alignment? = nil,
+//            maxWidth: CGFloat,
+//            itemAlignment: VerticalAlignment? = nil,
+//            maxItemWidth: CGFloat? = nil,
+//            horizontalSpacing: CGFloat? = nil,
+//            verticalSpacing: CGFloat? = nil,
+//            @ViewBuilder content: () -> Content
+//        ) {
+//            layout = .init(
+//                alignment: alignment,
+//                start: start,
+//                maxWidth: maxWidth,
+//                itemAlignment: itemAlignment,
+//                maxItemWidth: maxItemWidth,
+//                horizontalSpacing: horizontalSpacing,
+//                verticalSpacing: verticalSpacing
+//            )
+//            self.content = content()
+//        }
+//        
+//        public var body: some View {
+//            layout._view { content }
+//        }
+//    }
+//}

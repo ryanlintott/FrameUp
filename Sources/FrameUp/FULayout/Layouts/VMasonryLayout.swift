@@ -66,70 +66,70 @@ public struct VMasonryLayout: FULayout {
     }
 }
 
-extension VMasonryLayout {
-    public struct ForEach<Data: RandomAccessCollection, Content: View>: View where Data.Element: Identifiable, Data.Index == Int {
-        let data: Data
-        let layout: VMasonryLayout
-        let content: (Data.Element) -> Content
-        
-        public init(
-            _ data: Data,
-            alignment: Alignment? = nil,
-            start: Alignment? = nil,
-            columns: Int,
-            maxWidth: CGFloat,
-            itemAlignment: HorizontalAlignment? = nil,
-            horizontalSpacing: CGFloat? = nil,
-            verticalSpacing: CGFloat? = nil,
-            content: @escaping (Data.Element) -> Content
-        ) {
-            self.data = data
-            layout = .init(
-                alignment: alignment,
-                start: start,
-                columns: columns,
-                maxWidth: maxWidth,
-                itemAlignment: itemAlignment,
-                horizontalSpacing: horizontalSpacing,
-                verticalSpacing: verticalSpacing
-            )
-            self.content = content
-        }
-        
-        public var body: some View {
-            layout.forEach(data, content: content)
-        }
-    }
-    
-    public struct _View<Content: View>: View {
-        @ViewBuilder
-        let layout: VMasonryLayout
-        let content: Content
-        
-        public init(
-            alignment: Alignment? = nil,
-            start: Alignment? = nil,
-            columns: Int,
-            maxWidth: CGFloat,
-            itemAlignment: HorizontalAlignment? = nil,
-            horizontalSpacing: CGFloat? = nil,
-            verticalSpacing: CGFloat? = nil,
-            @ViewBuilder content: () -> Content
-        ) {
-            layout = .init(
-                alignment: alignment,
-                start: start,
-                columns: columns,
-                maxWidth: maxWidth,
-                itemAlignment: itemAlignment,
-                horizontalSpacing: horizontalSpacing,
-                verticalSpacing: verticalSpacing
-            )
-            self.content = content()
-        }
-        
-        public var body: some View {
-            layout._view { content }
-        }
-    }
-}
+//extension VMasonryLayout {
+//    public struct ForEach<Data: RandomAccessCollection, Content: View>: View where Data.Element: Identifiable, Data.Index == Int {
+//        let data: Data
+//        let layout: VMasonryLayout
+//        let content: (Data.Element) -> Content
+//        
+//        public init(
+//            _ data: Data,
+//            alignment: Alignment? = nil,
+//            start: Alignment? = nil,
+//            columns: Int,
+//            maxWidth: CGFloat,
+//            itemAlignment: HorizontalAlignment? = nil,
+//            horizontalSpacing: CGFloat? = nil,
+//            verticalSpacing: CGFloat? = nil,
+//            content: @escaping (Data.Element) -> Content
+//        ) {
+//            self.data = data
+//            layout = .init(
+//                alignment: alignment,
+//                start: start,
+//                columns: columns,
+//                maxWidth: maxWidth,
+//                itemAlignment: itemAlignment,
+//                horizontalSpacing: horizontalSpacing,
+//                verticalSpacing: verticalSpacing
+//            )
+//            self.content = content
+//        }
+//        
+//        public var body: some View {
+//            layout.forEach(data, content: content)
+//        }
+//    }
+//    
+//    public struct _View<Content: View>: View {
+//        @ViewBuilder
+//        let layout: VMasonryLayout
+//        let content: Content
+//        
+//        public init(
+//            alignment: Alignment? = nil,
+//            start: Alignment? = nil,
+//            columns: Int,
+//            maxWidth: CGFloat,
+//            itemAlignment: HorizontalAlignment? = nil,
+//            horizontalSpacing: CGFloat? = nil,
+//            verticalSpacing: CGFloat? = nil,
+//            @ViewBuilder content: () -> Content
+//        ) {
+//            layout = .init(
+//                alignment: alignment,
+//                start: start,
+//                columns: columns,
+//                maxWidth: maxWidth,
+//                itemAlignment: itemAlignment,
+//                horizontalSpacing: horizontalSpacing,
+//                verticalSpacing: verticalSpacing
+//            )
+//            self.content = content()
+//        }
+//        
+//        public var body: some View {
+//            layout._view { content }
+//        }
+//    }
+//}

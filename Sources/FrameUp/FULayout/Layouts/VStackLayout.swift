@@ -45,58 +45,58 @@ public struct VStackLayout: FULayout {
     }
 }
 
-extension VStackLayout {
-    public struct ForEach<Data: RandomAccessCollection, Content: View>: View where Data.Element: Identifiable, Data.Index == Int {
-        let data: Data
-        let layout: VStackLayout
-        let content: (Data.Element) -> Content
-        
-        public init(
-            _ data: Data,
-            alignment: HorizontalAlignment? = nil,
-            spacing: CGFloat? = nil,
-            maxWidth: CGFloat,
-            maxItemHeight: CGFloat? = nil,
-            content: @escaping (Data.Element) -> Content
-        ) {
-            self.data = data
-            layout = .init(
-                alignment: alignment,
-                spacing: spacing,
-                maxWidth: maxWidth,
-                maxItemHeight: maxItemHeight
-            )
-            self.content = content
-        }
-        
-        public var body: some View {
-            layout.forEach(data, content: content)
-        }
-    }
-    
-    public struct _View<Content: View>: View {
-        @ViewBuilder
-        let layout: VStackLayout
-        let content: Content
-        
-        public init(
-            alignment: HorizontalAlignment? = nil,
-            spacing: CGFloat? = nil,
-            maxWidth: CGFloat,
-            maxItemHeight: CGFloat? = nil,
-            @ViewBuilder content: () -> Content
-        ) {
-            layout = .init(
-                alignment: alignment,
-                spacing: spacing,
-                maxWidth: maxWidth,
-                maxItemHeight: maxItemHeight
-            )
-            self.content = content()
-        }
-        
-        public var body: some View {
-            layout._view { content }
-        }
-    }
-}
+//extension VStackLayout {
+//    public struct ForEach<Data: RandomAccessCollection, Content: View>: View where Data.Element: Identifiable, Data.Index == Int {
+//        let data: Data
+//        let layout: VStackLayout
+//        let content: (Data.Element) -> Content
+//        
+//        public init(
+//            _ data: Data,
+//            alignment: HorizontalAlignment? = nil,
+//            spacing: CGFloat? = nil,
+//            maxWidth: CGFloat,
+//            maxItemHeight: CGFloat? = nil,
+//            content: @escaping (Data.Element) -> Content
+//        ) {
+//            self.data = data
+//            layout = .init(
+//                alignment: alignment,
+//                spacing: spacing,
+//                maxWidth: maxWidth,
+//                maxItemHeight: maxItemHeight
+//            )
+//            self.content = content
+//        }
+//        
+//        public var body: some View {
+//            layout.forEach(data, content: content)
+//        }
+//    }
+//    
+//    public struct _View<Content: View>: View {
+//        @ViewBuilder
+//        let layout: VStackLayout
+//        let content: Content
+//        
+//        public init(
+//            alignment: HorizontalAlignment? = nil,
+//            spacing: CGFloat? = nil,
+//            maxWidth: CGFloat,
+//            maxItemHeight: CGFloat? = nil,
+//            @ViewBuilder content: () -> Content
+//        ) {
+//            layout = .init(
+//                alignment: alignment,
+//                spacing: spacing,
+//                maxWidth: maxWidth,
+//                maxItemHeight: maxItemHeight
+//            )
+//            self.content = content()
+//        }
+//        
+//        public var body: some View {
+//            layout._view { content }
+//        }
+//    }
+//}

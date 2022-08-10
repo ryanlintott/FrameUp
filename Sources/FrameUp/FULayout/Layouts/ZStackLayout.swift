@@ -23,7 +23,7 @@ public struct ZStackLayout: FULayout {
         maxWidth: CGFloat,
         maxHeight: CGFloat
     ) {
-        self.alignment = alignment ?? .topLeading
+        self.alignment = alignment ?? .center
         self.maxItemWidth = maxWidth
         self.maxItemHeight = maxHeight
     }
@@ -40,54 +40,54 @@ public struct ZStackLayout: FULayout {
     }
 }
 
-extension ZStackLayout {
-    public struct ForEach<Data: RandomAccessCollection, Content: View>: View where Data.Element: Identifiable, Data.Index == Int {
-        let data: Data
-        let layout: ZStackLayout
-        let content: (Data.Element) -> Content
-        
-        public init(
-            _ data: Data,
-            alignment: Alignment? = nil,
-            maxWidth: CGFloat,
-            maxHeight: CGFloat,
-            content: @escaping (Data.Element) -> Content
-        ) {
-            self.data = data
-            layout = .init(
-                alignment: alignment,
-                maxWidth: maxWidth,
-                maxHeight: maxHeight
-            )
-            self.content = content
-        }
-        
-        public var body: some View {
-            layout.forEach(data, content: content)
-        }
-    }
-    
-    public struct _View<Content: View>: View {
-        @ViewBuilder
-        let layout: ZStackLayout
-        let content: Content
-        
-        public init(
-            alignment: Alignment? = nil,
-            maxWidth: CGFloat,
-            maxHeight: CGFloat,
-            @ViewBuilder content: () -> Content
-        ) {
-            layout = .init(
-                alignment: alignment,
-                maxWidth: maxWidth,
-                maxHeight: maxHeight
-            )
-            self.content = content()
-        }
-        
-        public var body: some View {
-            layout._view { content }
-        }
-    }
-}
+//extension ZStackLayout {
+//    public struct ForEach<Data: RandomAccessCollection, Content: View>: View where Data.Element: Identifiable, Data.Index == Int {
+//        let data: Data
+//        let layout: ZStackLayout
+//        let content: (Data.Element) -> Content
+//        
+//        public init(
+//            _ data: Data,
+//            alignment: Alignment? = nil,
+//            maxWidth: CGFloat,
+//            maxHeight: CGFloat,
+//            content: @escaping (Data.Element) -> Content
+//        ) {
+//            self.data = data
+//            layout = .init(
+//                alignment: alignment,
+//                maxWidth: maxWidth,
+//                maxHeight: maxHeight
+//            )
+//            self.content = content
+//        }
+//        
+//        public var body: some View {
+//            layout.forEach(data, content: content)
+//        }
+//    }
+//    
+//    public struct _View<Content: View>: View {
+//        @ViewBuilder
+//        let layout: ZStackLayout
+//        let content: Content
+//        
+//        public init(
+//            alignment: Alignment? = nil,
+//            maxWidth: CGFloat,
+//            maxHeight: CGFloat,
+//            @ViewBuilder content: () -> Content
+//        ) {
+//            layout = .init(
+//                alignment: alignment,
+//                maxWidth: maxWidth,
+//                maxHeight: maxHeight
+//            )
+//            self.content = content()
+//        }
+//        
+//        public var body: some View {
+//            layout._view { content }
+//        }
+//    }
+//}

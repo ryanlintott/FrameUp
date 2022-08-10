@@ -8,7 +8,7 @@
 import SwiftUI
 
 public extension FULayout {
-    func _view<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
+    func _view<Content: View>(@ViewBuilder content: () -> Content) -> some View {
         _FULayoutView(self, content: content)
     }
 }
