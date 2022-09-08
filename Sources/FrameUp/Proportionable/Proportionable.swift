@@ -13,6 +13,7 @@ import SwiftUI
 ///
 /// Useful with `CGSize`
 public protocol Proportionable {
+    init(width: CGFloat, height: CGFloat)
     var width: CGFloat { get }
     var height: CGFloat { get }
 }
@@ -26,6 +27,10 @@ public extension Proportionable {
     /// Aspect ratio (width / height).
     var aspectRatio: CGFloat {
         width / height
+    }
+    
+    var swappingWidthAndHeight: Self {
+        Self(width: height, height: width)
     }
     
     /// Minimum dimension between width and height.
