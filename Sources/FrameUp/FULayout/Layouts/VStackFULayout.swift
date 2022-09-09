@@ -8,7 +8,8 @@
 import SwiftUI
 
 public struct VStackFULayout: FULayout {
-    public let id = UUID()
+    typealias Column = FULayoutColumn
+    
     public let alignment: HorizontalAlignment
     public let spacing: CGFloat
     public let maxItemWidth: CGFloat?
@@ -29,7 +30,7 @@ public struct VStackFULayout: FULayout {
     }
     
     public func contentOffsets(sizes: [Int: CGSize]) -> [Int: CGPoint] {
-        var column = FULayoutColumn(alignment: Alignment(horizontal: alignment, vertical: .top), spacing: spacing, width: maxItemWidth ?? .infinity)
+        var column = Column(alignment: Alignment(horizontal: alignment, vertical: .top), spacing: spacing, width: maxItemWidth ?? .infinity)
         
         sizes.forEach { column.append($0) }
         

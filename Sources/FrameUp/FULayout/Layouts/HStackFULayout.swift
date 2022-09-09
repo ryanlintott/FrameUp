@@ -9,7 +9,8 @@ import Foundation
 import SwiftUI
 
 public struct HStackFULayout: FULayout {
-    public let id = UUID()
+    typealias Row = FULayoutRow
+    
     public let alignment: VerticalAlignment
     public let spacing: CGFloat
     public let maxItemWidth: CGFloat?
@@ -30,7 +31,7 @@ public struct HStackFULayout: FULayout {
     }
     
     public func contentOffsets(sizes: [Int: CGSize]) -> [Int: CGPoint] {
-        var row = FULayoutRow(alignment: Alignment(horizontal: .leading, vertical: alignment), spacing: spacing, height: maxItemHeight ?? .infinity)
+        var row = Row(alignment: Alignment(horizontal: .leading, vertical: alignment), spacing: spacing, height: maxItemHeight ?? .infinity)
         
         sizes.forEach { row.append($0) }
         

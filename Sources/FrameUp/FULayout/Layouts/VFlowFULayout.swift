@@ -10,7 +10,6 @@ import SwiftUI
 public struct VFlowFULayout: FULayout {
     typealias Row = FULayoutRow
     
-    public let id = UUID()
     public let alignment: Alignment
     public let maxWidth: CGFloat
     public let maxItemWidth: CGFloat?

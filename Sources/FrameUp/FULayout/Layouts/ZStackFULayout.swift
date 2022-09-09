@@ -9,7 +9,6 @@ import Foundation
 import SwiftUI
 
 public struct ZStackFULayout: FULayout {
-    public let id = UUID()
     public let alignment: Alignment
     public let maxItemWidth: CGFloat?
     public let maxItemHeight: CGFloat?

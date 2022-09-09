@@ -7,8 +7,7 @@
 
 import SwiftUI
 
-public protocol FULayout: Identifiable, Equatable {
-    var id: UUID { get }
+public protocol FULayout: Equatable {
     /// Axes that will have a fixed size.
     var fixedSize: Axis.Set { get }
     /// Max width for a subview.

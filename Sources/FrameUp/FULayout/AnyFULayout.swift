@@ -9,7 +9,7 @@ import SwiftUI
 
 public struct AnyFULayout: FULayout {
     public let fuLayoutName: String
-    public let id: UUID
+    public let id = UUID()
     public let fixedSize: Axis.Set
     public let maxItemWidth: CGFloat?
     public let maxItemHeight: CGFloat?
@@ -17,7 +17,6 @@ public struct AnyFULayout: FULayout {
     
     public init<L: FULayout>(_ layout: L) {
         fuLayoutName = String(describing: L.self)
-        id = UUID()
         fixedSize = layout.fixedSize
         maxItemWidth = layout.maxItemWidth
         maxItemHeight = layout.maxItemHeight
