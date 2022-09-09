@@ -34,9 +34,4 @@ public struct AnyFULayout: FULayout {
         && lhs.maxItemWidth == rhs.maxItemWidth
         && lhs.maxItemHeight == rhs.maxItemHeight
     }
-//
-//    public func hash(into hasher: inout Hasher) {
-//        hasher.combine(fuLayoutName)
-//        hasher.combine(hashedLayout)
-//    }
 }
