@@ -11,7 +11,6 @@ import SwiftUI
 public struct VMasonryFULayout: FULayout {
     typealias Column = FULayoutColumn
     
-    public var fuLayoutName: String { String(describing: Self.self) }
     public let id = UUID()
     public let alignment: Alignment
     public let columns: Int

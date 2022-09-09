@@ -46,8 +46,6 @@ internal struct AnyFULayoutRootView<Content: View>: View {
 }
 
 internal struct AnyFULayoutChildView<Content: View>: View {
-    @Environment(\.layoutDirection) var layoutDirection
-    
     let layout: AnyFULayout
     let index: Int
     let contentOffsets: [Int: CGPoint]

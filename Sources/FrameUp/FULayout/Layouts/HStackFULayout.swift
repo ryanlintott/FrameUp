@@ -9,7 +9,6 @@ import Foundation
 import SwiftUI
 
 public struct HStackFULayout: FULayout {
-    public var fuLayoutName: String { String(describing: Self.self) }
     public let id = UUID()
     public let alignment: VerticalAlignment
     public let spacing: CGFloat
@@ -36,5 +35,12 @@ public struct HStackFULayout: FULayout {
         sizes.forEach { row.append($0) }
         
         return row.contentOffsets(rowYOffset: 0)
+    }
+}
+
+@available(iOS 16, *)
+extension HStackFULayout {
+    var layout: HStackLayout {
+        HStackLayout(alignment: alignment, spacing: spacing)
     }
 }

@@ -16,7 +16,7 @@ public struct AnyFULayout: FULayout {
     private let contentOffsets: ([Int : CGSize]) -> [Int : CGPoint]
     
     public init<L: FULayout>(_ layout: L) {
-        fuLayoutName = layout.fuLayoutName
+        fuLayoutName = String(describing: L.self)
         id = UUID()
         fixedSize = layout.fixedSize
         maxItemWidth = layout.maxItemWidth
@@ -35,45 +35,9 @@ public struct AnyFULayout: FULayout {
         && lhs.maxItemWidth == rhs.maxItemWidth
         && lhs.maxItemHeight == rhs.maxItemHeight
     }
+//
+//    public func hash(into hasher: inout Hasher) {
+//        hasher.combine(fuLayoutName)
+//        hasher.combine(hashedLayout)
+//    }
 }
-
-//extension AnyFULayout {
-//    public struct ForEach<Data: RandomAccessCollection, Content: View>: View where Data.Element: Identifiable, Data.Index == Int {
-//        let data: Data
-//        let layout: AnyFULayout
-//        let content: (Data.Element) -> Content
-//        
-//        public init<L: FULayout>(
-//            _ data: Data,
-//            layout: L,
-//            content: @escaping (Data.Element) -> Content
-//        ) {
-//            self.data = data
-//            self.layout = AnyFULayout(layout)
-//            self.content = content
-//        }
-//        
-//        public var body: some View {
-//            layout.forEach(data, content: content)
-//        }
-//    }
-//    
-//    public struct _View<Content: View>: View {
-//        @ViewBuilder
-//        let layout: AnyFULayout
-//        let content: Content
-//        
-//        public init<L: FULayout>(
-//            _ data: Data,
-//            layout: L,
-//            @ViewBuilder content: () -> Content
-//        ) {
-//            self.layout = AnyFULayout(layout)
-//            self.content = content()
-//        }
-//        
-//        public var body: some View {
-//            layout._view { content }
-//        }
-//    }
-//}

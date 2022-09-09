@@ -10,7 +10,6 @@ import SwiftUI
 public struct HFlowFULayout: FULayout {
     typealias Column = FULayoutColumn
     
-    public var fuLayoutName: String { String(describing: Self.self) }
     public let id = UUID()
     public let alignment: Alignment
     public let maxHeight: CGFloat

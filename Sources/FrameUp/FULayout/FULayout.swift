@@ -8,8 +8,6 @@
 import SwiftUI
 
 public protocol FULayout: Identifiable, Equatable {
-    var fuLayoutName: String { get }
-    
     var id: UUID { get }
     /// Axes that will have a fixed size.
     var fixedSize: Axis.Set { get }
@@ -27,6 +25,11 @@ public protocol FULayout: Identifiable, Equatable {
 }
 
 public extension FULayout {
+    /// Creates a bounding rectangle that encloses all the subviews based on their size and offset.
+    /// - Parameters:
+    ///   - contentOffsets: Offsets of all subviews.
+    ///   - sizes: Sizes of all subviews.
+    /// - Returns: A bounding rectangle that encloses all the subviews based on their size and offset.
     func rect(contentOffsets: [Int: CGPoint], sizes: [Int: CGSize]) -> CGRect {
         let rects: [CGRect] = sizes.compactMap { size in
             guard let offset = contentOffsets[size.key] else {

@@ -8,9 +8,7 @@
 import SwiftUI
 
 public struct VStackFULayout: FULayout {
-    public var fuLayoutName: String { String(describing: Self.self) }
     public let id = UUID()
-    
     public let alignment: HorizontalAlignment
     public let spacing: CGFloat
     public let maxItemWidth: CGFloat?
