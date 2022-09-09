@@ -54,7 +54,7 @@ internal struct AnyFULayoutChildView<Content: View>: View {
     let content: Content
     
     var layoutDirectionMultiplier: CGFloat {
-        layoutDirection == .leftToRight ? -1 : 1
+        layoutDirection == .leftToRight ? 1 : -1
     }
     
     var body: some View {
@@ -75,7 +75,7 @@ internal struct AnyFULayoutChildView<Content: View>: View {
                 alignment: .topLeading
             )
             .alignmentGuide(.leading) { d in
-                (contentOffsets[index]?.x ?? .zero) * layoutDirectionMultiplier
+                -(contentOffsets[index]?.x ?? .zero)
             }
             .alignmentGuide(.top) { d in
                 -(contentOffsets[index]?.y ?? .zero)
