@@ -5,9 +5,27 @@
 //  Created by Ryan Lintott on 2022-07-14.
 //
 
-import Foundation
 import SwiftUI
 
+/// A FrameUp layout that arranges views columns, adding views to the shortest column.
+///
+/// A maximum width must be provided but `WidthReader` can be used to get the value (especially helpful when inside a `ScrollView`).
+///
+/// A FrameUp layout is not a view but it has two functions to make a view. `.forEach()` that works like `ForEach` and `._view { }` that works more like `VStack` or similar.
+///
+/// Example:
+///
+///     WidthReader { width in
+///         VMasonryFULayout(columns: 3, maxWidth: width).forEach(["Hello", "World", "More Text"], id: \.self) { item in
+///             Text(item.value)
+///                 .padding(12)
+///                 .foregroundColor(.white)
+///                 .background(Color.blue)
+///                 .cornerRadius(12)
+///                 .clipped()
+///         }
+///     }
+///
 public struct VMasonryFULayout: FULayout {
     typealias Column = FULayoutColumn
     
@@ -21,8 +39,15 @@ public struct VMasonryFULayout: FULayout {
     public let maxItemHeight: CGFloat? = nil
     public let fixedSize: Axis.Set = .vertical
     
+    /// Creates a FrameUp layout that arranges views columns, adding views to the shortest column.
+    /// - Parameters:
+    ///   - alignment: Used to align views horizontally in their columns and align columns vertically relative to each other. Default is top.
+    ///   - columns: Number of columns to place views in.
+    ///   - maxWidth: Maximum width containing all columns (can be obtained through a `WidthReader`).
+    ///   - horizontalSpacing: Minimum horizontal spacing between columns.
+    ///   - verticalSpacing: Vertical spacing between views in a column
     public init(
-        alignment: Alignment = .topLeading,
+        alignment: Alignment = .top,
         columns: Int,
         maxWidth: CGFloat,
         horizontalSpacing: CGFloat? = nil,

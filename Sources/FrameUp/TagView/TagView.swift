@@ -16,6 +16,7 @@ import SwiftUI
 ///         Text(element)
 ///     }
 ///
+@available(*, deprecated, message: "Use HFlowFULayout().forEach instead")
 public struct TagView<Element: Hashable, Content: View>: View {
     let elements: [Element]
     let content: (Element) -> Content

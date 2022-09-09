@@ -5,9 +5,11 @@
 //  Created by Ryan Lintott on 2022-07-14.
 //
 
-import Foundation
 import SwiftUI
 
+/// A FrameUp layout version of `HStackLayout`. Useful when you want to animate between different FrameUp layouts.
+///
+/// *Only top, center, and bottom alignments are supported.*
 public struct HStackFULayout: FULayout {
     typealias Row = FULayoutRow
     
@@ -18,6 +20,12 @@ public struct HStackFULayout: FULayout {
 
     public let fixedSize: Axis.Set = .horizontal
     
+    /// Creates a FrameUp layout version of `HStackLayout`.
+    /// - Parameters:
+    ///   - alignment: The guide for aligning the subviews in this stack. This guide has the same vertical screen coordinate for every subview. *Only top, center, and bottom are supported*.
+    ///   - spacing: Minimum horizontal spacing between views. Default is 10
+    ///   - maxHeight: Maximum height (can be obtained through a `HeightReader`).
+    ///   - maxItemWidth: Maximum width for each child view. Default is infinity.
     public init(
         alignment: VerticalAlignment = .center,
         spacing: CGFloat? = nil,
@@ -41,6 +49,7 @@ public struct HStackFULayout: FULayout {
 
 @available(iOS 16, *)
 extension HStackFULayout {
+    /// SwiftUI layout using the same alignment and spacing values.
     var layout: HStackLayout {
         HStackLayout(alignment: alignment, spacing: spacing)
     }

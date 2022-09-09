@@ -1,6 +1,6 @@
 //
 //  FULayout+_view.swift
-//
+//  FrameUp
 //
 //  Created by Ryan Lintott on 2022-07-14.
 //
@@ -8,6 +8,9 @@
 import SwiftUI
 
 public extension FULayout {
+    /// Creates a view that arranges its children based on the parent FrameUp layout.
+    /// - Parameter content: A closure view containing child views.
+    /// - Returns: A view that arranges its children based on the parent FrameUp layout.
     func _view<Content: View>(@ViewBuilder content: () -> Content) -> some View {
         _FULayoutView(self, content: content)
     }

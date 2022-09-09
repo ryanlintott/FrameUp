@@ -16,7 +16,7 @@ import SwiftUI
 /// Example:
 ///
 ///     HeightReader { height in
-///         HFlow(["Hello", "World", "More Text"], maxHeight: height) { item in
+///         VFlow(["Hello", "World", "More Text"], maxHeight: height) { item in
 ///             Text(item.value)
 ///                 .padding(12)
 ///                 .foregroundColor(.white)
@@ -28,6 +28,7 @@ import SwiftUI
 ///
 ///
 /// Adding or removing elements may not animate as intended as element ids are based on their index.
+@available(*, deprecated, message: "Use VFlowFULayout().forEach instead")
 public struct VFlow<Data: RandomAccessCollection, Content: View>: View where Data.Element: Identifiable, Data.Index == Int {
     let data: Array<(Data.Element, Int)>
     let maxHeight: CGFloat

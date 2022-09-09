@@ -5,9 +5,11 @@
 //  Created by Ryan Lintott on 2022-07-14.
 //
 
-import Foundation
 import SwiftUI
 
+/// A FrameUp layout version of `ZStackLayout`. Useful when you want to animate between different FrameUp layouts.
+///
+/// *Only topLeading, top, topTrailing, leading, center, trailing, bottomLeading, bottom, and bottomTrailing alignments are supported*
 public struct ZStackFULayout: FULayout {
     public let alignment: Alignment
     public let maxItemWidth: CGFloat?
@@ -16,6 +18,12 @@ public struct ZStackFULayout: FULayout {
     public var itemAlignment: Alignment { alignment }
     public let fixedSize: Axis.Set = []
     
+    /// Creates a FrameUp layout version of `ZStackLayout`.
+    /// - Parameters:
+    ///   - alignment: The guide for aligning the subviews in this stack. *Only topLeading, top, topTrailing, leading, center, trailing, bottomLeading, bottom, and bottomTrailing are supported*.
+    ///   - spacing: Minimum horizontal spacing between views. Default is 10
+    ///   - maxHeight: Maximum height (can be obtained through a `HeightReader`).
+    ///   - maxItemWidth: Maximum width for each child view. Default is infinity.
     public init(
         alignment: Alignment? = nil,
         maxWidth: CGFloat,
@@ -60,5 +68,13 @@ public struct ZStackFULayout: FULayout {
         }
 
         return result
+    }
+}
+
+@available(iOS 16, *)
+extension ZStackFULayout {
+    /// SwiftUI layout using the same alignment value.
+    var layout: ZStackLayout {
+        ZStackLayout(alignment: alignment)
     }
 }

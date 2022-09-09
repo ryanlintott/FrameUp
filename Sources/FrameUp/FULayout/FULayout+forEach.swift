@@ -1,6 +1,6 @@
 //
 //  FULayout+forEach.swift
-//  FrameUpExample
+//  FrameUp
 //
 //  Created by Ryan Lintott on 2022-05-31.
 //

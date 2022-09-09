@@ -1,58 +1,86 @@
 //
 //  HFlowFULayout.swift
-//  
+//  FrameUp
 //
 //  Created by Ryan Lintott on 2022-07-14.
 //
 
 import SwiftUI
 
+/// A FrameUp layout that arranges views in a row, adding rows when needed.
+///
+/// Each row height will be determined by the tallest element. The overall frame size will fit to the size of the laid out content.
+///
+/// A maximum height must be provided but `HeightReader` can be used to get the value (especially helpful when inside a `ScrollView`).
+///
+/// A FrameUp layout is not a view but it has two functions to make a view. `.forEach()` that works like `ForEach` and `._view { }` that works more like `HStack` or similar.
+///
+/// Example:
+///
+///     HeightReader { height in
+///         HFlowFULayout(maxHeight: height).forEach(["Hello", "World", "More Text"], id: \.self) { item in
+///             Text(item.value)
+///                 .padding(12)
+///                 .foregroundColor(.white)
+///                 .background(Color.blue)
+///                 .cornerRadius(12)
+///                 .clipped()
+///         }
+///     }
+///
 public struct HFlowFULayout: FULayout {
-    typealias Column = FULayoutColumn
+    typealias Row = FULayoutRow
     
     public let alignment: Alignment
-    public let maxHeight: CGFloat
-    public let maxItemHeight: CGFloat?
+    public let maxWidth: CGFloat
+    public let maxItemWidth: CGFloat?
     public let horizontalSpacing: CGFloat
     public let verticalSpacing: CGFloat
 
-    public let maxItemWidth: CGFloat? = nil
-    public let fixedSize: Axis.Set = .horizontal
+    public let maxItemHeight: CGFloat? = nil
+    public let fixedSize: Axis.Set = .vertical
     
+    /// Creates a FrameUp layout that arranges views in a row, adding rows when needed.
+    /// - Parameters:
+    ///   - alignment: Used to align views vertically in their rows and align rows horizontally relative to each other. Default is top leading.
+    ///   - maxWidth: Maximum width for a row (can be obtained through a `WidthReader`).
+    ///   - maxItemWidth: Maximum width for each child view default is the maximum row width.
+    ///   - horizontalSpacing: Minimum horizontal spacing between views in a row.
+    ///   - verticalSpacing: Vertical spacing between rows.
     public init(
         alignment: Alignment = .topLeading,
-        maxHeight: CGFloat,
-        maxItemHeight: CGFloat? = nil,
+        maxWidth: CGFloat,
+        maxItemWidth: CGFloat? = nil,
         horizontalSpacing: CGFloat? = nil,
         verticalSpacing: CGFloat? = nil
     ) {
         self.alignment = alignment
-        self.maxHeight = maxHeight
-        self.maxItemHeight = min(maxHeight, maxItemHeight ?? .infinity)
+        self.maxWidth = maxWidth
+        self.maxItemWidth = min(maxWidth, maxItemWidth ?? .infinity)
         self.horizontalSpacing = horizontalSpacing ?? 10
         self.verticalSpacing = verticalSpacing ?? 10
     }
     
     public func contentOffsets(sizes: [Int: CGSize]) -> [Int: CGPoint] {
-        let columns: [Column] = sizes
+        let rows: [Row] = sizes
             .sortedByKey()
-            .reduce(into: [Column]()) { partialResult, size in
+            .reduce(into: [Row]()) { partialResult, size in
                 guard partialResult.isEmpty ||
-                   !partialResult[partialResult.endIndex - 1].append(size, maxHeight: maxHeight) else {
+                   !partialResult[partialResult.endIndex - 1].append(size, maxWidth: maxWidth) else {
                     return
                 }
-                partialResult.append(Column(alignment: alignment, spacing: verticalSpacing, firstSize: size))
+                partialResult.append(Row(alignment: alignment, spacing: horizontalSpacing, firstSize: size))
             }
         
-        var currentXOffset: CGFloat = .zero
+        var currentYOffset: CGFloat = .zero
         var result = [Int: CGPoint]()
         
-        for column in columns {
-            column
-                .contentOffsets(columnXOffset: currentXOffset)
+        for row in rows {
+            row
+                .contentOffsets(rowYOffset: currentYOffset)
                 .forEach { result.update(with: $0) }
             
-            currentXOffset += column.columnSize.width + horizontalSpacing
+            currentYOffset += row.rowSize.height + verticalSpacing
         }
         
         return result

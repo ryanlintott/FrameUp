@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// A preference key used for managing view sizes in a FrameUp layout view.
 public struct FULayoutSizeKey: PreferenceKey {
     public typealias Value = [Int: CGSize]
     public static let defaultValue: [Int: CGSize] = [:]
@@ -17,7 +18,7 @@ public struct FULayoutSizeKey: PreferenceKey {
     }
 }
 
-/// This generalization doesn't work for some reason
+/// The root view used in `_FULayoutView` and `FULayoutEach`.
 internal struct AnyFULayoutRootView<Content: View>: View {
     let layout: AnyFULayout
     @Binding var contentOffsets: [Int: CGPoint]
@@ -45,6 +46,7 @@ internal struct AnyFULayoutRootView<Content: View>: View {
     }
 }
 
+/// The child view used in `_FULayoutView` and `FULayoutEach`.
 internal struct AnyFULayoutChildView<Content: View>: View {
     let layout: AnyFULayout
     let index: Int

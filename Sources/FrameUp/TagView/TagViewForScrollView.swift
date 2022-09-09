@@ -16,6 +16,7 @@ import SwiftUI
 ///         }
 ///     }
 ///
+@available(*, deprecated, message: "Use HFlowFULayout().forEach instead")
 public struct TagViewForScrollView<Element: Hashable, Content: View>: View {
     let maxWidth: CGFloat
     let elements: [Element]

@@ -27,6 +27,7 @@ import SwiftUI
 ///     }
 ///
 /// Adding or removing elements may not animate as intended as element ids are based on their index.
+@available(*, deprecated, message: "Use HFlowFULayout().forEach instead")
 public struct HFlow<Data: RandomAccessCollection, Content: View>: View where Data.Element: Identifiable, Data.Index == Int {
     let data: Array<(Data.Element, Int)>
     let maxWidth: CGFloat
