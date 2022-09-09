@@ -51,6 +51,16 @@ internal struct AnyFULayoutChildView<Content: View>: View {
     let contentOffsets: [Int: CGPoint]
     let content: Content
     
+    var contentOffset: CGPoint? {
+        contentOffsets[index]
+    }
+    var isInvisible: Bool { contentOffset == nil }
+    
+    var defaultOffset: CGPoint {
+        /// Ensures content is placed inside the frame of existing content
+        contentOffsets.first?.value ?? .zero
+    }
+    
     var body: some View {
         content
             .overlay(
@@ -69,11 +79,15 @@ internal struct AnyFULayoutChildView<Content: View>: View {
                 alignment: .topLeading
             )
             .alignmentGuide(.leading) { d in
-                -(contentOffsets[index]?.x ?? .zero)
+                -(contentOffset ?? defaultOffset).x
             }
             .alignmentGuide(.top) { d in
-                -(contentOffsets[index]?.y ?? .zero)
+                -(contentOffset ?? defaultOffset).y
             }
-            .id(layout.id)
+            /// These modifiers are used to ensure initial content sizing uses an invisible view that won't effect the overall frame. Once the offset is known it will appear with the correct placement.
+            .fixedSize(horizontal: isInvisible, vertical: isInvisible)
+            .frame(width: isInvisible ? .zero : nil, height: isInvisible ? .zero : nil)
+            .opacity(isInvisible ? 0 : 1)
+            .id(isInvisible ? UUID() : layout.id)
     }
 }
