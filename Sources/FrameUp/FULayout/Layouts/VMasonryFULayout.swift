@@ -9,13 +9,13 @@ import Foundation
 import SwiftUI
 
 public struct VMasonryFULayout: FULayout {
+    typealias Column = FULayoutColumn
+    
     public var fuLayoutName: String { String(describing: Self.self) }
     public let id = UUID()
     public let alignment: Alignment
-    public let start: Alignment
     public let columns: Int
     public let columnWidth: CGFloat
-    public var itemAlignment: Alignment
     public let maxItemWidth: CGFloat?
     public let horizontalSpacing: CGFloat
     public let verticalSpacing: CGFloat
@@ -24,18 +24,14 @@ public struct VMasonryFULayout: FULayout {
     public let fixedSize: Axis.Set = .vertical
     
     public init(
-        alignment: Alignment? = nil,
-        start: Alignment? = nil,
+        alignment: Alignment = .topLeading,
         columns: Int,
         maxWidth: CGFloat,
-        itemAlignment: HorizontalAlignment? = nil,
         horizontalSpacing: CGFloat? = nil,
         verticalSpacing: CGFloat? = nil
     ) {
-        self.alignment = alignment ?? .topLeading
-        self.start = start ?? .topLeading
+        self.alignment = alignment
         self.columns = max(1, columns)
-        self.itemAlignment = Alignment(horizontal: itemAlignment ?? .leading, vertical: .top)
         self.horizontalSpacing = horizontalSpacing ?? 10
         self.verticalSpacing = verticalSpacing ?? 10
         self.maxItemWidth = (maxWidth - (self.horizontalSpacing * CGFloat(self.columns - 1))) / CGFloat(self.columns)
@@ -43,23 +39,27 @@ public struct VMasonryFULayout: FULayout {
     }
     
     public func contentOffsets(sizes: [Int: CGSize]) -> [Int: CGPoint] {
-        var result: [Int: CGPoint] = [:]
-        let columnTopLeft: [Int: CGFloat] = (0..<columns).reduce(into: [Int: CGFloat]()) {
-            $0[$1] = CGFloat($1) * (columnWidth + horizontalSpacing)
+        var columns: [Column] = (0..<columns).map { _ in
+            Column(alignment: alignment, spacing: verticalSpacing, width: columnWidth)
         }
-        var columnHeights: [Int: CGFloat] = (0..<columns).reduce(into: [Int: CGFloat]()) { $0[$1] = 0 }
         
         for size in sizes.sortedByKey() {
-            let minColumnHeight: CGFloat = columnHeights.min(by: { $0.value < $1.value })?.value ?? 0
-            
             // Get the shortest column
-            if let column = columnHeights
-                .filter({ $0.value == minColumnHeight })
-                .sorted(by: { $0.key < $1.key })
-                .first {
-                result.updateValue(CGPoint(x: columnTopLeft[column.key] ?? 0, y: column.value), forKey: size.key)
-                columnHeights.updateValue((columnHeights[column.key] ?? 0) + size.value.height + verticalSpacing, forKey: column.key)
+            if let column = columns.enumerated().min(by: {
+                $0.1.columnSize.height < $1.1.columnSize.height
+            }) {
+                columns[column.0].append(size)
             }
+        }
+        
+        var currentXOffset: CGFloat = .zero
+        var result = [Int: CGPoint]()
+        
+        for column in columns {
+            for offset in column.contentOffsets(columnXOffset: currentXOffset) {
+                result.update(with: offset)
+            }
+            currentXOffset += column.columnSize.width + horizontalSpacing
         }
         
         return result

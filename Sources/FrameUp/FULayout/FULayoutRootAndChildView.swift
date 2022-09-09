@@ -53,10 +53,6 @@ internal struct AnyFULayoutChildView<Content: View>: View {
     let contentOffsets: [Int: CGPoint]
     let content: Content
     
-    var layoutDirectionMultiplier: CGFloat {
-        layoutDirection == .leftToRight ? 1 : -1
-    }
-    
     var body: some View {
         content
             .overlay(

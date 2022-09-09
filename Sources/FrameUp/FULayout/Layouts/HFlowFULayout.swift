@@ -8,53 +8,54 @@
 import SwiftUI
 
 public struct HFlowFULayout: FULayout {
+    typealias Column = FULayoutColumn
+    
     public var fuLayoutName: String { String(describing: Self.self) }
     public let id = UUID()
     public let alignment: Alignment
-    public let start: Alignment
     public let maxHeight: CGFloat
-    public let itemAlignment: Alignment
     public let maxItemHeight: CGFloat?
     public let horizontalSpacing: CGFloat
     public let verticalSpacing: CGFloat
-    
-    public var maxItemWidth: CGFloat? = nil
+
+    public let maxItemWidth: CGFloat? = nil
     public let fixedSize: Axis.Set = .horizontal
     
     public init(
-        alignment: VerticalAlignment? = nil,
-        start: Alignment? = nil,
+        alignment: Alignment = .topLeading,
         maxHeight: CGFloat,
-        itemAlignment: HorizontalAlignment? = nil,
         maxItemHeight: CGFloat? = nil,
         horizontalSpacing: CGFloat? = nil,
         verticalSpacing: CGFloat? = nil
     ) {
-        self.alignment = Alignment(horizontal: .leading, vertical: alignment ?? .top)
-        self.start = start ?? .topLeading
+        self.alignment = alignment
         self.maxHeight = maxHeight
-        self.itemAlignment = Alignment(horizontal: itemAlignment ?? .leading, vertical: .top)
         self.maxItemHeight = min(maxHeight, maxItemHeight ?? .infinity)
         self.horizontalSpacing = horizontalSpacing ?? 10
         self.verticalSpacing = verticalSpacing ?? 10
     }
     
     public func contentOffsets(sizes: [Int: CGSize]) -> [Int: CGPoint] {
-        var currentPoint: CGPoint = .zero
-        var result = [Int: CGPoint]()
-        var columnWidth: CGFloat = .zero
-        
-        for size in sizes.sortedByKey() {
-            if currentPoint != .zero,
-               currentPoint.y + size.value.height > maxHeight {
-                currentPoint.y = .zero
-                currentPoint.x += columnWidth + horizontalSpacing
-                columnWidth = .zero
+        let columns: [Column] = sizes
+            .sortedByKey()
+            .reduce(into: [Column]()) { partialResult, size in
+                guard partialResult.isEmpty ||
+                   !partialResult[partialResult.endIndex - 1].append(size, maxHeight: maxHeight) else {
+                    return
+                }
+                partialResult.append(Column(alignment: alignment, spacing: verticalSpacing, firstSize: size))
             }
-            result.updateValue(currentPoint, forKey: size.key)
-            
-            currentPoint.y += size.value.height + verticalSpacing
-            columnWidth = max(columnWidth, size.value.width)
+        
+        let maxColumnHeight = columns.map(\.columnSize.height).reduce(into: 0.0) { $0 = max($0, $1) }
+        
+        var currentXOffset: CGFloat = .zero
+        var result = [Int: CGPoint]()
+        
+        for column in columns {
+            for offset in column.contentOffsets(columnXOffset: currentXOffset) {
+                result.update(with: offset)
+            }
+            currentXOffset += column.columnSize.width + horizontalSpacing
         }
         
         return result
