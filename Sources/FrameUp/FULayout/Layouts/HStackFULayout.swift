@@ -31,27 +31,10 @@ public struct HStackFULayout: FULayout {
     }
     
     public func contentOffsets(sizes: [Int: CGSize]) -> [Int: CGPoint] {
-        var currentXOffset = 0.0
-        var result = [Int: CGPoint]()
-
-        for size in sizes.sortedByKey() {
-            let yOffset: CGFloat
-            switch alignment {
-            case .top:
-                yOffset = .zero
-            case .center:
-                yOffset = -size.value.height / 2
-            case .bottom:
-                yOffset = -size.value.height
-            default:
-                /// Custom alignments not supported
-                yOffset = .zero
-            }
-            let offset = CGPoint(x: currentXOffset, y: yOffset)
-            result.updateValue(offset, forKey: size.key)
-            currentXOffset += spacing + min(size.value.width, maxItemWidth ?? .infinity)
-        }
-
-        return result
+        var row = FULayoutRow(alignment: Alignment(horizontal: .leading, vertical: alignment), spacing: spacing, height: maxItemHeight ?? .infinity)
+        
+        sizes.forEach { row.append($0) }
+        
+        return row.contentOffsets(rowYOffset: 0)
     }
 }

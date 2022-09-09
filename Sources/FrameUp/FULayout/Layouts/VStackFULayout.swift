@@ -31,27 +31,10 @@ public struct VStackFULayout: FULayout {
     }
     
     public func contentOffsets(sizes: [Int: CGSize]) -> [Int: CGPoint] {
-        var currentYOffset: CGFloat = .zero
-        var result = [Int: CGPoint]()
-
-        for size in sizes.sortedByKey() {
-            let xOffset: CGFloat
-            switch alignment {
-            case .leading:
-                xOffset = .zero
-            case .center:
-                xOffset = -size.value.width / 2
-            case .trailing:
-                xOffset = -size.value.width
-            default:
-                /// Custom alignments not supported
-                xOffset = .zero
-            }
-            let offset = CGPoint(x: xOffset, y: currentYOffset)
-            result.updateValue(offset, forKey: size.key)
-            currentYOffset += spacing + min(size.value.height, maxItemHeight ?? .infinity)
-        }
-
-        return result
+        var column = FULayoutColumn(alignment: Alignment(horizontal: alignment, vertical: .top), spacing: spacing, width: maxItemWidth ?? .infinity)
+        
+        sizes.forEach { column.append($0) }
+        
+        return column.contentOffsets(columnXOffset: 0)
     }
 }

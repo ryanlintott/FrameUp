@@ -46,15 +46,14 @@ public struct VFlowFULayout: FULayout {
                 partialResult.append(Row(alignment: alignment, spacing: horizontalSpacing, firstSize: size))
             }
         
-        let maxRowWidth = rows.map(\.rowSize.width).reduce(into: 0.0) { $0 = max($0, $1) }
-        
         var currentYOffset: CGFloat = .zero
         var result = [Int: CGPoint]()
         
         for row in rows {
-            for offset in row.contentOffsets(rowYOffset: currentYOffset) {
-                result.update(with: offset)
-            }
+            row
+                .contentOffsets(rowYOffset: currentYOffset)
+                .forEach { result.update(with: $0) }
+            
             currentYOffset += row.rowSize.height + verticalSpacing
         }
         

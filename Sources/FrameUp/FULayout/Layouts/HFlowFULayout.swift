@@ -46,15 +46,14 @@ public struct HFlowFULayout: FULayout {
                 partialResult.append(Column(alignment: alignment, spacing: verticalSpacing, firstSize: size))
             }
         
-        let maxColumnHeight = columns.map(\.columnSize.height).reduce(into: 0.0) { $0 = max($0, $1) }
-        
         var currentXOffset: CGFloat = .zero
         var result = [Int: CGPoint]()
         
         for column in columns {
-            for offset in column.contentOffsets(columnXOffset: currentXOffset) {
-                result.update(with: offset)
-            }
+            column
+                .contentOffsets(columnXOffset: currentXOffset)
+                .forEach { result.update(with: $0) }
+            
             currentXOffset += column.columnSize.width + horizontalSpacing
         }
         

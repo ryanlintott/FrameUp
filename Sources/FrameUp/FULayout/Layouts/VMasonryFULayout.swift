@@ -45,9 +45,9 @@ public struct VMasonryFULayout: FULayout {
         
         for size in sizes.sortedByKey() {
             // Get the shortest column
-            if let column = columns.enumerated().min(by: {
-                $0.1.columnSize.height < $1.1.columnSize.height
-            }) {
+            if let column = columns
+                .enumerated()
+                .min(by: { $0.1.columnSize.height < $1.1.columnSize.height }) {
                 columns[column.0].append(size)
             }
         }
@@ -56,9 +56,9 @@ public struct VMasonryFULayout: FULayout {
         var result = [Int: CGPoint]()
         
         for column in columns {
-            for offset in column.contentOffsets(columnXOffset: currentXOffset) {
-                result.update(with: offset)
-            }
+            column
+                .contentOffsets(columnXOffset: currentXOffset)
+                .forEach { result.update(with: $0) }
             currentXOffset += column.columnSize.width + horizontalSpacing
         }
         
