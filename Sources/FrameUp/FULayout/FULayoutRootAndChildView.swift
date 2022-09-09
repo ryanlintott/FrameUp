@@ -18,7 +18,7 @@ public struct FULayoutSizeKey: PreferenceKey {
 }
 
 /// This generalization doesn't work for some reason
-struct AnyFULayoutRootView<Content: View>: View {
+internal struct AnyFULayoutRootView<Content: View>: View {
     let layout: AnyFULayout
     @Binding var contentOffsets: [Int: CGPoint]
     @Binding var frameSize: CGSize?
@@ -32,10 +32,10 @@ struct AnyFULayoutRootView<Content: View>: View {
     }
 
     var body: some View {
-        ZStack(alignment: layout.alignment) {
+        ZStack(alignment: .topLeading) {
             content
         }
-        .frame(frameSize, alignment: layout.alignment)
+        .frame(frameSize, alignment: .topLeading)
         .fixedSize()
         .onPreferenceChange(FULayoutSizeKey.self) {
             self.contentOffsets = layout.contentOffsets(sizes: $0)
@@ -45,11 +45,17 @@ struct AnyFULayoutRootView<Content: View>: View {
     }
 }
 
-struct AnyFULayoutChildView<Content: View>: View {
+internal struct AnyFULayoutChildView<Content: View>: View {
+    @Environment(\.layoutDirection) var layoutDirection
+    
     let layout: AnyFULayout
     let index: Int
     let contentOffsets: [Int: CGPoint]
     let content: Content
+    
+    var layoutDirectionMultiplier: CGFloat {
+        layoutDirection == .leftToRight ? -1 : 1
+    }
     
     var body: some View {
         content
@@ -66,12 +72,12 @@ struct AnyFULayoutChildView<Content: View>: View {
             .frame(
                 maxWidth: layout.maxItemWidth,
                 maxHeight: layout.maxItemHeight,
-                alignment: layout.itemAlignment
+                alignment: .topLeading
             )
-            .alignmentGuide(layout.alignment.horizontal) { d in
-                -(contentOffsets[index]?.x ?? .zero)
+            .alignmentGuide(.leading) { d in
+                (contentOffsets[index]?.x ?? .zero) * layoutDirectionMultiplier
             }
-            .alignmentGuide(layout.alignment.vertical) { d in
+            .alignmentGuide(.top) { d in
                 -(contentOffsets[index]?.y ?? .zero)
             }
             .id(layout.id)
