@@ -67,8 +67,6 @@ internal extension InterfaceOrientation {
             return "landscapeRight"
         case .portraitUpsideDown:
             return "portraitUpsideDown"
-        default:
-            return "*new case*"
         }
     }
 }
