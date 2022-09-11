@@ -1,5 +1,5 @@
 //
-//  VMasonryFULayout.swift
+//  VMasonry.swift
 //  FrameUp
 //
 //  Created by Ryan Lintott on 2022-07-14.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-/// A FrameUp layout that arranges views columns, adding views to the shortest column.
+/// A FrameUp layout that arranges views into columns, adding views to the shortest column.
 ///
 /// A maximum width must be provided but `WidthReader` can be used to get the value (especially helpful when inside a `ScrollView`).
 ///
