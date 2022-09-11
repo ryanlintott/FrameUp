@@ -13,22 +13,24 @@ import SwiftUI
 ///
 /// A maximum height must be provided but `HeightReader` can be used to get the value (especially helpful when inside a `ScrollView`).
 ///
-/// A FrameUp layout is not a view but it has two functions to make a view. `.forEach()` that works like `ForEach` and `._view { }` that works more like `HStack` or similar.
+/// A FrameUp layout is not a view but it works like a view by using `callAsFunction`. There is also an alternative view function `.forEach()` that works like `ForEach`
 ///
 /// Example:
 ///
 ///     HeightReader { height in
-///         HFlowFULayout(maxHeight: height).forEach(["Hello", "World", "More Text"], id: \.self) { item in
-///             Text(item.value)
-///                 .padding(12)
-///                 .foregroundColor(.white)
-///                 .background(Color.blue)
-///                 .cornerRadius(12)
-///                 .clipped()
+///         HFlow(maxHeight: height) {
+///             ForEach(["Hello", "World", "More Text"], id: \.self) { item in
+///                 Text(item.value)
+///                     .padding(12)
+///                     .foregroundColor(.white)
+///                     .background(Color.blue)
+///                     .cornerRadius(12)
+///                     .clipped()
+///             }
 ///         }
 ///     }
 ///
-public struct HFlowFULayout: FULayout {
+public struct HFlow: FULayout {
     typealias Row = FULayoutRow
     
     public let alignment: Alignment

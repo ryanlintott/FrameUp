@@ -18,17 +18,19 @@ import SwiftUI
 /// Example:
 ///
 ///     WidthReader { width in
-///         VFlowFULayout(maxWidth: width).forEach(["Hello", "World", "More Text"], id: \.self) { item in
-///             Text(item.value)
-///                 .padding(12)
-///                 .foregroundColor(.white)
-///                 .background(Color.blue)
-///                 .cornerRadius(12)
-///                 .clipped()
+///         VFlow(maxWidth: width) {
+///             ForEach(["Hello", "World", "More Text"], id: \.self) { item in
+///                 Text(item.value)
+///                     .padding(12)
+///                     .foregroundColor(.white)
+///                     .background(Color.blue)
+///                     .cornerRadius(12)
+///                     .clipped()
+///             }
 ///         }
 ///     }
 ///
-public struct VFlowFULayout: FULayout {
+public struct VFlow: FULayout {
     typealias Column = FULayoutColumn
     
     public let alignment: Alignment

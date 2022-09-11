@@ -7,29 +7,7 @@
 
 import SwiftUI
 
-/// A type of view that takes a collection of views and arranges them according to a provided layout.
-public protocol FULayout_View: View {
-    associatedtype Content: View
-    associatedtype Layout: FULayout
-    
-    var layout: Layout { get }
-    var content: () -> Content { get }
-}
-
-public extension FULayout_View {
-    var body: some View {
-        layout._view(content: content)
-    }
-}
-
 public extension FULayout {
-    /// Creates a view that arranges its children based on the parent FrameUp layout.
-    /// - Parameter content: A closure view containing child views.
-    /// - Returns: A view that arranges its children based on the parent FrameUp layout.
-    func _view<Content: View>(@ViewBuilder content: () -> Content) -> some View {
-        _FULayoutView(self, content: content)
-    }
-    
     /// Creates a view that arranges its children based on the parent FrameUp layout.
     /// - Parameter content: A closure view containing child views.
     /// - Returns: A view that arranges its children based on the parent FrameUp layout.

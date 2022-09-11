@@ -28,8 +28,8 @@ import SwiftUI
 ///
 ///
 /// Adding or removing elements may not animate as intended as element ids are based on their index.
-@available(*, deprecated, message: "Use VFlowFULayout().forEach instead")
-public struct VFlow<Data: RandomAccessCollection, Content: View>: View where Data.Element: Identifiable, Data.Index == Int {
+@available(*, deprecated, message: "Use VFlow().forEach instead")
+public struct VFlowLegacy<Data: RandomAccessCollection, Content: View>: View where Data.Element: Identifiable, Data.Index == Int {
     let data: Array<(Data.Element, Int)>
     let maxHeight: CGFloat
     let maxColumnWidth: CGFloat

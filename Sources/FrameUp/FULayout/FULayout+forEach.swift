@@ -7,24 +7,6 @@
 
 import SwiftUI
 
-
-/// A type of view that builds each data item in a content closure and arranges them according to a provided layout.
-public protocol FULayoutForEachView: View {
-    associatedtype Data: RandomAccessCollection where Data.Element: Identifiable, Data.Index == Int
-    associatedtype Content: View
-    associatedtype Layout: FULayout
-    
-    var data: Data { get }
-    var layout: Layout { get }
-    var content: (Data.Element) -> Content { get }
-}
-
-public extension FULayoutForEachView {
-    var body: some View {
-        layout.forEach(data, content: content)
-    }
-}
-
 public extension FULayout {
     /// Creates a FrameUp layout view by computing views on demand from an underlying collection of identified data.
     /// - Parameters:

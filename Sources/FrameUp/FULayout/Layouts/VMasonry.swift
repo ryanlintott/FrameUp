@@ -16,17 +16,19 @@ import SwiftUI
 /// Example:
 ///
 ///     WidthReader { width in
-///         VMasonryFULayout(columns: 3, maxWidth: width).forEach(["Hello", "World", "More Text"], id: \.self) { item in
-///             Text(item.value)
-///                 .padding(12)
-///                 .foregroundColor(.white)
-///                 .background(Color.blue)
-///                 .cornerRadius(12)
-///                 .clipped()
+///         VMasonry(columns: 3, maxWidth: width) {
+///             ForEach(["Hello", "World", "More Text"], id: \.self) { item in
+///                 Text(item.value)
+///                     .padding(12)
+///                     .foregroundColor(.white)
+///                     .background(Color.blue)
+///                     .cornerRadius(12)
+///                     .clipped()
+///             }
 ///         }
 ///     }
 ///
-public struct VMasonryFULayout: FULayout {
+public struct VMasonry: FULayout {
     typealias Column = FULayoutColumn
     
     public let alignment: Alignment
