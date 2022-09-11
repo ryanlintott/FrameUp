@@ -154,6 +154,7 @@ public struct FlippingView<Front: View, Back: View>: View {
     }
 }
 
+#warning("Move this example to Example App")
 struct FlippingView_Previews: PreviewProvider {
     struct PreviewData: View {
         @State private var flips: Int = 0
