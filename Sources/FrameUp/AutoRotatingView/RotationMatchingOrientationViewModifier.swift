@@ -17,8 +17,8 @@ extension View {
     ///   - animation: Animation to use when altering the view orientation.
     /// - Returns: A view rotated to match a device orientations from an allowed orientation set.
     @available(*, deprecated, message: "Use AutoRotatingView view instead of this modifier.")
-    public func rotationMatchingOrientation(_ allowedOrientations: [InterfaceOrientation]? = nil, isOn: Bool? = nil, withAnimation animation: Animation? = nil) -> some View {
-        AutoRotatingView(allowedOrientations, isOn: isOn, animation: animation) {
+    public func rotationMatchingOrientation(_ allowedOrientations: [InterfaceOrientation]? = nil, isOn: Bool = true, withAnimation animation: Animation? = nil) -> some View {
+        AutoRotatingView(allowedOrientations ?? InterfaceOrientation.allCases, isOn: isOn, animation: animation) {
             self
         }
     }

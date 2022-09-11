@@ -31,9 +31,9 @@ public struct AutoRotatingView<Content: View>: View {
     ///   - isOn: Toggles ability to rotate views.
     ///   - animation: Animation to use when altering the view orientation.
     /// - Returns: A view rotated to match a device orientations from an allowed orientation set.
-    public init(_ allowedOrientations: [InterfaceOrientation]? = nil, isOn: Bool? = nil, animation: Animation? = .default, @ViewBuilder content: () -> Content) {
-        self.allowedOrientations = allowedOrientations ?? InterfaceOrientation.allCases
-        self.isOn = isOn ?? true
+    public init(_ allowedOrientations: [InterfaceOrientation] = InterfaceOrientation.allCases, isOn: Bool = true, animation: Animation? = .default, @ViewBuilder content: () -> Content) {
+        self.allowedOrientations = allowedOrientations
+        self.isOn = isOn
         self.animation = animation
         self.content = content()
     }

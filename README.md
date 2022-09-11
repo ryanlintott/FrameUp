@@ -12,7 +12,9 @@ A Swift Package with a collection of SwiftUI framing views and tools to help wit
 
 - Size readers like [`WidthReader`](#widthreader), [`HeightReader`](#heightreader), and [`onSizeChange(perform:)`](#onsizechangeperform)
 - [`SmartScrollView`](#smartscrollview) with optional scrolling, a content-fitable frame, and live edge inset values.
-- Flow views for presenting tags or any view. [`HFlow`](#hflow) or [`VFlow`](#vflow)
+- [`FULayout`] for building custom layouts (similar to SwiftUI Layout but works in iOS 14).
+- [`HFlow`](#hflowfulayout) or [`VFlow`](#vflow) for presenting tags or any view in a flow style.
+- [`VMasonry`](#vmasonry) or [`HMasonry`](#hmasonry) for presenting view in a masonry (Pinterest) style.
 - [`OverlappingImage`](#overlappingimage) that overlaps neighbouring content by a percent of the image size.
 - [`.relativePadding`](#relativepaddingedges-lengthfactor) adds padding relative to the content view size.
 - [`TabMenuView`](#tabmenuview), a customizable tab menu with `onReselect` and `onDoubleTap` functions.
