@@ -46,10 +46,14 @@ fileprivate struct _VariadicFULayoutRoot: _VariadicView_MultiViewRoot {
         self.contentOffsets = contentOffsets
     }
     
+    var defaultOffset: CGPoint {
+        contentOffsets.first?.value ?? .zero
+    }
+    
     @ViewBuilder
     func body(children: _VariadicView.Children) -> some View {
         ForEach(Array(zip(children, children.indices)), id: \.0.id) { (child, index) in
-            AnyFULayoutChildView(layout: layout, index: index, contentOffsets: contentOffsets, content: child)
+            AnyFULayoutChildView(layout: layout, index: index, contentOffset: contentOffsets[index], defaultOffset: defaultOffset, content: child)
         }
     }
 }

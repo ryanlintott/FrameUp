@@ -56,18 +56,12 @@ internal struct AnyFULayoutRootView<Content: View>: View {
 internal struct AnyFULayoutChildView<Content: View>: View {
     let layout: AnyFULayout
     let index: Int
-    let contentOffsets: [Int: CGPoint]
+    let contentOffset: CGPoint?
+    /// Ensures content is placed inside the frame of existing content
+    let defaultOffset: CGPoint
     let content: Content
     
-    var contentOffset: CGPoint? {
-        contentOffsets[index]
-    }
     var isInvisible: Bool { contentOffset == nil }
-    
-    var defaultOffset: CGPoint {
-        /// Ensures content is placed inside the frame of existing content
-        contentOffsets.first?.value ?? .zero
-    }
     
     var body: some View {
         content
@@ -82,8 +76,8 @@ internal struct AnyFULayoutChildView<Content: View>: View {
                 vertical: layout.fixedSize.contains(.vertical)
             )
             .frame(
-                maxWidth: isInvisible ? .zero : layout.maxItemWidth,
-                maxHeight: isInvisible ? .zero : layout.maxItemHeight,
+                maxWidth: layout.maxItemWidth,
+                maxHeight: layout.maxItemHeight,
                 alignment: .topLeading
             )
             .alignmentGuide(.leading) { d in

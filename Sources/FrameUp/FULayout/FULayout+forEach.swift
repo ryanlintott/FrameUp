@@ -36,10 +36,14 @@ fileprivate struct FULayoutEach<Data: RandomAccessCollection, Content: View>: Vi
         self = .init(data, layout: AnyFULayout(layout), content: content)
     }
     
+    var defaultOffset: CGPoint {
+        contentOffsets.first?.value ?? .zero
+    }
+    
     var body: some View {
         AnyFULayoutRootView(layout, contentOffsets: $contentOffsets, frameSize: $frameSize) {
             ForEach(data, id: \.0.id) { (item, index) in
-                AnyFULayoutChildView(layout: layout, index: index, contentOffsets: contentOffsets, content: content(item))
+                AnyFULayoutChildView(layout: layout, index: index, contentOffset: contentOffsets[index], defaultOffset: defaultOffset, content: content(item))
             }
         }
     }
