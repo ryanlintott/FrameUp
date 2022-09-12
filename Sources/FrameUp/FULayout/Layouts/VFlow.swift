@@ -7,29 +7,31 @@
 
 import SwiftUI
 
-/// A FrameUp layout that arranges views in a column, adding columns when needed.
-///
-/// Each column width will be determined by the widest element. The overall frame size will fit to the size of the laid out content.
-///
-/// A maximum width must be provided but `WidthReader` can be used to get the value (especially helpful when inside a `ScrollView`).
-///
-/// A FrameUp layout is not a view but it has two functions to make a view. `.forEach()` that works like `ForEach` and `._view { }` that works more like `VStack` or similar.
-///
-/// Example:
-///
-///     WidthReader { width in
-///         VFlow(maxWidth: width) {
-///             ForEach(["Hello", "World", "More Text"], id: \.self) { item in
-///                 Text(item.value)
-///                     .padding(12)
-///                     .foregroundColor(.white)
-///                     .background(Color.blue)
-///                     .cornerRadius(12)
-///                     .clipped()
-///             }
-///         }
-///     }
-///
+/**
+ A FrameUp layout that arranges views in a column, adding columns when needed.
+
+ Each column width will be determined by the widest element. The overall frame size will fit to the size of the laid out content.
+
+ A maximum width must be provided but `WidthReader` can be used to get the value (especially helpful when inside a `ScrollView`).
+
+ A FrameUp layout is not a view but it has two functions to make a view. `.forEach()` that works like `ForEach` and `._view { }` that works more like `VStack` or similar.
+
+ Example:
+ ```swift
+ WidthReader { width in
+     VFlow(maxWidth: width) {
+         ForEach(["Hello", "World", "More Text"], id: \.self) { item in
+             Text(item.value)
+                 .padding(12)
+                 .foregroundColor(.white)
+                 .background(Color.blue)
+                 .cornerRadius(12)
+                 .clipped()
+         }
+     }
+ }
+ ```
+ */
 public struct VFlow: FULayout {
     typealias Column = FULayoutColumn
     

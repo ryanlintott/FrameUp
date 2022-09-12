@@ -12,8 +12,8 @@ A Swift Package with a collection of SwiftUI framing views and tools to help wit
 
 - Size readers like [`WidthReader`](#widthreader), [`HeightReader`](#heightreader), and [`onSizeChange(perform:)`](#onsizechangeperform)
 - [`SmartScrollView`](#smartscrollview) with optional scrolling, a content-fitable frame, and live edge inset values.
+- [`HFlow`](#hflow) or [`VFlow`](#vflow) for presenting tags or any view in a flow style.
 - [`FULayout`] for building custom layouts (similar to SwiftUI Layout but works in iOS 14).
-- [`HFlow`](#hflowfulayout) or [`VFlow`](#vflow) for presenting tags or any view in a flow style.
 - [`VMasonry`](#vmasonry) or [`HMasonry`](#hmasonry) for presenting view in a masonry (Pinterest) style.
 - [`OverlappingImage`](#overlappingimage) that overlaps neighbouring content by a percent of the image size.
 - [`.relativePadding`](#relativepaddingedges-lengthfactor) adds padding relative to the content view size.
@@ -136,53 +136,85 @@ SmartScrollView(.vertical, showsIndicators: true, optionalScrolling: true, shrin
     // Runs when view is scrolled
 }
 ```
+## FULayout
+Similar to the SwiftUI `Layout` protocol, the FrameUp layout `FULayout` protocol is used to define view layouts.
 
-## Flow Views
-### HFlow
-A view that creates views based on a collection of data from left to right, adding rows when needed.
+A FrameUp layout is only required to define which axes are fixed, the maximum item size, and a function that takes view sizes and ouputs view offsets.
 
-Each row height will be determined by the tallest element. The overall frame size will fit to the size of the laid out content.
+There are two ways to build views from types that conform to `FULayout`.
 
-A maximum width must be provided but `WidthReader` can be used to get the value (especially helpful when inside a `ScrollView`).
+### 1. Call them as functions.
+This method is the most straightforward as it works the same as SwiftUI layouts.
 
-Example:
 ```swift
-WidthReader { width in
-    HFlow(["Hello", "World", "More Text"], maxWidth: width) { item in
+MyFULayout() {
+    Text("Hello")
+    Text("World")
+}
+```
+
+*Caution: `_VariadicView` is used under the hood. If this underscore protocol concerns you, use method 2 below.*
+
+### 2. Use the `.forEach()` function.
+This method uses a method that works in a very similar way to `ForEach()`.
+
+```swift
+MyFULayout().forEach(["Hello", "World"], id: \.self) { item in
         Text(item.value)
-            .padding(12)
-            .foregroundColor(.white)
-            .background(Color.blue)
-            .cornerRadius(12)
-            .clipped()
     }
 }
 ```
 
-Adding or removing elements may not animate as intended as element ids are based on their index.
+## Layouts
+### HFlow
+A FrameUp layout that arranges views in a row, adding rows when needed.
+ 
+Each row height will be determined by the tallest element. The overall frame size will fit to the size of the laid out content.
+ 
+A maximum height must be provided but `HeightReader` can be used to get the value (especially helpful when inside a `ScrollView`).
+ 
+A FrameUp layout is not a view but it works like a view by using `callAsFunction`. There is also an alternative view function `.forEach()` that works like `ForEach`
+
+Example:
+```swift
+ HeightReader { height in
+     HFlow(maxHeight: height) {
+         ForEach(["Hello", "World", "More Text"], id: \.self) { item in
+             Text(item.value)
+                 .padding(12)
+                 .foregroundColor(.white)
+                 .background(Color.blue)
+                 .cornerRadius(12)
+                 .clipped()
+         }
+     }
+ }
+```
 
 ### VFlow
-A view that creates views based on a collection of data from top to bottom, addcolumns when needed.
+ A FrameUp layout that arranges views in a column, adding columns when needed.
 
-Each column width will be determined by the widest element. The overall frame swill fit to the size of the laid out content.
+ Each column width will be determined by the widest element. The overall frame size will fit to the size of the laid out content.
 
-A maximum height must be provided but `HeightReader` can be used to get the va(especially helpful when  inside a `ScrollView`).
+ A maximum width must be provided but `WidthReader` can be used to get the value (especially helpful when inside a `ScrollView`).
 
-Example:
-```swift
-HeightReader { height in
-    HFlow(["Hello", "World", "More Text"], maxHeight: height) { item in
-        Text(item.value)
-            .padding(12)
-            .foregroundColor(.white)
-            .background(Color.blue)
-            .cornerRadius(12)
-            .clipped()
-    }
-}
-```
+ A FrameUp layout is not a view but it has two functions to make a view. `.forEach()` that works like `ForEach` and `._view { }` that works more like `VStack` or similar.
 
-Adding or removing elements may not animate as intended as element ids are based on their index.
+ Example:
+ ```swift
+ WidthReader { width in
+     VFlow(maxWidth: width) {
+         ForEach(["Hello", "World", "More Text"], id: \.self) { item in
+             Text(item.value)
+                 .padding(12)
+                 .foregroundColor(.white)
+                 .background(Color.blue)
+                 .cornerRadius(12)
+                 .clipped()
+         }
+     }
+ }
+ ```
 
 ## OverlappingImage
 An image view that can overlap content on the edges of its frame.

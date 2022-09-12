@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// A type that can create a FrameUp view layout.
 public protocol FULayout: Equatable {
     /// Axes that will have a fixed size.
     var fixedSize: Axis.Set { get }
