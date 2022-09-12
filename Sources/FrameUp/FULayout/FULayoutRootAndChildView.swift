@@ -24,6 +24,8 @@ internal struct AnyFULayoutRootView<Content: View>: View {
     @Binding var contentOffsets: [Int: CGPoint]
     @Binding var frameSize: CGSize?
     let content: Content
+    
+    var isInvisible: Bool { frameSize == nil || contentOffsets == [:] }
 
     init(_ layout: AnyFULayout, contentOffsets: Binding<[Int: CGPoint]>, frameSize: Binding<CGSize?>, content: () -> Content) {
         self.layout = layout
@@ -42,6 +44,10 @@ internal struct AnyFULayoutRootView<Content: View>: View {
             self.contentOffsets = layout.contentOffsets(sizes: $0)
             self.frameSize = layout.rect(contentOffsets: contentOffsets, sizes: $0).size
         }
+        /// These modifiers are used to ensure initial content sizing uses an invisible view that won't effect the overall frame. Once the offset is known it will appear with the correct placement.
+        .frame(width: isInvisible ? .zero : nil, height: isInvisible ? .zero : nil)
+        .opacity(isInvisible ? 0 : 1)
+        .id(isInvisible)
         .id(layout.id)
     }
 }
@@ -76,8 +82,8 @@ internal struct AnyFULayoutChildView<Content: View>: View {
                 vertical: layout.fixedSize.contains(.vertical)
             )
             .frame(
-                maxWidth: layout.maxItemWidth,
-                maxHeight: layout.maxItemHeight,
+                maxWidth: isInvisible ? .zero : layout.maxItemWidth,
+                maxHeight: isInvisible ? .zero : layout.maxItemHeight,
                 alignment: .topLeading
             )
             .alignmentGuide(.leading) { d in
@@ -87,9 +93,8 @@ internal struct AnyFULayoutChildView<Content: View>: View {
                 -(contentOffset ?? defaultOffset).y
             }
             /// These modifiers are used to ensure initial content sizing uses an invisible view that won't effect the overall frame. Once the offset is known it will appear with the correct placement.
-            .fixedSize(horizontal: isInvisible, vertical: isInvisible)
-            .frame(width: isInvisible ? .zero : nil, height: isInvisible ? .zero : nil)
             .opacity(isInvisible ? 0 : 1)
-            .id(isInvisible ? UUID() : layout.id)
+            .id(isInvisible)
+            .id(layout.id)
     }
 }
