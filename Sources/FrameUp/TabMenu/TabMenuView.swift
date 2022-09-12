@@ -52,7 +52,7 @@ public struct TabMenuView<Tab: Hashable, Content: View>: View {
     ///   - items: array of `TabMenuItem`
     ///   - isShowingName: A Boolean value that indicates whether the name should be shown. Default is true if any tab menu item has a non-nil name.
     ///   - onReselect: A named action to run when a selected tab is reselected.
-    ///   - onDoubleTap: A named action to run when a tab is tapped twice.
+    ///   - onDoubleTap: A named action to run when a selected tab is tapped twice.
     ///   - maskedView: A view that will be shown, masked by the icon and text. A simple color or a more complex view can be provided. A Boolean value with the selected state is passed in so that the view can change accordingly.
     public init(selection: Binding<Tab>, items: [TabMenuItem<Tab>], isShowingName: Bool? = nil, maskedView: @escaping (Bool) -> Content, onReselect: (() -> NamedAction)? = nil, onDoubleTap: (() -> NamedAction)? = nil) {
         self._selection = selection
@@ -101,7 +101,7 @@ public struct TabMenuView<Tab: Hashable, Content: View>: View {
                                 if let onReselect, selection == item.tab {
                                     Color.clear.accessibilityAction(named: onReselect.name, onReselect.action)
                                 }
-                                if let onDoubleTap {
+                                if let onDoubleTap, selection == item.tab {
                                     Color.clear.accessibilityAction(named: onDoubleTap.name, onDoubleTap.action)
                                 }
                             }
