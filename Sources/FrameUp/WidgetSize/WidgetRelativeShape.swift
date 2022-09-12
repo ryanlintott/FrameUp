@@ -18,6 +18,8 @@ public struct ScaledContainerRelativeShape: Shape {
     let scaleFactor: CGFloat
     
     public func path(in rect: CGRect) -> Path {
+        if scaleFactor == 1 { return ContainerRelativeShape().path(in: rect) }
+        
         let scaledRect = CGRect(
             x: rect.minX,
             y: rect.minY,
@@ -32,19 +34,26 @@ public struct ScaledContainerRelativeShape: Shape {
 
 @available(iOS, unavailable)
 @available(iOSApplicationExtension 14.0, *)
-/// A re-scaled version of `ContainerRelativeShape` used to fix a bug with the corner radius on iPads.
+/// A re-scaled version of `ContainerRelativeShape` used to fix a bug with the corner radius on iPads in iOS 15 and earlier.
 public typealias WidgetRelativeShape = ScaledShape<ScaledContainerRelativeShape>
+
 
 @available(iOS, unavailable)
 @available(iOSApplicationExtension 14.0, *)
 public extension ScaledShape where Content == ScaledContainerRelativeShape {
-    /// Creates a version of `ContainerRelativeShape` where the corners have been re-scaled in order to fix a bug with the corner radius on iPads.
+    /// Creates a version of `ContainerRelativeShape` where the corners have been re-scaled to fix a bug with the corner radius on iPads in iOS 15 and earlier.
     ///
     /// This is a bug probably caused by setting the corner radius relative to the Home Screen widget size, then using it on the design canvas size (or vice versa). Hopefully be fixed in a future update but when it is, this shape will no longer have the correct corner radius.
     /// - Parameter widgetFamily: Pass this in from `@Environment(\.widgetFamily) var widgetFamily`
     init(_ widgetFamily: WidgetFamily) {
-        // Scale factor will be less than 1 on iPad and 1 for all other devices
-        let scaleFactor = widgetFamily.size?.scaleFactorForCurrentDevice ?? 1
+        let scaleFactor: CGFloat
+        if #available(iOSApplicationExtension 16, *) {
+            /// This bug was fixed in iOS 16 so the scale factor is always 1
+            scaleFactor = 1
+        } else {
+            /// Scale factor will be less than 1 on iPad and 1 for all other devices
+            scaleFactor = widgetFamily.size?.scaleFactorForCurrentDevice ?? 1
+        }
         let scaleSize = CGSize(width: 1 / scaleFactor, height: 1 / scaleFactor)
         
         // Creates a ScaledContainerRelativeShape at a smaller size and scales it back up to fit the frame. This re-scales the corner radius.
