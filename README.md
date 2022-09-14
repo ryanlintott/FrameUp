@@ -256,8 +256,9 @@ Customizable tab menu bar view designed to mimic the style of the default tab me
 Features:
 - Use any image or AnyView as a mask for the menu item.
 - Use any view as the 'color' including gradients.
-- onReselect function that triggers when the active tab menu item is selected.
-- onDoubleTap function that triggers when any tab is double-tapped.
+- onReselect closure that triggers when the active tab is selected.
+- onDoubleTap closure that triggers when the active tab is double-tapped.
+- accessibility actions are automatically added for onReselect and onDoubleTap if they are used.
 
 Example:
 ```swift
