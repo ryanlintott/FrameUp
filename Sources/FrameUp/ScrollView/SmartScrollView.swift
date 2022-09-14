@@ -9,19 +9,26 @@ import SwiftUI
 
 /// Settings used in `SmartScrollView`
 public struct SmartScrollViewMeasurements: Equatable {
-    /// ScrollviewFrame
-    public var scrollViewSize: CGSize
-    /// Frame of content insize scrollview.
-    public var contentFrame: CGRect
+    /// State of scroll view dimensions
+    public var state: SmartScrollViewState
     
     /// Edge insets based on the content frame and scroll view size.
-    var edgeInsets: EdgeInsets {
+    public var edgeInsets: EdgeInsets
+}
+
+extension SmartScrollViewMeasurements {
+    static func edgeInsets(contentFrame: CGRect, scrollViewSize: CGSize) -> EdgeInsets {
         EdgeInsets(
             top: contentFrame.minY,
             leading: contentFrame.minX,
             bottom: scrollViewSize.height - contentFrame.maxY,
             trailing: scrollViewSize.width - contentFrame.maxX
         )
+    }
+    
+    init(contentFrame: CGRect, scrollViewSize: CGSize) {
+        state = SmartScrollViewState(content: contentFrame.size, scrollView: scrollViewSize)
+        edgeInsets = Self.edgeInsets(contentFrame: contentFrame, scrollViewSize: scrollViewSize)
     }
 }
 
@@ -34,9 +41,7 @@ public struct SmartScrollViewKey: PreferenceKey {
     }
 }
 
-public struct SmartScrollViewState {
-    /// Maximum frame size
-    let max: CGSize
+public struct SmartScrollViewState: Equatable {
     /// Content size
     let content: CGSize
     /// Scroll view size
@@ -45,10 +50,10 @@ public struct SmartScrollViewState {
     /// A recommended set axes for scrolling based on a the maximum frame size and content size.
     var recommendedAxes: Axis.Set {
         var axes = Axis.Set()
-        if max.height < content.height {
+        if scrollView.height < content.height {
             axes.update(with: .vertical)
         }
-        if max.width < content.width {
+        if scrollView.width < content.width {
             axes.update(with: .horizontal)
         }
         return axes
@@ -109,40 +114,48 @@ public struct SmartScrollView<Content: View>: View {
         return state?.recommendedAxes.intersection(axes) ?? []
     }
     
-    func updateValues(_ settings: SmartScrollViewMeasurements?) {
-        guard let settings else {
+    func resetStateTask() {
+        Task {
+            state = nil
+        }
+    }
+    
+    func updateValues(_ measurements: SmartScrollViewMeasurements?) {
+        guard let measurements else {
             /// Settings have not been set or have for some unknown reason been set to nil
             if state != nil {
-                Task {
-                    state = nil
-                }
+                resetStateTask()
             }
             return
         }
+        
+        let contentSize = measurements.state.content
+        
+        guard state?.content.equals(contentSize, precision: 0.01) ?? true else {
+            /// Content size has changed so reset state.
+            resetStateTask()
+            return
+        }
+        
+        let scrollViewSize = CGSize(
+            width: min(measurements.state.scrollView.width, axes.contains(.vertical) || shrinkToFit ? contentSize.width : .infinity),
+            height: min(measurements.state.scrollView.height, axes.contains(.horizontal) || shrinkToFit ? contentSize.height : .infinity)
+        )
         
         guard let state else {
-            /// The state is unknown so define a new state.
-            let maxSize = settings.scrollViewSize
-            let contentSize = settings.contentFrame.size
-            let scrollViewSize = CGSize(
-                width: min(maxSize.width, axes.contains(.vertical) || shrinkToFit ? contentSize.width : .infinity),
-                height: min(maxSize.height, axes.contains(.horizontal) || shrinkToFit ? contentSize.height : .infinity)
-            )
-            self.state = .init(max: maxSize, content: contentSize, scrollView: scrollViewSize)
+            /// State is nil so initialize state
+            self.state = .init(content: contentSize, scrollView: scrollViewSize)
             return
         }
         
-        guard state.content.equals(settings.contentFrame.size, precision: 0.01),
-           state.scrollView.equals(settings.scrollViewSize, precision: 0.01) else {
-            /// Sizes have changed so reset state.
-            Task {
-                self.state = nil
-            }
+        guard state.scrollView.equals(scrollViewSize, precision: 0.01) else {
+            /// Scroll view size has changed (it can only shrink) so update state.
+            self.state = .init(content: contentSize, scrollView: scrollViewSize)
             return
         }
         
         /// State is stable so just update onScroll
-        onScroll?(settings.edgeInsets)
+        onScroll?(measurements.edgeInsets)
     }
     
     let randomNumber = Int.random(in: 0...1000)
@@ -152,9 +165,9 @@ public struct SmartScrollView<Content: View>: View {
             ScrollView(scrollViewAxes, showsIndicators: showsIndicators) {
                 content
                     .anchorPreference(key: SmartScrollViewKey.self, value: .bounds) { anchor in
-                        let scrollViewSize = proxy.size
                         let contentFrame = proxy[anchor]
-                        return SmartScrollViewMeasurements(scrollViewSize: scrollViewSize, contentFrame: contentFrame)
+                        let scrollViewSize = proxy.size
+                        return .init(contentFrame: contentFrame, scrollViewSize: scrollViewSize)
                     }
                     .fixedSize(horizontal: axes.contains(.horizontal), vertical: axes.contains(.vertical))
             }
