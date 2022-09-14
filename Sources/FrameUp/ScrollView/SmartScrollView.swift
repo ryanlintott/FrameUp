@@ -108,34 +108,31 @@ public struct SmartScrollView<Content: View>: View {
     /// Sizes required for displaying scrollview
     @State private var state: SmartScrollViewState? = nil
     
+    @State private var contentID: UUID = UUID()
+    
     /// Axes that will be used on ScrollView
     var scrollViewAxes: Axis.Set {
         guard optionalScrolling else { return axes }
         return state?.recommendedAxes.intersection(axes) ?? []
     }
     
-    func resetStateTask() {
-        Task {
-            state = nil
-        }
+    func resetMeasurements() {
+        state = nil
+        contentID = UUID()
     }
     
     func updateValues(_ measurements: SmartScrollViewMeasurements?) {
         guard let measurements else {
             /// Settings have not been set or have for some unknown reason been set to nil
             if state != nil {
-                resetStateTask()
+                Task {
+                    resetMeasurements()
+                }
             }
             return
         }
         
         let contentSize = measurements.state.content
-        
-        guard state?.content.equals(contentSize, precision: 0.01) ?? true else {
-            /// Content size has changed so reset state.
-            resetStateTask()
-            return
-        }
         
         let scrollViewSize = CGSize(
             width: min(measurements.state.scrollView.width, axes.contains(.vertical) || shrinkToFit ? contentSize.width : .infinity),
@@ -144,13 +141,25 @@ public struct SmartScrollView<Content: View>: View {
         
         guard let state else {
             /// State is nil so initialize state
-            self.state = .init(content: contentSize, scrollView: scrollViewSize)
+            Task {
+                self.state = .init(content: contentSize, scrollView: scrollViewSize)
+            }
+            return
+        }
+        
+        guard state.content.equals(contentSize, precision: 0.01) else {
+            /// Content size has changed so reset state.
+            Task {
+                resetMeasurements()
+            }
             return
         }
         
         guard state.scrollView.equals(scrollViewSize, precision: 0.01) else {
             /// Scroll view size has changed (it can only shrink) so update state.
-            self.state = .init(content: contentSize, scrollView: scrollViewSize)
+            Task {
+                self.state = .init(content: contentSize, scrollView: scrollViewSize)
+            }
             return
         }
         
@@ -164,6 +173,7 @@ public struct SmartScrollView<Content: View>: View {
         GeometryReader { proxy in
             ScrollView(scrollViewAxes, showsIndicators: showsIndicators) {
                 content
+                    .id(contentID)
                     .anchorPreference(key: SmartScrollViewKey.self, value: .bounds) { anchor in
                         let contentFrame = proxy[anchor]
                         let scrollViewSize = proxy.size
@@ -174,31 +184,30 @@ public struct SmartScrollView<Content: View>: View {
         }
         /// A frame that's able to shrink the scroll view is applied only when the state is known.
         .frame(maxWidth: state?.scrollView.width, maxHeight: state?.scrollView.height)
-        /// Hide everything when the state is unknown.
-        .opacity(state == nil ? 0 : 1)
         /// When measurements change, update values.
         .onPreferenceChange(SmartScrollViewKey.self, perform: updateValues)
         /// If any parameters change, reset the state.
         .onChange(of: axes) { newValue in
             if newValue != axes {
-                state = nil
+                resetMeasurements()
             }
         }
         .onChange(of: optionalScrolling) { newValue in
             if newValue != optionalScrolling {
-                state = nil
+                resetMeasurements()
             }
         }
         .onChange(of: shrinkToFit) { newValue in
             if newValue != shrinkToFit {
-                state = nil
+                resetMeasurements()
             }
         }
         /// If the screen rotates or the app returns from the background, reset the state
         .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
             if let deviceOrientation = UIDevice.current.orientation.interfaceOrientation, InfoDictionary.supportedInterfaceOrientations.contains(deviceOrientation) {
-                ///
-                state = nil
+                Task {
+                    resetMeasurements()
+                }
             }
         }
         /// Debugging overlay
