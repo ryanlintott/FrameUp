@@ -122,11 +122,9 @@ struct OnSizeChangeExample: View {
 
 ## SmartScrollView
 A ScrollView with extra features.
-- Optional Scrolling - When active, the view will only be scrollable if the content is too large to fit in the parent frame.
-- Shrink to Fit - When active, the view will only take as much vertical and horizontal space as is required to fit the content.
+- Optional Scrolling - When active, the view will only be scrollable if the content is too large to fit in the parent frame. Enabled by default.
+- Shrink to Fit - When active, the view will only take as much vertical and horizontal space as is required to fit the content. Enabled by default.
 - Edge Insets - An onScroll function runs when the view is scrolled and reports the edge insets. Insets are negative when content edges are beyond the scroll view edges.
-
-These features are disabled by default and can be enabled in any combination. Similar to a standard `ScrollView` you can also specify the axes and toggle `showsIndicators`.
 
 Example:
 ```swift
@@ -136,6 +134,11 @@ SmartScrollView(.vertical, showsIndicators: true, optionalScrolling: true, shrin
     // Runs when view is scrolled
 }
 ```
+
+Limitations:
+- If placed directly inside a NavigationView with a resizing header, this view may behave strangely when scrolling. To avoid this add 1 point of padding to the top of this view.
+- If the available space for this view grows for any reason other than screen rotation, this view will not grow to fill the space. If you know the value that causes this change, add an `.id(value)` modifier below this view to trigger the view to recalculate. This will cause it to scroll to the top.
+
 ## FULayout
 Similar to the SwiftUI `Layout` protocol, the FrameUp layout `FULayout` protocol is used to define view layouts.
 
