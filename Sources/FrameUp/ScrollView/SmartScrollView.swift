@@ -109,20 +109,14 @@ public struct SmartScrollView<Content: View>: View {
         return state?.recommendedAxes.intersection(axes) ?? []
     }
     
-    /// Resets state if not already reset.
-    /// This causes the view to take all available space, re-measure, and resize the scrollview.
-    func resetStateIfNeeded() {
-        if state != nil {
-            Task {
-                state = nil
-            }
-        }
-    }
-    
     func updateValues(_ settings: SmartScrollViewMeasurements?) {
         guard let settings else {
             /// Settings have not been set or have for some unknown reason been set to nil
-            resetStateIfNeeded()
+            if state != nil {
+                Task {
+                    state = nil
+                }
+            }
             return
         }
         
@@ -141,7 +135,9 @@ public struct SmartScrollView<Content: View>: View {
         guard state.content.equals(settings.contentFrame.size, precision: 0.01),
            state.scrollView.equals(settings.scrollViewSize, precision: 0.01) else {
             /// Sizes have changed so reset state.
-            resetStateIfNeeded()
+            Task {
+                self.state = nil
+            }
             return
         }
         
@@ -172,25 +168,25 @@ public struct SmartScrollView<Content: View>: View {
         /// If any parameters change, reset the state.
         .onChange(of: axes) { newValue in
             if newValue != axes {
-                resetStateIfNeeded()
+                state = nil
             }
         }
         .onChange(of: optionalScrolling) { newValue in
             if newValue != optionalScrolling {
-                resetStateIfNeeded()
+                state = nil
             }
         }
         .onChange(of: shrinkToFit) { newValue in
             if newValue != shrinkToFit {
-                resetStateIfNeeded()
+                state = nil
             }
         }
         /// If the screen rotates or the app returns from the background, reset the state
         .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
-            resetStateIfNeeded()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
-            resetStateIfNeeded()
+            if let deviceOrientation = UIDevice.current.orientation.interfaceOrientation, InfoDictionary.supportedInterfaceOrientations.contains(deviceOrientation) {
+                ///
+                state = nil
+            }
         }
         /// Debugging overlay
 //        .overlay(
