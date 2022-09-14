@@ -83,13 +83,18 @@ public struct TabMenuView<Tab: Hashable, Content: View>: View {
                                 }
                             }
                         )
-                        .gesture(TapGesture(count: 2).onEnded {
-                            onDoubleTap?.action()
+                        .onTapGesture(count: 2, perform: {
+                            if selection == item.tab {
+                                onDoubleTap?.action()
+                            }
                         })
-                        .simultaneousGesture(TapGesture().onEnded {
+                        .onTapGesture {
                             if selection == item.tab {
                                 onReselect?.action()
-                            } else {
+                            }
+                        }
+                        .simultaneousGesture(TapGesture().onEnded {
+                            if selection != item.tab {
                                 selection = item.tab
                             }
                         })
