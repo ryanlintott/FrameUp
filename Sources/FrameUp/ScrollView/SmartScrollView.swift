@@ -125,9 +125,9 @@ public struct SmartScrollView<Content: View>: View {
         guard let measurements else {
             /// Settings have not been set or have for some unknown reason been set to nil
             if state != nil {
-                Task {
+//                Task {
                     resetMeasurements()
-                }
+//                }
             }
             return
         }
@@ -141,25 +141,25 @@ public struct SmartScrollView<Content: View>: View {
         
         guard let state else {
             /// State is nil so initialize state
-            Task {
+//            Task {
                 self.state = .init(content: contentSize, scrollView: scrollViewSize)
-            }
+//            }
             return
         }
         
         guard state.content.equals(contentSize, precision: 0.01) else {
             /// Content size has changed so reset state.
-            Task {
+//            Task {
                 resetMeasurements()
-            }
+//            }
             return
         }
         
         guard state.scrollView.equals(scrollViewSize, precision: 0.01) else {
             /// Scroll view size has changed (it can only shrink) so update state.
-            Task {
+//            Task {
                 self.state = .init(content: contentSize, scrollView: scrollViewSize)
-            }
+//            }
             return
         }
         
@@ -180,6 +180,7 @@ public struct SmartScrollView<Content: View>: View {
                         return .init(contentFrame: contentFrame, scrollViewSize: scrollViewSize)
                     }
                     .fixedSize(horizontal: axes.contains(.horizontal), vertical: axes.contains(.vertical))
+//                    .opacity(state == nil ? 0 : 1)
             }
         }
         /// A frame that's able to shrink the scroll view is applied only when the state is known.

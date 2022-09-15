@@ -33,25 +33,25 @@ import SwiftUI
 public struct VMasonry: FULayout {
     typealias Column = FULayoutColumn
     
-    public let alignment: Alignment
+    public let alignment: VerticalAlignment
     public let columns: Int
     public let columnWidth: CGFloat
-    public let maxItemWidth: CGFloat?
     public let horizontalSpacing: CGFloat
     public let verticalSpacing: CGFloat
     
+    public var maxItemWidth: CGFloat? { columnWidth }
     public let maxItemHeight: CGFloat? = nil
     public let fixedSize: Axis.Set = .vertical
     
     /// Creates a FrameUp layout that arranges views columns, adding views to the shortest column.
     /// - Parameters:
-    ///   - alignment: Used to align views horizontally in their columns and align columns vertically relative to each other. Default is top.
+    ///   - alignment: Used to align columns vertically relative to each other. Default is top.
     ///   - columns: Number of columns to place views in.
     ///   - maxWidth: Maximum width containing all columns (can be obtained through a `WidthReader`).
     ///   - horizontalSpacing: Minimum horizontal spacing between columns.
     ///   - verticalSpacing: Vertical spacing between views in a column
     public init(
-        alignment: Alignment = .top,
+        alignment: VerticalAlignment = .top,
         columns: Int,
         maxWidth: CGFloat,
         horizontalSpacing: CGFloat? = nil,
@@ -61,13 +61,12 @@ public struct VMasonry: FULayout {
         self.columns = max(1, columns)
         self.horizontalSpacing = horizontalSpacing ?? 10
         self.verticalSpacing = verticalSpacing ?? 10
-        self.maxItemWidth = (maxWidth - (self.horizontalSpacing * CGFloat(self.columns - 1))) / CGFloat(self.columns)
-        self.columnWidth = maxItemWidth ?? maxWidth
+        self.columnWidth = (maxWidth - (self.horizontalSpacing * CGFloat(self.columns - 1))) / CGFloat(self.columns)
     }
     
     public func contentOffsets(sizes: [Int: CGSize]) -> [Int: CGPoint] {
         var columns: [Column] = (0..<columns).map { _ in
-            Column(alignment: alignment, spacing: verticalSpacing, width: columnWidth)
+            Column(alignment: Alignment(horizontal: .leading, vertical: alignment), spacing: verticalSpacing, width: columnWidth)
         }
         
         for size in sizes.sortedByKey() {
@@ -86,7 +85,7 @@ public struct VMasonry: FULayout {
             column
                 .contentOffsets(columnXOffset: currentXOffset)
                 .forEach { result.update(with: $0) }
-            currentXOffset += column.columnSize.width + horizontalSpacing
+            currentXOffset += columnWidth + horizontalSpacing
         }
         
         return result

@@ -232,6 +232,7 @@ MyFULayout().forEach(["Hello", "World"], id: \.self) { item in
     HMasonry(columns: 3, maxHeight: height) {
         ForEach(["Hello", "World", "More Text"], id: \.self) { item in
             Text(item.value)
+                .frame(maxHeight: .infinity, alignment: .center)
                 .padding(12)
                 .foregroundColor(.white)
                 .background(Color.blue)
@@ -255,6 +256,7 @@ MyFULayout().forEach(["Hello", "World"], id: \.self) { item in
         VMasonry(columns: 3, maxWidth: width) {
             ForEach(["Hello", "World", "More Text"], id: \.self) { item in
                 Text(item.value)
+                    .frame(maxWidth: .infinity, alignment: .center)
                     .padding(12)
                     .foregroundColor(.white)
                     .background(Color.blue)
