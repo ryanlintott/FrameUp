@@ -14,15 +14,14 @@ fileprivate struct ProportionableSize: Proportionable {
     var width: CGFloat
     var height: CGFloat
     
-    init(_ cgSize: CGSize) {
-        width = cgSize.width
-        height = cgSize.height
+    var size: CGSize {
+        CGSize(width: width, height: height)
     }
 }
 
 internal extension CGSize {
     fileprivate var proportionableSize: ProportionableSize {
-        ProportionableSize(self)
+        ProportionableSize(width: width, height: height)
     }
     
     var aspectFormat: AspectFormat {
@@ -31,6 +30,10 @@ internal extension CGSize {
     
     var aspectRatio: CGFloat {
         proportionableSize.aspectRatio
+    }
+    
+    var swappingWidthAndHeight: CGSize {
+        proportionableSize.swappingWidthAndHeight.size
     }
 
     var minDimension: CGFloat {

@@ -12,7 +12,9 @@ A Swift Package with a collection of SwiftUI framing views and tools to help wit
 
 - Size readers like [`WidthReader`](#widthreader), [`HeightReader`](#heightreader), and [`onSizeChange(perform:)`](#onsizechangeperform)
 - [`SmartScrollView`](#smartscrollview) with optional scrolling, a content-fitable frame, and live edge inset values.
-- Flow views for presenting tags or any view. [`HFlow`](#hflow) or [`VFlow`](#vflow)
+- [`HFlow`](#hflow) or [`VFlow`](#vflow) for presenting tags or any view in a flow style.
+- [`FULayout`] for building custom layouts (similar to SwiftUI Layout but works in iOS 14).
+- [`VMasonry`](#vmasonry) or [`HMasonry`](#hmasonry) for presenting view in a masonry (Pinterest) style.
 - [`OverlappingImage`](#overlappingimage) that overlaps neighbouring content by a percent of the image size.
 - [`.relativePadding`](#relativepaddingedges-lengthfactor) adds padding relative to the content view size.
 - [`TabMenuView`](#tabmenuview), a customizable tab menu with `onReselect` and `onDoubleTap` functions.
@@ -120,11 +122,9 @@ struct OnSizeChangeExample: View {
 
 ## SmartScrollView
 A ScrollView with extra features.
-- Optional Scrolling - When active, the view will only be scrollable if the content is too large to fit in the parent frame.
-- Shrink to Fit - When active, the view will only take as much vertical and horizontal space as is required to fit the content.
+- Optional Scrolling - When active, the view will only be scrollable if the content is too large to fit in the parent frame. Enabled by default.
+- Shrink to Fit - When active, the view will only take as much vertical and horizontal space as is required to fit the content. Enabled by default.
 - Edge Insets - An onScroll function runs when the view is scrolled and reports the edge insets. Insets are negative when content edges are beyond the scroll view edges.
-
-These features are disabled by default and can be enabled in any combination. Similar to a standard `ScrollView` you can also specify the axes and toggle `showsIndicators`.
 
 Example:
 ```swift
@@ -135,52 +135,89 @@ SmartScrollView(.vertical, showsIndicators: true, optionalScrolling: true, shrin
 }
 ```
 
-## Flow Views
-### HFlow
-A view that creates views based on a collection of data from left to right, adding rows when needed.
+Limitations:
+- If placed directly inside a NavigationView with a resizing header, this view may behave strangely when scrolling. To avoid this add 1 point of padding to the top of this view.
+- If the available space for this view grows for any reason other than screen rotation, this view will not grow to fill the space. If you know the value that causes this change, add an `.id(value)` modifier below this view to trigger the view to recalculate. This will cause it to scroll to the top.
 
-Each row height will be determined by the tallest element. The overall frame size will fit to the size of the laid out content.
+## FULayout
+Similar to the SwiftUI `Layout` protocol, the FrameUp layout `FULayout` protocol is used to define view layouts.
 
-A maximum width must be provided but `WidthReader` can be used to get the value (especially helpful when inside a `ScrollView`).
+A FrameUp layout is only required to define which axes are fixed, the maximum item size, and a function that takes view sizes and ouputs view offsets.
 
-Example:
+There are two ways to build views from types that conform to `FULayout`.
+
+### 1. Call them as functions.
+This method is the most straightforward as it works the same as SwiftUI layouts.
+
 ```swift
-WidthReader { width in
-    HFlow(["Hello", "World", "More Text"], maxWidth: width) { item in
+MyFULayout() {
+    Text("Hello")
+    Text("World")
+}
+```
+
+*Caution: `_VariadicView` is used under the hood. If this underscore protocol concerns you, use method 2 below.*
+
+### 2. Use the `.forEach()` function.
+This method uses a method that works in a very similar way to `ForEach()`.
+
+```swift
+MyFULayout().forEach(["Hello", "World"], id: \.self) { item in
         Text(item.value)
-            .padding(12)
-            .foregroundColor(.white)
-            .background(Color.blue)
-            .cornerRadius(12)
-            .clipped()
     }
 }
 ```
 
-Adding or removing elements may not animate as intended as element ids are based on their index.
+## Layouts
+### HFlow
+A FrameUp layout that arranges views in a row, adding rows when needed.
+ 
+Each row height will be determined by the tallest element. The overall frame size will fit to the size of the laid out content.
+ 
+A maximum height must be provided but `HeightReader` can be used to get the value (especially helpful when inside a `ScrollView`).
+ 
+A FrameUp layout is not a view but it works like a view by using `callAsFunction`. There is also an alternative view function `.forEach()` that works like `ForEach`
+
+Example:
+```swift
+ HeightReader { height in
+     HFlow(maxHeight: height) {
+         ForEach(["Hello", "World", "More Text"], id: \.self) { item in
+             Text(item.value)
+                 .padding(12)
+                 .foregroundColor(.white)
+                 .background(Color.blue)
+                 .cornerRadius(12)
+                 .clipped()
+         }
+     }
+ }
+```
 
 ### VFlow
-A view that creates views based on a collection of data from top to bottom, addcolumns when needed.
+ A FrameUp layout that arranges views in a column, adding columns when needed.
 
-Each column width will be determined by the widest element. The overall frame swill fit to the size of the laid out content.
+ Each column width will be determined by the widest element. The overall frame size will fit to the size of the laid out content.
 
-A maximum height must be provided but `HeightReader` can be used to get the va(especially helpful when  inside a `ScrollView`).
+ A maximum width must be provided but `WidthReader` can be used to get the value (especially helpful when inside a `ScrollView`).
 
-Example:
-```swift
-HeightReader { height in
-    HFlow(["Hello", "World", "More Text"], maxHeight: height) { item in
-        Text(item.value)
-            .padding(12)
-            .foregroundColor(.white)
-            .background(Color.blue)
-            .cornerRadius(12)
-            .clipped()
-    }
-}
-```
+ A FrameUp layout is not a view but it has two functions to make a view. `.forEach()` that works like `ForEach` and `._view { }` that works more like `VStack` or similar.
 
-Adding or removing elements may not animate as intended as element ids are based on their index.
+ Example:
+ ```swift
+ WidthReader { width in
+     VFlow(maxWidth: width) {
+         ForEach(["Hello", "World", "More Text"], id: \.self) { item in
+             Text(item.value)
+                 .padding(12)
+                 .foregroundColor(.white)
+                 .background(Color.blue)
+                 .cornerRadius(12)
+                 .clipped()
+         }
+     }
+ }
+ ```
 
 ## OverlappingImage
 An image view that can overlap content on the edges of its frame.
@@ -219,8 +256,9 @@ Customizable tab menu bar view designed to mimic the style of the default tab me
 Features:
 - Use any image or AnyView as a mask for the menu item.
 - Use any view as the 'color' including gradients.
-- onReselect function that triggers when the active tab menu item is selected.
-- onDoubleTap function that triggers when any tab is double-tapped.
+- onReselect closure that triggers when the active tab is selected.
+- onDoubleTap closure that triggers when the active tab is double-tapped.
+- accessibility actions are automatically added for onReselect and onDoubleTap if they are used.
 
 Example:
 ```swift

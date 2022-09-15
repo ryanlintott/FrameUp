@@ -29,34 +29,38 @@ import SwiftUI
 ///            }
 ///        }
 ///     } onReselect: {
-///         print("TabMenu item \(selection) reselected")
+///         NamedAction("Reselect") {
+///             print("TabMenu item \(selection) reselected")
+///         }
 ///     } onDoubleTap: {
-///         print("TabMenu item \(selection) doubletapped")
+///         NamedAction("Double Tap") {
+///             print("TabMenu item \(selection) doubletapped")
+///         }
 ///     }
 ///
 public struct TabMenuView<Tab: Hashable, Content: View>: View {
     @Binding var selection: Tab
     let items: [TabMenuItem<Tab>]
-    let maskedView: (Bool) -> Content
     let isShowingName: Bool
-    let onReselect: (() -> Void)?
-    let onDoubleTap: (() -> Void)?
+    let maskedView: (Bool) -> Content
+    let onReselect: NamedAction?
+    let onDoubleTap: NamedAction?
     
     /// Creates a customized tab menu view
     /// - Parameters:
     ///   - selection: binding for the selected tab
     ///   - items: array of `TabMenuItem`
     ///   - isShowingName: A Boolean value that indicates whether the name should be shown. Default is true if any tab menu item has a non-nil name.
+    ///   - onReselect: A named action to run when a selected tab is reselected.
+    ///   - onDoubleTap: A named action to run when a selected tab is tapped twice.
     ///   - maskedView: A view that will be shown, masked by the icon and text. A simple color or a more complex view can be provided. A Boolean value with the selected state is passed in so that the view can change accordingly.
-    ///   - onReselect: A function run when a selected tab is reselected.
-    ///   - onDoubleTap: A function run when a tab is tapped twice.
-    public init(selection: Binding<Tab>, items: [TabMenuItem<Tab>], isShowingName: Bool? = nil, maskedView: @escaping (Bool) -> Content, onReselect: (() -> Void)? = nil, onDoubleTap: (() -> Void)? = nil) {
+    public init(selection: Binding<Tab>, items: [TabMenuItem<Tab>], isShowingName: Bool? = nil, maskedView: @escaping (Bool) -> Content, onReselect: (() -> NamedAction)? = nil, onDoubleTap: (() -> NamedAction)? = nil) {
         self._selection = selection
         self.items = items
         self.isShowingName = isShowingName ?? (items.first(where: { $0.name != nil }) != nil)
         self.maskedView = maskedView
-        self.onReselect = onReselect
-        self.onDoubleTap = onDoubleTap
+        self.onReselect = onReselect?() ?? nil
+        self.onDoubleTap = onDoubleTap?() ?? nil
     }
     
     public var body: some View {
@@ -79,20 +83,35 @@ public struct TabMenuView<Tab: Hashable, Content: View>: View {
                                 }
                             }
                         )
-                        .gesture(TapGesture(count: 2).onEnded {
-                            onDoubleTap?()
-                        })
-                        .simultaneousGesture(TapGesture().onEnded {
+                        .onTapGesture(count: 2, perform: {
                             if selection == item.tab {
-                                onReselect?()
-                            } else {
+                                onDoubleTap?.action()
+                            }
+                        })
+                        .onTapGesture {
+                            if selection == item.tab {
+                                onReselect?.action()
+                            }
+                        }
+                        .simultaneousGesture(TapGesture().onEnded {
+                            if selection != item.tab {
                                 selection = item.tab
                             }
                         })
                         .accessibilityLabel(tabVoiceOverLabel(tabItem: item))
                         .accessibilityHint(tabVoiceOverHint(tabItem: item))
                         .accessibilityAddTraits(selection == item.tab ? .isSelected : [])
-                        
+                        .background(
+                            ZStack {
+                                if let onReselect, selection == item.tab {
+                                    Color.clear.accessibilityAction(named: onReselect.name, onReselect.action)
+                                }
+                                if let onDoubleTap, selection == item.tab {
+                                    Color.clear.accessibilityAction(named: onDoubleTap.name, onDoubleTap.action)
+                                }
+                            }
+                        )
+                        .accessibilityElement(children: .combine)
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal, 10)

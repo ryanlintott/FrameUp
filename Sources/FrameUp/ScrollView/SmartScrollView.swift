@@ -8,74 +8,92 @@
 import SwiftUI
 
 /// Settings used in `SmartScrollView`
-public struct SmartScrollViewSettings: Equatable {
-    /// Axes where content is larger than available space and scrolling is recommended.
-    public var recommendedAxes: Axis.Set?
-    /// Size of the content.
-    public var contentSize: CGSize?
-    /// Insets from the scroll view edge to the content edge. Insets are negative when content edges are beyond the scroll view edges.
-    public var edgeInsets: EdgeInsets?
+public struct SmartScrollViewMeasurements: Equatable {
+    /// State of scroll view dimensions
+    public var state: SmartScrollViewState
+    
+    /// Edge insets based on the content frame and scroll view size.
+    public var edgeInsets: EdgeInsets
+}
 
-    public static var defaultValue: Self {
-        SmartScrollViewSettings(recommendedAxes: nil, contentSize: nil, edgeInsets: nil)
+extension SmartScrollViewMeasurements {
+    static func edgeInsets(contentFrame: CGRect, scrollViewSize: CGSize) -> EdgeInsets {
+        EdgeInsets(
+            top: contentFrame.minY,
+            leading: contentFrame.minX,
+            bottom: scrollViewSize.height - contentFrame.maxY,
+            trailing: scrollViewSize.width - contentFrame.maxX
+        )
+    }
+    
+    init(contentFrame: CGRect, scrollViewSize: CGSize) {
+        state = SmartScrollViewState(content: contentFrame.size, scrollView: scrollViewSize)
+        edgeInsets = Self.edgeInsets(contentFrame: contentFrame, scrollViewSize: scrollViewSize)
     }
 }
 
 /// A PreferenceKey used to pass SmartScrollViewSettings up the view hierarchy
 public struct SmartScrollViewKey: PreferenceKey {
-    public typealias Value = SmartScrollViewSettings
-    public static let defaultValue: SmartScrollViewSettings = .defaultValue
-    public static func reduce(value: inout SmartScrollViewSettings, nextValue: () -> SmartScrollViewSettings) {
+    public typealias Value = SmartScrollViewMeasurements?
+    public static let defaultValue: SmartScrollViewMeasurements? = nil
+    public static func reduce(value: inout SmartScrollViewMeasurements?, nextValue: () -> SmartScrollViewMeasurements?) {
         value = nextValue()
     }
 }
 
-/// A ScrollView with optional scrolling, a frame that can shrink to fit the content, and a way to track edge insets as the view is scrolled.
+public struct SmartScrollViewState: Equatable {
+    /// Content size
+    let content: CGSize
+    /// Scroll view size
+    let scrollView: CGSize
+    
+    /// A recommended set axes for scrolling based on a the maximum frame size and content size.
+    var recommendedAxes: Axis.Set {
+        var axes = Axis.Set()
+        if scrollView.height < content.height {
+            axes.update(with: .vertical)
+        }
+        if scrollView.width < content.width {
+            axes.update(with: .horizontal)
+        }
+        return axes
+    }
+}
+
+/**
+ A ScrollView with optional scrolling, a frame that can shrink to fit the content, and a way to know when the view has been scrolled and track edge insets.
+ 
+ If the content or frame change size, it may update its size and scroll to the top.
+ 
+ Limitations:
+ - If placed directly inside a NavigationView with a resizing header, this view may behave strangely when scrolling. To avoid this add 1 point of padding to the top of this view.
+ - If the available space for this view grows for any reason other than screen rotation, this view will not grow to fill the space. If you know the value that causes this change, add an `.id(value)` modifier below this view to trigger the view to recalculate. This will cause it to scroll to the top.
+*/
 public struct SmartScrollView<Content: View>: View {
+    /// The scroll view’s scrollable axis. The default axis is the vertical axis.
     let axes: Axis.Set
+    /// A Boolean value that indicates whether the scroll view displays the scrollable component of the content offset, in a way suitable for the platform. The default value for this parameter is true.
     let showsIndicators: Bool
+    /// A Boolean value that indicates whether scrolling should be disabled if the content fits the available space. The default value is false.
     let optionalScrolling: Bool
+    /// A Boolean value that indicates whether the outer frame should shrink to fit the content. The default value is false.
     let shrinkToFit: Bool
     let content: Content
     let onScroll: ((EdgeInsets?) -> Void)?
-    
-    @State private var recommendedAxes: Axis.Set? = nil
-    @State private var contentSize: CGSize? = nil
-    
-    var activeAxes: Axis.Set {
-        guard optionalScrolling else {
-            return axes
-        }
-        return recommendedAxes?.intersection(axes) ?? axes
-    }
-    
-    var maxWidth: CGFloat? {
-        if axes.contains(.vertical) || shrinkToFit {
-            return contentSize?.width
-        }
-        return nil
-    }
-    
-    var maxHeight: CGFloat? {
-        if axes.contains(.horizontal) || shrinkToFit {
-            return contentSize?.height
-        }
-        return nil
-    }
     
     /// Creates a ScrollView with several smart options
     /// - Parameters:
     ///   - axes: The scroll view’s scrollable axis. The default axis is the vertical axis.
     ///   - showsIndicators: A Boolean value that indicates whether the scroll view displays the scrollable component of the content offset, in a way suitable for the platform. The default value for this parameter is true.
-    ///   - optionalScrolling: A Boolean value that indicates whether scrolling should be disabled if the content fits the available space. The default value is false.
-    ///   - shrinkToFit: A Boolean value that indicates whether the outer frame should shrink to fit the content. The default value is false.
+    ///   - optionalScrolling: A Boolean value that indicates whether scrolling should be disabled if the content fits the available space. The default value is true.
+    ///   - shrinkToFit: A Boolean value that indicates whether the outer frame should shrink to fit the content. The default value is true.
     ///   - content: The view builder that creates the scrollable view.
     ///   - onScroll: An action that will be run when the view has been scrolled. Edge insets are passed as a parameter.
     public init(
         _ axes: Axis.Set = .vertical,
         showsIndicators: Bool = true,
-        optionalScrolling: Bool = false,
-        shrinkToFit: Bool = false,
+        optionalScrolling: Bool = true,
+        shrinkToFit: Bool = true,
         content: () -> Content,
         onScroll: ((EdgeInsets?) -> Void)? = nil
     ) {
@@ -87,59 +105,108 @@ public struct SmartScrollView<Content: View>: View {
         self.onScroll = onScroll
     }
     
+    /// Sizes required for displaying scrollview
+    @State private var state: SmartScrollViewState? = nil
+    
+    @State private var contentID: UUID = UUID()
+    
+    /// Axes that will be used on ScrollView
+    var scrollViewAxes: Axis.Set {
+        guard optionalScrolling else { return axes }
+        return state?.recommendedAxes.intersection(axes) ?? []
+    }
+    
+    func resetMeasurements() {
+        state = nil
+        contentID = UUID()
+    }
+    
+    func updateValues(_ measurements: SmartScrollViewMeasurements?) {
+        guard let measurements else {
+            /// Settings have not been set or have for some unknown reason been set to nil
+            if state != nil {
+                Task {
+                    resetMeasurements()
+                }
+            }
+            return
+        }
+        
+        let contentSize = measurements.state.content
+        
+        let scrollViewSize = CGSize(
+            width: min(measurements.state.scrollView.width, axes.contains(.vertical) || shrinkToFit ? contentSize.width : .infinity),
+            height: min(measurements.state.scrollView.height, axes.contains(.horizontal) || shrinkToFit ? contentSize.height : .infinity)
+        )
+        
+        guard let state else {
+            /// State is nil so initialize state
+            Task {
+                self.state = .init(content: contentSize, scrollView: scrollViewSize)
+            }
+            return
+        }
+        
+        guard state.content.equals(contentSize, precision: 0.01) else {
+            /// Content size has changed so reset state.
+            Task {
+                resetMeasurements()
+            }
+            return
+        }
+        
+        guard state.scrollView.equals(scrollViewSize, precision: 0.01) else {
+            /// Scroll view size has changed (it can only shrink) so update state.
+            Task {
+                self.state = .init(content: contentSize, scrollView: scrollViewSize)
+            }
+            return
+        }
+        
+        /// State is stable so just update onScroll
+        onScroll?(measurements.edgeInsets)
+    }
+    
+    let randomNumber = Int.random(in: 0...1000)
+    
     public var body: some View {
         GeometryReader { proxy in
-            ScrollView(activeAxes, showsIndicators: showsIndicators) {
+            ScrollView(scrollViewAxes, showsIndicators: showsIndicators) {
                 content
-                    .anchorPreference(key: SmartScrollViewKey.self, value: .bounds) {
-                        let rect = proxy[$0]
-                        var newRecommendedAxes: Axis.Set = []
-                        let newContentSize = rect.size
-                        let frameSize = proxy.size
-                        
-                        if optionalScrolling {
-                            if newContentSize.height > frameSize.height && !newRecommendedAxes.contains(.vertical) {
-                                newRecommendedAxes.update(with: .vertical)
-                            }
-                            
-                            if newContentSize.width > frameSize.width {
-                                newRecommendedAxes.update(with: .horizontal)
-                            }
-                        }
-                        
-                        var newEdgeInsets = EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0)
-                        if activeAxes.contains(.vertical) && (!optionalScrolling || newRecommendedAxes.contains(.vertical)) {
-                            newEdgeInsets.top = rect.minY
-                            newEdgeInsets.bottom = frameSize.height - rect.maxY
-                        }
-                        
-                        if activeAxes.contains(.horizontal) && (!optionalScrolling || newRecommendedAxes.contains(.horizontal)) {
-                            newEdgeInsets.leading = rect.minX
-                            newEdgeInsets.trailing = frameSize.width - rect.maxX
-                        }
-                        
-                        if let contentSize = self.contentSize {
-                            let heightReset = (axes.contains(.horizontal) || shrinkToFit) && newContentSize.height > contentSize.height
-                            let widthReset = (axes.contains(.vertical) || shrinkToFit) && newContentSize.width > contentSize.width
-                            
-                            if heightReset || widthReset {
-                                return SmartScrollViewSettings(recommendedAxes: newRecommendedAxes, contentSize: nil, edgeInsets: newEdgeInsets)
-                            }
-                        }
-                        
-                        return SmartScrollViewSettings(recommendedAxes: newRecommendedAxes, contentSize: newContentSize, edgeInsets: newEdgeInsets)
+                    .id(contentID)
+                    .anchorPreference(key: SmartScrollViewKey.self, value: .bounds) { anchor in
+                        let contentFrame = proxy[anchor]
+                        let scrollViewSize = proxy.size
+                        return .init(contentFrame: contentFrame, scrollViewSize: scrollViewSize)
                     }
                     .fixedSize(horizontal: axes.contains(.horizontal), vertical: axes.contains(.vertical))
             }
         }
-        .frame(maxWidth: maxWidth, maxHeight: maxHeight)
-        .onPreferenceChange(SmartScrollViewKey.self) { value in
-            onScroll?(value.edgeInsets)
-            
-            if (optionalScrolling && recommendedAxes != value.recommendedAxes) || contentSize != value.contentSize {
-                DispatchQueue.main.async {
-                    contentSize = value.contentSize
-                    recommendedAxes = value.recommendedAxes
+        /// A frame that's able to shrink the scroll view is applied only when the state is known.
+        .frame(maxWidth: state?.scrollView.width, maxHeight: state?.scrollView.height)
+        /// When measurements change, update values.
+        .onPreferenceChange(SmartScrollViewKey.self, perform: updateValues)
+        /// If any parameters change, reset the state.
+        .onChange(of: axes) { newValue in
+            if newValue != axes {
+                resetMeasurements()
+            }
+        }
+        .onChange(of: optionalScrolling) { newValue in
+            if newValue != optionalScrolling {
+                resetMeasurements()
+            }
+        }
+        .onChange(of: shrinkToFit) { newValue in
+            if newValue != shrinkToFit {
+                resetMeasurements()
+            }
+        }
+        /// If the screen rotates or the app returns from the background, reset the state
+        .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
+            if let deviceOrientation = UIDevice.current.orientation.interfaceOrientation, InfoDictionary.supportedInterfaceOrientations.contains(deviceOrientation) {
+                Task {
+                    resetMeasurements()
                 }
             }
         }
@@ -147,8 +214,7 @@ public struct SmartScrollView<Content: View>: View {
 //        .overlay(
 //            VStack(alignment: .trailing) {
 //                Text("axes: \(axes.rawValue)")
-//                Text("recommended: \(recommendedAxes?.rawValue ?? -1)")
-//                Text("active: \(activeAxes.rawValue)")
+//                Text("active: \(scrollViewAxes.rawValue)")
 //                Text("contentSize: \(contentSize?.width ?? -1)  \(contentSize?.height ?? -1)")
 //            }
 //                .background(Color.gray.opacity(0.5))
@@ -156,5 +222,17 @@ public struct SmartScrollView<Content: View>: View {
 //
 //            , alignment: .bottomTrailing
 //        )
+    }
+}
+
+struct SmartScrollView_Previews: PreviewProvider {
+    static var previews: some View {
+        SmartScrollView([.vertical], optionalScrolling: false, shrinkToFit: false) {
+            Text("Hello")
+//                .frame(height: 1000)
+                .background(Color.blue)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .background(Color.red)
     }
 }
