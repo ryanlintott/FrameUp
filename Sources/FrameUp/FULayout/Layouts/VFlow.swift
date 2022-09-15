@@ -14,7 +14,7 @@ import SwiftUI
 
  A maximum width must be provided but `WidthReader` can be used to get the value (especially helpful when inside a `ScrollView`).
 
- A FrameUp layout is not a view but it has two functions to make a view. `.forEach()` that works like `ForEach` and `._view { }` that works more like `VStack` or similar.
+ A FrameUp layout is not a view but it works like a view by using `callAsFunction`. There is also an alternative view function `.forEach()` that works like `ForEach`
 
  Example:
  ```swift

@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-/// A FrameUp layout version of `HStackLayout`. Useful when you want to animate between different FrameUp layouts.
+/// A FrameUp layout version of `HStackLayout`. Useful when you want to toggle between different FrameUp layouts.
 ///
 /// *Only top, center, and bottom alignments are supported.*
 public struct HStackFULayout: FULayout {

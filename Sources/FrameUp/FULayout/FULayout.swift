@@ -7,7 +7,38 @@
 
 import SwiftUI
 
-/// A type that can create a FrameUp view layout.
+/**
+ A type that can create a FrameUp view layout.
+ 
+ You can use FULayout to make your own layouts. For example a view that arranges views on left and right sides of a central line.
+
+ ```swift
+ struct CustomFULayout: FULayout {
+     let maxWidth: CGFloat
+     
+     var fixedSize: Axis.Set = .horizontal
+     var maxItemWidth: CGFloat? { maxWidth / 2 }
+     var maxItemHeight: CGFloat? = nil
+     
+     func contentOffsets(sizes: [Int : CGSize]) -> [Int : CGPoint] {
+         var heightOffset = 0.0
+         var rowHeight = 0.0
+         var offsets = [Int : CGPoint]()
+         for size in sizes.sortedByKey() {
+             let widthOffset = (size.key % 2 == 0) ? -size.value.width : 0
+             
+             offsets.updateValue(
+                 CGPoint(x: widthOffset, y: heightOffset),
+                 forKey: size.key
+             )
+             rowHeight = (size.key % 2 == 0) ? size.value.height : max(size.value.height, rowHeight)
+             heightOffset += (size.key % 2 == 0) ? 0 : rowHeight
+         }
+         return offsets
+     }
+ }
+ ```
+ */
 public protocol FULayout: Equatable {
     /// Axes that will have a fixed size.
     var fixedSize: Axis.Set { get }

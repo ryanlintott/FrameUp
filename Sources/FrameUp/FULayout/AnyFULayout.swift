@@ -7,7 +7,11 @@
 
 import SwiftUI
 
-/// A type-erased instance of the FrameUp layout protocol.
+/**
+ A type-erased instance of the FrameUp layout protocol.
+ 
+ If you want to make a view that can toggle between layouts, wrap each one in AnyLayout.
+ */
 public struct AnyFULayout: FULayout {
     /// The name of the wrapped layout (just used as a label)
     public let fuLayoutName: String

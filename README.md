@@ -170,29 +170,29 @@ MyFULayout().forEach(["Hello", "World"], id: \.self) { item in
 
 ## Layouts
 ### HFlow
-A FrameUp layout that arranges views in a row, adding rows when needed.
+ A FrameUp layout that arranges views in a row, adding rows when needed.
  
-Each row height will be determined by the tallest element. The overall frame size will fit to the size of the laid out content.
+ Each row height will be determined by the tallest element. The overall frame size will fit to the size of the laid out content.
  
-A maximum height must be provided but `HeightReader` can be used to get the value (especially helpful when inside a `ScrollView`).
+ A maximum height must be provided but `HeightReader` can be used to get the value (especially helpful when inside a `ScrollView`).
  
-A FrameUp layout is not a view but it works like a view by using `callAsFunction`. There is also an alternative view function `.forEach()` that works like `ForEach`
-
-Example:
-```swift
+ A FrameUp layout is not a view but it works like a view by using `callAsFunction`. There is also an alternative view function `.forEach()` that works like `ForEach`
+ 
+ Example:
+ ```swift
  HeightReader { height in
-     HFlow(maxHeight: height) {
-         ForEach(["Hello", "World", "More Text"], id: \.self) { item in
-             Text(item.value)
-                 .padding(12)
-                 .foregroundColor(.white)
-                 .background(Color.blue)
-                 .cornerRadius(12)
-                 .clipped()
-         }
-     }
+    HFlow(maxHeight: height) {
+        ForEach(["Hello", "World", "More Text"], id: \.self) { item in
+            Text(item.value)
+                .padding(12)
+                .foregroundColor(.white)
+                .background(Color.blue)
+                .cornerRadius(12)
+                .clipped()
+        }
+    }
  }
-```
+ ```
 
 ### VFlow
  A FrameUp layout that arranges views in a column, adding columns when needed.
@@ -201,7 +201,7 @@ Example:
 
  A maximum width must be provided but `WidthReader` can be used to get the value (especially helpful when inside a `ScrollView`).
 
- A FrameUp layout is not a view but it has two functions to make a view. `.forEach()` that works like `ForEach` and `._view { }` that works more like `VStack` or similar.
+ A FrameUp layout is not a view but it works like a view by using `callAsFunction`. There is also an alternative view function `.forEach()` that works like `ForEach`
 
  Example:
  ```swift
@@ -218,6 +218,89 @@ Example:
      }
  }
  ```
+ 
+### HMasonry
+ A FrameUp layout that arranges views into rows, adding views to the shortest row.
+ 
+ A maximum height must be provided but `HeightReader` can be used to get the value (especially helpful when inside a `ScrollView`).
+ 
+ A FrameUp layout is not a view but it works like a view by using `callAsFunction`. There is also an alternative view function `.forEach()` that works like `ForEach`
+ 
+ Example:
+ ```swift
+ HeightReader { height in
+    HMasonry(columns: 3, maxHeight: height) {
+        ForEach(["Hello", "World", "More Text"], id: \.self) { item in
+            Text(item.value)
+                .padding(12)
+                .foregroundColor(.white)
+                .background(Color.blue)
+                .cornerRadius(12)
+                .clipped()
+        }
+    }
+ }
+ ```
+
+### VMasonry
+ A FrameUp layout that arranges views into columns, adding views to the shortest column.
+ 
+ A maximum width must be provided but `WidthReader` can be used to get the value (especially helpful when inside a `ScrollView`).
+ 
+ A FrameUp layout is not a view but it works like a view by using `callAsFunction`. There is also an alternative view function `.forEach()` that works like `ForEach`
+ 
+ Example:
+ ```swift
+    WidthReader { width in
+        VMasonry(columns: 3, maxWidth: width) {
+            ForEach(["Hello", "World", "More Text"], id: \.self) { item in
+                Text(item.value)
+                    .padding(12)
+                    .foregroundColor(.white)
+                    .background(Color.blue)
+                    .cornerRadius(12)
+                    .clipped()
+            }
+        }
+    }
+ ```
+ 
+### FULAyout Stacks
+`HStackFULayout`, `VStackFULayout`, and `ZStackFULayout` are also available and helpful when you want to toggle between layout options.
+
+### AnyFULayout
+ A type-erased instance of the FrameUp layout protocol. If you want to make a view that can toggle between layouts, wrap each one in AnyLayout.
+
+## Custom FULayout
+You can use FULayout to make your own layouts. For example a view that arranges views on left and right sides of a central line.
+
+```swift
+struct CustomFULayout: FULayout {
+    let maxWidth: CGFloat
+    
+    var fixedSize: Axis.Set = .horizontal
+    var maxItemWidth: CGFloat? { maxWidth / 2 }
+    var maxItemHeight: CGFloat? = nil
+    
+    func contentOffsets(sizes: [Int : CGSize]) -> [Int : CGPoint] {
+        var heightOffset = 0.0
+        var rowHeight = 0.0
+        var offsets = [Int : CGPoint]()
+        for size in sizes.sortedByKey() {
+            let widthOffset = (size.key % 2 == 0) ? -size.value.width : 0
+            
+            offsets.updateValue(
+                CGPoint(x: widthOffset, y: heightOffset),
+                forKey: size.key
+            )
+            rowHeight = (size.key % 2 == 0) ? size.value.height : max(size.value.height, rowHeight)
+            heightOffset += (size.key % 2 == 0) ? 0 : rowHeight
+        }
+        return offsets
+    }
+}
+```
+
 
 ## OverlappingImage
 An image view that can overlap content on the edges of its frame.
@@ -256,9 +339,9 @@ Customizable tab menu bar view designed to mimic the style of the default tab me
 Features:
 - Use any image or AnyView as a mask for the menu item.
 - Use any view as the 'color' including gradients.
-- onReselect closure that triggers when the active tab is selected.
-- onDoubleTap closure that triggers when the active tab is double-tapped.
-- accessibility actions are automatically added for onReselect and onDoubleTap if they are used.
+- onReselect closure that returns a NamedAction that triggers when the active tab is selected.
+- onDoubleTap closure that returns a NamedAction that triggers when the active tab is double-tapped.
+- accessibility actions are automatically added for onReselect and onDoubleTap if they are added.
 
 Example:
 ```swift
@@ -278,9 +361,13 @@ TabMenuView(selection: $selection, items: items) { isSelected in
         }
     }
 } onReselect: {
-    print("TabMenu item \(selection) reselected")
+    NamedAction("Reselect") {
+        print("TabMenu item \(selection) reselected")
+    }
 } onDoubleTap: {
-    print("TabMenu item \(selection) doubletapped")
+    NamedAction("Double Tap") {
+        print("TabMenu item \(selection) doubletapped")
+    }
 }
 ```
 
@@ -301,14 +388,15 @@ Uses ScaleMode to limit the view so it can only grow/shrink or both.
 - `scaledToFill(size:,scaleMode:)`
 - `scaledToFill(width:,height:,scaleMode:)`
 
-## rotationMatchingOrientation
-Rotates any view so that it matches the device orientation if it's in an array of allowed orientations. This is most useful for allowing fullscreen image views to use landscape orientations as well inside a portrait-only app. It can also be used to limit orientations such as landscape-only in an app that allows portrait as well.
+## AutoRotatingView
+A view that rotates any view to match the current device orientation if it's in an array of allowed orientations. This is most useful for allowing fullscreen image views to use landscape orientations while inside a portrait-only app. It can also be used to limit orientations such as landscape-only in an app that allows portrait. Rotations can be animated.
 
 ```swift
-Image("MyFullscreenImage")
-    .resizable()
-    .scaledToFit()
-    .rotationMatchingOrientation([.portrait, .landscapeLeft, .landscapeRight])
+AutoRotatingView([.portrait, .landscapeLeft, .landscapeRight], animation: .default) {
+    Image("MyFullscreenImage")
+        .resizable()
+        .scaledToFit()
+}
 ```
 
 ## WidgetSize
@@ -350,10 +438,10 @@ WidgetDemoFrame(.medium, cornerRadius: 20) { size, cornerRadius in
 ```
 
 ## WidgetRelativeShape
-A re-scaled version of `ContainerRelativeShape` used to fix a bug with the corner radius on iPads.
+A re-scaled version of `ContainerRelativeShape` used to fix a bug with the corner radius on iPads running iOS 15 and earlier.
 
 Example:
-This widget view will have a blue background with a 1 point inset from the edge. On iPad, the red background will show on the corners as the corner radius does not match.
+This widget view has a blue background with a 1 point inset. On an iPad running iOS 15 or earlier, the red background will show on the corners as the corner radius does not match.
 ```swift
 Text("Example widget")
     .background(.blue)

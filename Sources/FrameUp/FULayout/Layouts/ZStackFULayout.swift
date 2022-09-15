@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-/// A FrameUp layout version of `ZStackLayout`. Useful when you want to animate between different FrameUp layouts.
+/// A FrameUp layout version of `ZStackLayout`. Useful when you want to toggle between different FrameUp layouts.
 ///
 /// *Only topLeading, top, topTrailing, leading, center, trailing, bottomLeading, bottom, and bottomTrailing alignments are supported*
 public struct ZStackFULayout: FULayout {
