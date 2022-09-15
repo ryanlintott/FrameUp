@@ -12,14 +12,15 @@ A Swift Package with a collection of SwiftUI framing views and tools to help wit
 
 - Size readers like [`WidthReader`](#widthreader), [`HeightReader`](#heightreader), and [`onSizeChange(perform:)`](#onsizechangeperform)
 - [`SmartScrollView`](#smartscrollview) with optional scrolling, a content-fitable frame, and live edge inset values.
+- [`FULayout`](#fulayout) for building custom layouts (similar to SwiftUI `Layout` but works in iOS 14).
 - [`HFlow`](#hflow) or [`VFlow`](#vflow) for presenting tags or any view in a flow style.
-- [`FULayout`] for building custom layouts (similar to SwiftUI Layout but works in iOS 14).
 - [`VMasonry`](#vmasonry) or [`HMasonry`](#hmasonry) for presenting view in a masonry (Pinterest) style.
+- Make your own [`CustomFULayout`](#make-your-own-fulayout).
 - [`OverlappingImage`](#overlappingimage) that overlaps neighbouring content by a percent of the image size.
 - [`.relativePadding`](#relativepaddingedges-lengthfactor) adds padding relative to the content view size.
 - [`TabMenuView`](#tabmenuview), a customizable tab menu with `onReselect` and `onDoubleTap` functions.
 - [`ScaledView`](#scaledview) to scale views and their frames to specific sizes.
-- [`rotationMatchingOrientation`](#rotationmatchingorientation) to give some views a different set of allowable orientations.
+- [`AutoRotatingView`](#autorotatingview) to give some views a different set of allowable orientations.
 - [`WidgetSize`](#widgetsize) - Similar to WidgetFamily but returns widget frame sizes by device and doesn't require `WidgetKit`
 - [`WidgetDemoFrame`](#widgetdemoframe) creates widget frames sized for the current device (and scaled for iPad)
 - [`WidgetRelativeShape`](#widgetrelativeshape) fixes a bug with the corner radius of `ContainerRelativeShape` on iPad.
@@ -37,7 +38,7 @@ Check out the [example app](https://github.com/ryanlintott/FrameUpExample) to se
 Import the package using `import FrameUp`
 
 # Platforms
-This package is compatible with iOS 14 or later. It's technically compatible with macOS 11 but hasn't been tested yet.
+This package is compatible with iOS 14 or later.
 
 # Is this Production-Ready?
 Really it's up to you. I currently use this package in my own [Old English Wordhord app](https://oldenglishwordhord.com/app).
@@ -142,11 +143,7 @@ Limitations:
 ## FULayout
 Similar to the SwiftUI `Layout` protocol, the FrameUp layout `FULayout` protocol is used to define view layouts.
 
-A FrameUp layout is only required to define which axes are fixed, the maximum item size, and a function that takes view sizes and ouputs view offsets.
-
-There are two ways to build views from types that conform to `FULayout`.
-
-### 1. Call them as functions.
+### You can call them as functions.
 This method is the most straightforward as it works the same as SwiftUI layouts.
 
 ```swift
@@ -158,7 +155,7 @@ MyFULayout() {
 
 *Caution: `_VariadicView` is used under the hood. If this underscore protocol concerns you, use method 2 below.*
 
-### 2. Use the `.forEach()` function.
+### You can use the `.forEach()` function.
 This method uses a method that works in a very similar way to `ForEach()`.
 
 ```swift
@@ -168,7 +165,10 @@ MyFULayout().forEach(["Hello", "World"], id: \.self) { item in
 }
 ```
 
-## Layouts
+### AnyFULayout
+ A type-erased FrameUp layout can be used to wrap multiple layouts and switch between them with animation.
+
+## Included FULayouts
 ### HFlow
  A FrameUp layout that arranges views in a row, adding rows when needed.
  
@@ -268,11 +268,10 @@ MyFULayout().forEach(["Hello", "World"], id: \.self) { item in
 ### FULAyout Stacks
 `HStackFULayout`, `VStackFULayout`, and `ZStackFULayout` are also available and helpful when you want to toggle between layout options.
 
-### AnyFULayout
- A type-erased instance of the FrameUp layout protocol. If you want to make a view that can toggle between layouts, wrap each one in AnyLayout.
+## Make your own FULayout
+The FrameUp layout protocol requires you to define which axes are fixed, the maximum item size, and a function that takes view sizes and ouputs view offsets.
 
-## Custom FULayout
-You can use FULayout to make your own layouts. For example a view that arranges views on left and right sides of a central line.
+Below is an example layout that arranges views on left and right sides of a central line.
 
 ```swift
 struct CustomFULayout: FULayout {
@@ -300,7 +299,6 @@ struct CustomFULayout: FULayout {
     }
 }
 ```
-
 
 ## OverlappingImage
 An image view that can overlap content on the edges of its frame.
