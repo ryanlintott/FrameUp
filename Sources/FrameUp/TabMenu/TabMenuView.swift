@@ -91,13 +91,10 @@ public struct TabMenuView<Tab: Hashable, Content: View>: View {
                         .onTapGesture {
                             if selection == item.tab {
                                 onReselect?.action()
-                            }
-                        }
-                        .simultaneousGesture(TapGesture().onEnded {
-                            if selection != item.tab {
+                            } else {
                                 selection = item.tab
                             }
-                        })
+                        }
                         .accessibilityLabel(tabVoiceOverLabel(tabItem: item))
                         .accessibilityHint(tabVoiceOverHint(tabItem: item))
                         .accessibilityAddTraits(selection == item.tab ? .isSelected : [])
