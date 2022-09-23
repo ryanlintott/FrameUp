@@ -55,14 +55,12 @@ struct TwoSidedViewModifier<Back: View>: ViewModifier {
         ZStack {
             back()
                 .clipShape(BackfaceCull(degrees: backAngle.degrees))
-                .clipped()
                 .rotation3DEffect(backAngle, axis: axis, anchor: anchor, anchorZ: anchorZ, perspective: perspective)
                 .accessibilityElement(children: isFaceUp ? .ignore : .contain)
                 .accessibilityHidden(!isFaceUp)
             
             content
                 .clipShape(BackfaceCull(degrees: angle.degrees))
-                .clipped()
                 .rotation3DEffect(angle, axis: axis, anchor: anchor, anchorZ: anchorZ, perspective: perspective)
                 .accessibilityElement(children: isFaceUp ? .contain : .ignore)
                 .accessibilityHidden(isFaceUp)

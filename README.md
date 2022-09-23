@@ -188,7 +188,6 @@ MyFULayout().forEach(["Hello", "World"], id: \.self) { item in
                 .foregroundColor(.white)
                 .background(Color.blue)
                 .cornerRadius(12)
-                .clipped()
         }
     }
  }
@@ -213,7 +212,6 @@ MyFULayout().forEach(["Hello", "World"], id: \.self) { item in
                  .foregroundColor(.white)
                  .background(Color.blue)
                  .cornerRadius(12)
-                 .clipped()
          }
      }
  }
@@ -237,7 +235,6 @@ MyFULayout().forEach(["Hello", "World"], id: \.self) { item in
                 .foregroundColor(.white)
                 .background(Color.blue)
                 .cornerRadius(12)
-                .clipped()
         }
     }
  }
@@ -261,7 +258,6 @@ MyFULayout().forEach(["Hello", "World"], id: \.self) { item in
                     .foregroundColor(.white)
                     .background(Color.blue)
                     .cornerRadius(12)
-                    .clipped()
             }
         }
     }

@@ -22,7 +22,6 @@ import SwiftUI
 ///                 .foregroundColor(.white)
 ///                 .background(Color.blue)
 ///                 .cornerRadius(12)
-///                 .clipped()
 ///         }
 ///     }
 ///
