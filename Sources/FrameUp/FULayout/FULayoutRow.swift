@@ -7,20 +7,20 @@
 
 import SwiftUI
 
-struct FULayoutRow {
-    let spacing: CGFloat
-    let alignment: Alignment
+public struct FULayoutRow: Equatable {
+    public let spacing: CGFloat
+    public let alignment: FUAlignment
     private(set) var sizes: [Int: CGSize]
     private(set) var rowSize: CGSize
     
-    init(alignment: Alignment, spacing: CGFloat, firstSize: (key: Int, value: CGSize)) {
+    public init(alignment: FUAlignment, spacing: CGFloat, firstSize: (key: Int, value: CGSize)) {
         self.alignment = alignment
         self.spacing = spacing
         self.sizes = [firstSize.key: firstSize.value]
         self.rowSize = firstSize.value
     }
     
-    init(alignment: Alignment, spacing: CGFloat, height: CGFloat) {
+    public init(alignment: FUAlignment, spacing: CGFloat, height: CGFloat) {
         self.alignment = alignment
         self.spacing = spacing
         self.sizes = [:]
@@ -37,17 +37,16 @@ struct FULayoutRow {
         return true
     }
     
-    func contentOffsets(rowYOffset: CGFloat) -> [Int: CGPoint] {
+    public func contentOffsets(rowYOffset: CGFloat) -> [Int: CGPoint] {
         var currentXOffset = 0.0
         
         switch alignment.horizontal {
+        case .leading:
+            break
         case .center:
             currentXOffset -= rowSize.width / 2
         case .trailing:
             currentXOffset -= rowSize.width
-        default:
-            /// Custom alignments not supported
-            break
         }
         
         var result = [Int: CGPoint]()
@@ -55,13 +54,12 @@ struct FULayoutRow {
         for size in sizes.sorted(by: { $0.key < $1.key }) {
             var yOffset = rowYOffset
             switch alignment.vertical {
+            case .top:
+                break
             case .center:
                 yOffset += (rowSize.height - size.value.height) / 2
             case .bottom:
                 yOffset += rowSize.height - size.value.height
-            default:
-                /// Custom alignments not supported
-                break
             }
             let offset = CGPoint(x: currentXOffset, y: yOffset)
             result.updateValue(offset, forKey: size.key)

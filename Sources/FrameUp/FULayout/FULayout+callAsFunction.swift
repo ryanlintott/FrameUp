@@ -16,12 +16,12 @@ public extension FULayout {
     }
 }
 
-fileprivate struct _FULayoutView<Content: View>: View {
-    let layout: AnyFULayout
+fileprivate struct _FULayoutView<Content: View, L: FULayout>: View {
+    let layout: L
     let content: Content
     
-    init<L: FULayout>(_ layout: L, @ViewBuilder content: () -> Content) {
-        self.layout = AnyFULayout(layout)
+    init(_ layout: L, @ViewBuilder content: () -> Content) {
+        self.layout = layout
         self.content = content()
     }
     
@@ -29,7 +29,7 @@ fileprivate struct _FULayoutView<Content: View>: View {
     @State private var frameSize: CGSize? = nil
     
     var body: some View {
-        AnyFULayoutRootView(layout, contentOffsets: $contentOffsets, frameSize: $frameSize) {
+        FULayoutRootView(layout, contentOffsets: $contentOffsets, frameSize: $frameSize) {
             _VariadicView.Tree(_VariadicFULayoutRoot(layout, contentOffsets: contentOffsets)) {
                 content
             }
@@ -37,11 +37,11 @@ fileprivate struct _FULayoutView<Content: View>: View {
     }
 }
 
-fileprivate struct _VariadicFULayoutRoot: _VariadicView_MultiViewRoot {
-    let layout: AnyFULayout
+fileprivate struct _VariadicFULayoutRoot<L: FULayout>: _VariadicView_MultiViewRoot {
+    let layout: L
     let contentOffsets: [Int: CGPoint]
     
-    init(_ layout: AnyFULayout, contentOffsets: [Int : CGPoint]) {
+    init(_ layout: L, contentOffsets: [Int : CGPoint]) {
         self.layout = layout
         self.contentOffsets = contentOffsets
     }
@@ -53,7 +53,7 @@ fileprivate struct _VariadicFULayoutRoot: _VariadicView_MultiViewRoot {
     @ViewBuilder
     func body(children: _VariadicView.Children) -> some View {
         ForEach(Array(zip(children, children.indices)), id: \.0.id) { (child, index) in
-            AnyFULayoutChildView(layout: layout, index: index, contentOffset: contentOffsets[index], defaultOffset: defaultOffset, content: child)
+            FULayoutChildView(layout: layout, index: index, contentOffset: contentOffsets[index], defaultOffset: defaultOffset, content: child)
         }
     }
 }

@@ -34,7 +34,7 @@ import SwiftUI
 public struct HFlow: FULayout {
     typealias Row = FULayoutRow
     
-    public let alignment: Alignment
+    public let alignment: FUAlignment
     public let maxWidth: CGFloat
     public let maxItemWidth: CGFloat?
     public let horizontalSpacing: CGFloat
@@ -51,7 +51,7 @@ public struct HFlow: FULayout {
     ///   - horizontalSpacing: Minimum horizontal spacing between views in a row.
     ///   - verticalSpacing: Vertical spacing between rows.
     public init(
-        alignment: Alignment = .topLeading,
+        alignment: FUAlignment = .topLeading,
         maxWidth: CGFloat,
         maxItemWidth: CGFloat? = nil,
         horizontalSpacing: CGFloat? = nil,
@@ -62,6 +62,10 @@ public struct HFlow: FULayout {
         self.maxItemWidth = min(maxWidth, maxItemWidth ?? .infinity)
         self.horizontalSpacing = horizontalSpacing ?? 10
         self.verticalSpacing = verticalSpacing ?? 10
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(alignment)
     }
     
     public func contentOffsets(sizes: [Int: CGSize]) -> [Int: CGPoint] {

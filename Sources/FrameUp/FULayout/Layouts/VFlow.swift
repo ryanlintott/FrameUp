@@ -34,7 +34,7 @@ import SwiftUI
 public struct VFlow: FULayout {
     typealias Column = FULayoutColumn
     
-    public let alignment: Alignment
+    public let alignment: FUAlignment
     public let maxHeight: CGFloat
     public let maxItemHeight: CGFloat?
     public let horizontalSpacing: CGFloat
@@ -51,7 +51,7 @@ public struct VFlow: FULayout {
     ///   - horizontalSpacing: Minimum horizontal spacing between columns.
     ///   - verticalSpacing: Vertical spacing between views in a column
     public init(
-        alignment: Alignment? = nil,
+        alignment: FUAlignment? = nil,
         maxHeight: CGFloat,
         maxItemHeight: CGFloat? = nil,
         horizontalSpacing: CGFloat? = nil,

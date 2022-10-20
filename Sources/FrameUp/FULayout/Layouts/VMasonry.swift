@@ -32,7 +32,7 @@ import SwiftUI
 public struct VMasonry: FULayout {
     typealias Column = FULayoutColumn
     
-    public let alignment: VerticalAlignment
+    public let alignment: FUVerticalAlignment
     public let columns: Int
     public let columnWidth: CGFloat
     public let horizontalSpacing: CGFloat
@@ -50,7 +50,7 @@ public struct VMasonry: FULayout {
     ///   - horizontalSpacing: Minimum horizontal spacing between columns.
     ///   - verticalSpacing: Vertical spacing between views in a column
     public init(
-        alignment: VerticalAlignment = .top,
+        alignment: FUVerticalAlignment = .top,
         columns: Int,
         maxWidth: CGFloat,
         horizontalSpacing: CGFloat? = nil,
@@ -65,7 +65,7 @@ public struct VMasonry: FULayout {
     
     public func contentOffsets(sizes: [Int: CGSize]) -> [Int: CGPoint] {
         var columns: [Column] = (0..<columns).map { _ in
-            Column(alignment: Alignment(horizontal: .leading, vertical: alignment), spacing: verticalSpacing, width: columnWidth)
+            Column(alignment: .init(horizontal: .leading, vertical: alignment), spacing: verticalSpacing, width: columnWidth)
         }
         
         for size in sizes.sortedByKey() {

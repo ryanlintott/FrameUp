@@ -39,7 +39,7 @@ import SwiftUI
  }
  ```
  */
-public protocol FULayout: Equatable {
+public protocol FULayout: Equatable, Hashable {
     /// Axes that will have a fixed size.
     var fixedSize: Axis.Set { get }
     /// Max width for a subview.
@@ -83,5 +83,8 @@ public extension FULayout {
             )
         }
     }
+    
+    var anyFULayout: AnyFULayout {
+        AnyFULayout(self)
+    }
 }
-

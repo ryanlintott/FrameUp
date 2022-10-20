@@ -32,7 +32,7 @@ import SwiftUI
 public struct HMasonry: FULayout {
     typealias Row = FULayoutRow
     
-    public let alignment: HorizontalAlignment
+    public let alignment: FUHorizontalAlignment
     public let rows: Int
     public let rowHeight: CGFloat
     public let horizontalSpacing: CGFloat
@@ -50,7 +50,7 @@ public struct HMasonry: FULayout {
     ///   - horizontalSpacing: Minimum horizontal spacing between columns.
     ///   - verticalSpacing: Vertical spacing between views in a column
     public init(
-        alignment: HorizontalAlignment = .leading,
+        alignment: FUHorizontalAlignment = .leading,
         rows: Int,
         maxHeight: CGFloat,
         horizontalSpacing: CGFloat? = nil,
@@ -65,7 +65,7 @@ public struct HMasonry: FULayout {
     
     public func contentOffsets(sizes: [Int: CGSize]) -> [Int: CGPoint] {
         var rows: [Row] = (0..<rows).map { _ in
-            Row(alignment: Alignment(horizontal: alignment, vertical: .top), spacing: verticalSpacing, height: rowHeight)
+            Row(alignment: .init(horizontal: alignment, vertical: .top), spacing: verticalSpacing, height: rowHeight)
         }
         
         for size in sizes.sortedByKey() {
