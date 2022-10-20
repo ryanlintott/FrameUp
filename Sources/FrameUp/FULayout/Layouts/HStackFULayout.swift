@@ -46,9 +46,4 @@ public struct HStackFULayout: FULayout {
 }
 
 @available(iOS 16, *)
-extension HStackFULayout {
-    /// SwiftUI layout using the same alignment and spacing values.
-    var layout: HStackLayout {
-        HStackLayout(alignment: alignment.alignment, spacing: spacing)
-    }
-}
+extension HStackFULayout: Layout { }

@@ -64,9 +64,4 @@ public struct ZStackFULayout: FULayout {
 }
 
 @available(iOS 16, *)
-extension ZStackFULayout {
-    /// SwiftUI layout using the same alignment value.
-    var layout: ZStackLayout {
-        ZStackLayout(alignment: alignment.alignment)
-    }
-}
+extension ZStackFULayout: Layout { }

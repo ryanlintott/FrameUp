@@ -93,3 +93,6 @@ public struct HFlow: FULayout {
         return result
     }
 }
+
+@available(iOS 16, *)
+extension HFlow: Layout { }

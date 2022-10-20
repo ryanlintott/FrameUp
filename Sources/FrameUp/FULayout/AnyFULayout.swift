@@ -52,3 +52,6 @@ public struct AnyFULayout: FULayout {
         hasher.combine(String(describing: Self.self))
     }
 }
+
+@available(iOS 16, *)
+extension AnyFULayout: Layout { }

@@ -89,3 +89,6 @@ public struct VFlow: FULayout {
         return result
     }
 }
+
+@available(iOS 16, *)
+extension VFlow: Layout { }

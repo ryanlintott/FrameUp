@@ -90,3 +90,6 @@ public struct VMasonry: FULayout {
         return result
     }
 }
+
+@available(iOS 16, *)
+extension VMasonry: Layout { }
