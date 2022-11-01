@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-@available(iOS 16, *)
+@available(iOS 16, macOS 13, *)
 extension FULayout where Self: Layout {
     public func sizes(for subviews: Subviews, proposal: ProposedViewSize) -> [Int: CGSize] {
         subviews

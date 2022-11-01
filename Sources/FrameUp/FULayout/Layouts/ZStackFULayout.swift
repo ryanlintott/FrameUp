@@ -10,9 +10,11 @@ import SwiftUI
 /// A FrameUp layout version of `ZStackLayout`. Useful when you want to toggle between different FrameUp layouts.
 public struct ZStackFULayout: FULayout {
     public let alignment: FUAlignment
-    public let maxItemWidth: CGFloat?
-    public let maxItemHeight: CGFloat?
+    public let maxWidth: CGFloat
+    public let maxHeight: CGFloat
     
+    public var maxItemWidth: CGFloat? { maxWidth }
+    public var maxItemHeight: CGFloat? { maxHeight }
     public var itemAlignment: FUAlignment { alignment }
     public let fixedSize: Axis.Set = []
     
@@ -28,8 +30,8 @@ public struct ZStackFULayout: FULayout {
         maxHeight: CGFloat
     ) {
         self.alignment = alignment ?? .center
-        self.maxItemWidth = maxWidth
-        self.maxItemHeight = maxHeight
+        self.maxWidth = maxWidth
+        self.maxHeight = maxHeight
     }
     
     public func contentOffsets(sizes: [Int : CGSize]) -> [Int : CGPoint] {
@@ -63,5 +65,5 @@ public struct ZStackFULayout: FULayout {
     }
 }
 
-@available(iOS 16, *)
+@available(iOS 16, macOS 13, *)
 extension ZStackFULayout: Layout { }

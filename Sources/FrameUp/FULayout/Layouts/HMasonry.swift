@@ -91,5 +91,5 @@ public struct HMasonry: FULayout {
     }
 }
 
-@available(iOS 16, *)
+@available(iOS 16, macOS 13, *)
 extension HMasonry: Layout { }

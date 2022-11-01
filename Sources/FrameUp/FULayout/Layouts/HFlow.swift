@@ -94,5 +94,5 @@ public struct HFlow: FULayout {
     }
 }
 
-@available(iOS 16, *)
+@available(iOS 16, macOS 13, *)
 extension HFlow: Layout { }

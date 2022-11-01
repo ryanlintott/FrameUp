@@ -101,5 +101,6 @@ internal struct FULayoutChildView<Content: View, L: FULayout>: View {
             /// These modifiers are used to ensure initial content sizing uses an invisible view that won't effect the overall frame. Once the offset is known it will appear with the correct placement.
             .opacity(isInvisible ? 0 : 1)
             .id(isInvisible)
+            .accessibilityHidden(isInvisible)
     }
 }

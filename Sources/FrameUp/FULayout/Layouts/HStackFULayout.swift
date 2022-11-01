@@ -13,9 +13,10 @@ public struct HStackFULayout: FULayout {
     
     public let alignment: FUVerticalAlignment
     public let spacing: CGFloat
+    public let maxHeight: CGFloat
     public let maxItemWidth: CGFloat?
-    public let maxItemHeight: CGFloat?
-
+    
+    public var maxItemHeight: CGFloat? { maxHeight }
     public let fixedSize: Axis.Set = .horizontal
     
     /// Creates a FrameUp layout version of `HStackLayout`.
@@ -32,12 +33,12 @@ public struct HStackFULayout: FULayout {
     ) {
         self.alignment = alignment
         self.spacing = spacing ?? 10
-        self.maxItemHeight = maxHeight
+        self.maxHeight = maxHeight
         self.maxItemWidth = maxItemWidth
     }
     
     public func contentOffsets(sizes: [Int: CGSize]) -> [Int: CGPoint] {
-        var row = Row(alignment: .init(horizontal: .leading, vertical: alignment), spacing: spacing, height: maxItemHeight ?? .infinity)
+        var row = Row(alignment: .init(horizontal: .leading, vertical: alignment), spacing: spacing, height: maxHeight)
         
         sizes.forEach { row.append($0) }
         
@@ -45,5 +46,5 @@ public struct HStackFULayout: FULayout {
     }
 }
 
-@available(iOS 16, *)
+@available(iOS 16, macOS 13, *)
 extension HStackFULayout: Layout { }

@@ -91,5 +91,5 @@ public struct VMasonry: FULayout {
     }
 }
 
-@available(iOS 16, *)
+@available(iOS 16, macOS 13, *)
 extension VMasonry: Layout { }
