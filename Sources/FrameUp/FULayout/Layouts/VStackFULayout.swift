@@ -38,7 +38,7 @@ public struct VStackFULayout: FULayout {
     }
     
     public func contentOffsets(sizes: [Int: CGSize]) -> [Int: CGPoint] {
-        var column = Column(alignment: .init(horizontal: alignment, vertical: .top), spacing: spacing, width: maxWidth)
+        var column = Column(alignment: .init(horizontal: alignment, vertical: .top), spacing: spacing)
         
         sizes.forEach { column.append($0) }
         

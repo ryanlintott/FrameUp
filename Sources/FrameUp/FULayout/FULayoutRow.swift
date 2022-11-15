@@ -21,6 +21,11 @@ public struct FULayoutRow: Equatable {
         sizes.map(\.value.width).reduce(into: CGFloat.zero, +=)
     }
     
+    var spacing: CGFloat {
+        guard alignment.horizontal == .justified, sizes.count > 1 else { return minSpacing }
+        return (maxWidth - contentWidth) / CGFloat(sizes.count - 1)
+    }
+    
     var minRowWidth: CGFloat {
         contentWidth + CGFloat(sizes.count - 1) * minSpacing
     }
@@ -31,11 +36,6 @@ public struct FULayoutRow: Equatable {
     
     var rowSize: CGSize {
         .init(width: rowWidth, height: contentHeight)
-    }
-    
-    var spacing: CGFloat {
-        guard alignment.horizontal == .justified, sizes.count > 1 else { return minSpacing }
-        return (maxWidth - contentWidth) / CGFloat(sizes.count - 1)
     }
     
     public init(alignment: FUAlignment, spacing: CGFloat, firstSize: (key: Int, value: CGSize), maxWidth: CGFloat = .infinity) {
@@ -78,7 +78,7 @@ public struct FULayoutRow: Equatable {
             var yOffset = rowYOffset
             
             switch alignment.vertical {
-            case .top:
+            case .top, .justified:
                 break
             case .center:
                 yOffset += (rowSize.height - size.value.height) / 2

@@ -49,7 +49,7 @@ public struct ZStackFULayout: FULayout {
             }
             let yOffset: CGFloat
             switch alignment.vertical {
-            case .top:
+            case .top, .justified:
                 yOffset = .zero
             case .center:
                 yOffset = -size.value.height / 2

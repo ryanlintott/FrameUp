@@ -8,32 +8,55 @@
 import SwiftUI
 
 public struct FULayoutColumn: Equatable {
-    public let spacing: CGFloat
+    public let minSpacing: CGFloat
     public let alignment: FUAlignment
     private(set) var sizes: [Int: CGSize]
-    private(set) var columnSize: CGSize
+    private(set) var maxHeight: CGFloat
     
-    public init(alignment: FUAlignment, spacing: CGFloat, firstSize: (key: Int, value: CGSize)) {
-        self.alignment = alignment
-        self.spacing = spacing
-        self.sizes = [firstSize.key: firstSize.value]
-        self.columnSize = firstSize.value
+    var contentWidth: CGFloat {
+        sizes.map(\.value.width).max() ?? .zero
     }
     
-    public init(alignment: FUAlignment, spacing: CGFloat, width: CGFloat) {
+    var contentHeight: CGFloat {
+        sizes.map(\.value.height).reduce(into: CGFloat.zero, +=)
+    }
+    
+    var spacing: CGFloat {
+        guard alignment.vertical == .justified, sizes.count > 1 else { return minSpacing }
+        return (maxHeight - contentHeight) / CGFloat(sizes.count - 1)
+    }
+    
+    var minColumnHeight: CGFloat {
+        contentHeight + CGFloat(sizes.count - 1) * minSpacing
+    }
+    
+    var columnHeight: CGFloat {
+        contentHeight + CGFloat(sizes.count - 1) * spacing
+    }
+    
+    var columnSize: CGSize {
+        .init(width: contentWidth, height: columnHeight)
+    }
+    
+    public init(alignment: FUAlignment, spacing: CGFloat, firstSize: (key: Int, value: CGSize), maxHeight: CGFloat = .infinity) {
         self.alignment = alignment
-        self.spacing = spacing
+        self.minSpacing = spacing
+        self.sizes = [firstSize.key: firstSize.value]
+        self.maxHeight = maxHeight
+    }
+    
+    public init(alignment: FUAlignment, spacing: CGFloat, maxHeight: CGFloat = .infinity) {
+        self.alignment = alignment
+        self.minSpacing = spacing
         self.sizes = [:]
-        self.columnSize = CGSize(width: width, height: .zero)
+        self.maxHeight = maxHeight
     }
     
     @discardableResult
-    mutating func append(_ element: (key: Int, value: CGSize), maxHeight: CGFloat = .infinity) -> Bool {
-        let newHeight = columnSize.height + element.value.height + spacing
+    mutating func append(_ element: (key: Int, value: CGSize)) -> Bool {
+        let newHeight = minColumnHeight + minSpacing + element.value.height
         guard newHeight <= maxHeight else { return false }
         sizes.update(with: element)
-        columnSize.height = newHeight
-        columnSize.width = max(columnSize.width, element.value.width)
         return true
     }
     
@@ -41,7 +64,7 @@ public struct FULayoutColumn: Equatable {
         var currentYOffset = 0.0
         
         switch alignment.vertical {
-        case .top:
+        case .top, .justified:
             break
         case .center:
             currentYOffset -= columnSize.height / 2

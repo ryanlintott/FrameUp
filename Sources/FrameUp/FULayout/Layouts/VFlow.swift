@@ -69,10 +69,10 @@ public struct VFlow: FULayout {
             .sortedByKey()
             .reduce(into: [Column]()) { partialResult, size in
                 guard partialResult.isEmpty ||
-                   !partialResult[partialResult.endIndex - 1].append(size, maxHeight: maxHeight) else {
+                   !partialResult[partialResult.endIndex - 1].append(size) else {
                     return
                 }
-                partialResult.append(Column(alignment: alignment, spacing: verticalSpacing, firstSize: size))
+                partialResult.append(Column(alignment: alignment, spacing: verticalSpacing, firstSize: size, maxHeight: maxHeight))
             }
         
         var currentXOffset: CGFloat = .zero

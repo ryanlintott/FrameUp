@@ -65,7 +65,7 @@ public struct VMasonry: FULayout {
     
     public func contentOffsets(sizes: [Int: CGSize]) -> [Int: CGPoint] {
         var columns: [Column] = (0..<columns).map { _ in
-            Column(alignment: .init(horizontal: .leading, vertical: alignment), spacing: verticalSpacing, width: columnWidth)
+            Column(alignment: .init(horizontal: .leading, vertical: alignment), spacing: verticalSpacing)
         }
         
         for size in sizes.sortedByKey() {

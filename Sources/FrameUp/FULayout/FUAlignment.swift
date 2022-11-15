@@ -21,6 +21,10 @@ public enum FUAlignment: String, CaseIterable, Identifiable, Equatable, Hashable
     case bottom
     case bottomTrailing
     case bottomJustified
+    case justifiedLeading
+    case justifiedCenter
+    case justifiedTrailing
+    case justified
     
     public var id: Self { self }
     
@@ -38,18 +42,22 @@ public enum FUAlignment: String, CaseIterable, Identifiable, Equatable, Hashable
         case (.bottom, .center): self = .bottom
         case (.bottom, .trailing): self = .bottomTrailing
         case (.bottom, .justified): self = .bottomJustified
+        case (.justified, .leading): self = .justifiedLeading
+        case (.justified, .center): self = .justifiedCenter
+        case (.justified, .trailing): self = .justifiedTrailing
+        case (.justified, .justified): self = .justified
         }
     }
     
     public var horizontal: FUHorizontalAlignment {
         switch self {
-        case .topLeading, .leading, .bottomLeading:
+        case .topLeading, .leading, .bottomLeading, .justifiedLeading:
             return .leading
-        case .top, .center, .bottom:
+        case .top, .center, .bottom, .justifiedCenter:
             return .center
-        case .topTrailing, .trailing, .bottomTrailing:
+        case .topTrailing, .trailing, .bottomTrailing, .justifiedTrailing:
             return .trailing
-        case .topJustified, .centerJustified, .bottomJustified:
+        case .topJustified, .centerJustified, .bottomJustified, .justified:
             return .justified
         }
     }
@@ -62,21 +70,13 @@ public enum FUAlignment: String, CaseIterable, Identifiable, Equatable, Hashable
             return .center
         case .bottomLeading, .bottom, .bottomTrailing, .bottomJustified:
             return .bottom
+        case .justifiedLeading, .justifiedCenter, .justifiedTrailing, .justified:
+            return .justified
         }
     }
     
     public var alignment: Alignment {
-        switch self {
-        case .topLeading, .topJustified: return .topLeading
-        case .top: return .top
-        case .topTrailing: return .topTrailing
-        case .leading, .centerJustified: return .leading
-        case .center: return .center
-        case .trailing: return .trailing
-        case .bottomLeading, .bottomJustified: return .bottomLeading
-        case .bottom: return .bottom
-        case .bottomTrailing: return .bottomTrailing
-        }
+        .init(horizontal: horizontal.alignment, vertical: vertical.alignment)
     }
 }
 
@@ -101,12 +101,13 @@ public enum FUVerticalAlignment: String, CaseIterable, Identifiable, Equatable, 
     case top
     case center
     case bottom
+    case justified
     
     public var id: Self { self }
     
     public var alignment: VerticalAlignment {
         switch self {
-        case .top: return .top
+        case .top, .justified: return .top
         case .center: return .center
         case .bottom: return .bottom
         }
