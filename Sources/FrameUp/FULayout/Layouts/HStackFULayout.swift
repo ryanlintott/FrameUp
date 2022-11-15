@@ -38,7 +38,7 @@ public struct HStackFULayout: FULayout {
     }
     
     public func contentOffsets(sizes: [Int: CGSize]) -> [Int: CGPoint] {
-        var row = Row(alignment: .init(horizontal: .leading, vertical: alignment), spacing: spacing, height: maxHeight)
+        var row = Row(alignment: .init(horizontal: .leading, vertical: alignment), spacing: spacing)
         
         sizes.forEach { row.append($0) }
         

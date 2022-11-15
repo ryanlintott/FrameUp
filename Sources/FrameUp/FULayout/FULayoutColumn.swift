@@ -54,7 +54,7 @@ public struct FULayoutColumn: Equatable {
         for size in sizes.sorted(by: { $0.key < $1.key }) {
             var xOffset = columnXOffset
             switch alignment.horizontal {
-            case .leading:
+            case .leading, .justified:
                 break
             case .center:
                 xOffset += (columnSize.width - size.value.width) / 2

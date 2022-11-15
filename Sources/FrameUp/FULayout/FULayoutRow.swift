@@ -7,33 +7,56 @@
 
 import SwiftUI
 
-public struct FULayoutRow: Equatable {
-    public let spacing: CGFloat
+public struct FULayoutRow: Equatable {    
+    public let minSpacing: CGFloat
     public let alignment: FUAlignment
     private(set) var sizes: [Int: CGSize]
-    private(set) var rowSize: CGSize
+    private(set) var maxWidth: CGFloat
     
-    public init(alignment: FUAlignment, spacing: CGFloat, firstSize: (key: Int, value: CGSize)) {
-        self.alignment = alignment
-        self.spacing = spacing
-        self.sizes = [firstSize.key: firstSize.value]
-        self.rowSize = firstSize.value
+    var contentHeight: CGFloat {
+        sizes.map(\.value.height).max() ?? .zero
     }
     
-    public init(alignment: FUAlignment, spacing: CGFloat, height: CGFloat) {
+    var contentWidth: CGFloat {
+        sizes.map(\.value.width).reduce(into: CGFloat.zero, +=)
+    }
+    
+    var minRowWidth: CGFloat {
+        contentWidth + CGFloat(sizes.count - 1) * minSpacing
+    }
+    
+    var rowWidth: CGFloat {
+        contentWidth + CGFloat(sizes.count - 1) * spacing
+    }
+    
+    var rowSize: CGSize {
+        .init(width: rowWidth, height: contentHeight)
+    }
+    
+    var spacing: CGFloat {
+        guard alignment.horizontal == .justified, sizes.count > 1 else { return minSpacing }
+        return (maxWidth - contentWidth) / CGFloat(sizes.count - 1)
+    }
+    
+    public init(alignment: FUAlignment, spacing: CGFloat, firstSize: (key: Int, value: CGSize), maxWidth: CGFloat = .infinity) {
         self.alignment = alignment
-        self.spacing = spacing
+        self.minSpacing = spacing
+        self.sizes = [firstSize.key: firstSize.value]
+        self.maxWidth = maxWidth
+    }
+    
+    public init(alignment: FUAlignment, spacing: CGFloat, maxWidth: CGFloat = .infinity) {
+        self.alignment = alignment
+        self.minSpacing = spacing
         self.sizes = [:]
-        self.rowSize = CGSize(width: .zero, height: height)
+        self.maxWidth = maxWidth
     }
     
     @discardableResult
-    mutating func append(_ element: (key: Int, value: CGSize), maxWidth: CGFloat = .infinity) -> Bool {
-        let newWidth = rowSize.width + element.value.width + spacing
+    mutating func append(_ element: (key: Int, value: CGSize)) -> Bool {
+        let newWidth = minRowWidth + minSpacing + element.value.width
         guard newWidth <= maxWidth else { return false }
         sizes.update(with: element)
-        rowSize.width = newWidth
-        rowSize.height = max(rowSize.height, element.value.height)
         return true
     }
     
@@ -41,7 +64,7 @@ public struct FULayoutRow: Equatable {
         var currentXOffset = 0.0
         
         switch alignment.horizontal {
-        case .leading:
+        case .leading, .justified:
             break
         case .center:
             currentXOffset -= rowSize.width / 2
@@ -53,6 +76,7 @@ public struct FULayoutRow: Equatable {
 
         for size in sizes.sorted(by: { $0.key < $1.key }) {
             var yOffset = rowYOffset
+            
             switch alignment.vertical {
             case .top:
                 break

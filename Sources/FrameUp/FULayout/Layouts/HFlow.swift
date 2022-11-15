@@ -73,10 +73,10 @@ public struct HFlow: FULayout {
             .sortedByKey()
             .reduce(into: [Row]()) { partialResult, size in
                 guard partialResult.isEmpty ||
-                   !partialResult[partialResult.endIndex - 1].append(size, maxWidth: maxWidth) else {
+                   !partialResult[partialResult.endIndex - 1].append(size) else {
                     return
                 }
-                partialResult.append(Row(alignment: alignment, spacing: horizontalSpacing, firstSize: size))
+                partialResult.append(Row(alignment: alignment, spacing: horizontalSpacing, firstSize: size, maxWidth: maxWidth))
             }
         
         var currentYOffset: CGFloat = .zero

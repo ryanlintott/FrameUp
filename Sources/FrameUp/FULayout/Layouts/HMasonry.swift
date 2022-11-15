@@ -65,7 +65,7 @@ public struct HMasonry: FULayout {
     
     public func contentOffsets(sizes: [Int: CGSize]) -> [Int: CGPoint] {
         var rows: [Row] = (0..<rows).map { _ in
-            Row(alignment: .init(horizontal: alignment, vertical: .top), spacing: verticalSpacing, height: rowHeight)
+            Row(alignment: .init(horizontal: alignment, vertical: .top), spacing: verticalSpacing)
         }
         
         for size in sizes.sortedByKey() {

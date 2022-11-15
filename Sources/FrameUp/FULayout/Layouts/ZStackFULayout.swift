@@ -40,7 +40,7 @@ public struct ZStackFULayout: FULayout {
         for size in sizes.sortedByKey() {
             let xOffset: CGFloat
             switch alignment.horizontal {
-            case .leading:
+            case .leading, .justified:
                 xOffset = .zero
             case .center:
                 xOffset = -size.value.width / 2
