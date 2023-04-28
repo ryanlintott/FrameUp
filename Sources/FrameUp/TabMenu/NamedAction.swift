@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+#if os(iOS)
 public struct NamedAction {
     public let name: Text
     public let action: () -> Void
@@ -18,3 +19,4 @@ public extension NamedAction {
         self.action = action
     }
 }
+#endif

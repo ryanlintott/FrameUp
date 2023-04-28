@@ -203,6 +203,7 @@ public struct SmartScrollView<Content: View>: View {
                 resetMeasurements()
             }
         }
+        #if os(iOS)
         /// If the screen rotates or the app returns from the background, reset the state
         .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
             if let deviceOrientation = UIDevice.current.orientation.interfaceOrientation, InfoDictionary.supportedInterfaceOrientations.contains(deviceOrientation) {
@@ -211,6 +212,7 @@ public struct SmartScrollView<Content: View>: View {
                 }
             }
         }
+        #endif
         /// Debugging overlay
 //        .overlay(
 //            VStack(alignment: .trailing) {

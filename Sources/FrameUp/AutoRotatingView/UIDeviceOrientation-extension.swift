@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+#if os(iOS)
 internal extension UIDeviceOrientation {
     var interfaceOrientation: InterfaceOrientation? {
         switch self {
@@ -23,3 +24,4 @@ internal extension UIDeviceOrientation {
         }
     }
 }
+#endif

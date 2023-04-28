@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+#if os(iOS)
 /// Customizable tab menu bar view designed to mimic the style of the default tab menu bar.
 ///
 /// Extra functions available for `onReselect` and `onDoubleTap`
@@ -147,3 +148,4 @@ public struct TabMenuView<Tab: Hashable, Content: View>: View {
 //        return Text("\(tabName)\nTab\n\(tabString)")
 //    }
 }
+#endif

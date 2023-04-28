@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+#if os(iOS)
 extension View {
     /// Rotates a view and alters it's frame to match device orientations from an allowed orientation set.
     ///
@@ -23,3 +24,4 @@ extension View {
         }
     }
 }
+#endif

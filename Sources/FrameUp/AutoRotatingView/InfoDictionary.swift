@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+#if os(iOS)
 struct InfoDictionary {
     static let supportedInterfaceOrientations: [InterfaceOrientation] = {
         if let orientations = Bundle.main.infoDictionary?["UISupportedInterfaceOrientations"] as? [String] {
@@ -16,3 +17,4 @@ struct InfoDictionary {
         }
     }()
 }
+#endif
