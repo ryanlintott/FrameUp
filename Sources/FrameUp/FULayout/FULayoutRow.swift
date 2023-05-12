@@ -7,11 +7,12 @@
 
 import SwiftUI
 
-public struct FULayoutRow: Equatable {    
+public struct FULayoutRow: Equatable {
     public let minSpacing: CGFloat
     public let alignment: FUAlignment
     private(set) var sizes: [Int: CGSize]
     private(set) var maxWidth: CGFloat
+    private(set) var justifiedWidth: CGFloat? = nil
     
     var contentHeight: CGFloat {
         sizes.map(\.value.height).max() ?? .zero
@@ -22,8 +23,12 @@ public struct FULayoutRow: Equatable {
     }
     
     var spacing: CGFloat {
-        guard alignment.horizontal == .justified, sizes.count > 1 else { return minSpacing }
-        return (maxWidth - contentWidth) / CGFloat(sizes.count - 1)
+        guard
+            alignment.horizontal == .justified,
+            sizes.count > 1,
+            let justifiedWidth
+        else { return minSpacing }
+        return (justifiedWidth - contentWidth) / CGFloat(sizes.count - 1)
     }
     
     var minRowWidth: CGFloat {
@@ -34,20 +39,33 @@ public struct FULayoutRow: Equatable {
         contentWidth + CGFloat(sizes.count - 1) * spacing
     }
     
+    var minRowSize: CGSize {
+        .init(width: minRowWidth, height: contentHeight)
+    }
+    
     var rowSize: CGSize {
         .init(width: rowWidth, height: contentHeight)
     }
     
-    public init(alignment: FUAlignment, spacing: CGFloat, firstSize: (key: Int, value: CGSize), maxWidth: CGFloat = .infinity) {
+    public init(
+        alignment: FUAlignment,
+        minSpacing: CGFloat,
+        firstSize: (key: Int, value: CGSize),
+        maxWidth: CGFloat = .infinity
+    ) {
         self.alignment = alignment
-        self.minSpacing = spacing
+        self.minSpacing = minSpacing
         self.sizes = [firstSize.key: firstSize.value]
         self.maxWidth = maxWidth
     }
     
-    public init(alignment: FUAlignment, spacing: CGFloat, maxWidth: CGFloat = .infinity) {
+    public init(
+        alignment: FUAlignment,
+        minSpacing: CGFloat,
+        maxWidth: CGFloat = .infinity
+    ) {
         self.alignment = alignment
-        self.minSpacing = spacing
+        self.minSpacing = minSpacing
         self.sizes = [:]
         self.maxWidth = maxWidth
     }
@@ -74,7 +92,7 @@ public struct FULayoutRow: Equatable {
         
         var result = [Int: CGPoint]()
 
-        for size in sizes.sorted(by: { $0.key < $1.key }) {
+        for size in sizes.sortedByKey() {
             var yOffset = rowYOffset
             
             switch alignment.vertical {
@@ -91,5 +109,23 @@ public struct FULayoutRow: Equatable {
         }
         
         return result
+    }
+    
+    public func justified(width: CGFloat) -> Self {
+        var row = self
+        row.justifiedWidth = width
+        return row
+    }
+}
+
+extension Array<FULayoutRow> {
+    /// Sets the justified width for all rows to equal the minimum width of the widest row if alignment on all rows is set to justified.
+    mutating func justifyIfNecessary() {
+        if
+            allSatisfy({ $0.alignment.horizontal == .justified }),
+            let maxRowWidth = map(\.minRowWidth).max()
+        {
+            self = map { $0.justified(width: maxRowWidth) }
+        }
     }
 }

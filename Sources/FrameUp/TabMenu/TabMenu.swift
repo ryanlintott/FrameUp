@@ -1,5 +1,5 @@
 //
-//  TabMenuView.swift
+//  TabMenu.swift
 //  FrameUp
 //
 //  Created by Ryan Lintott on 2020-12-31.
@@ -21,7 +21,7 @@ import SwiftUI
 ///        TabMenuItem(image: Image(systemName: "books.vertical"), name: "About", tab: 3)
 ///     ]
 ///
-///     TabMenuView(selection: $selection, items: items) { isSelected in
+///     TabMenu(selection: $selection, items: items) { isSelected in
 ///        Group {
 ///            if isSelected {
 ///                Color.accentColor
@@ -39,7 +39,7 @@ import SwiftUI
 ///         }
 ///     }
 ///
-public struct TabMenuView<Tab: Hashable, Content: View>: View {
+public struct TabMenu<Tab: Hashable, Content: View>: View {
     @Binding var selection: Tab
     let items: [TabMenuItem<Tab>]
     let isShowingName: Bool

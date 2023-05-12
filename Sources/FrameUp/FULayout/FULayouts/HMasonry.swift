@@ -65,11 +65,11 @@ public struct HMasonry: FULayout {
     
     public func contentOffsets(sizes: [Int: CGSize]) -> [Int: CGPoint] {
         var rows: [Row] = (0..<rows).map { _ in
-            Row(alignment: .init(horizontal: alignment, vertical: .top), spacing: verticalSpacing)
+            Row(alignment: .init(horizontal: alignment, vertical: .top), minSpacing: verticalSpacing)
         }
         
         for size in sizes.sortedByKey() {
-            // Get the shortest column
+            // Get the shortest row
             if let row = rows
                 .enumerated()
                 .min(by: { $0.1.rowSize.width < $1.1.rowSize.width }) {
@@ -79,6 +79,8 @@ public struct HMasonry: FULayout {
         
         var currentYOffset: CGFloat = .zero
         var result = [Int: CGPoint]()
+        
+        rows.justifyIfNecessary()
         
         for row in rows {
             row
@@ -90,6 +92,3 @@ public struct HMasonry: FULayout {
         return result
     }
 }
-
-@available(iOS 16, macOS 13, *)
-extension HMasonry: Layout { }

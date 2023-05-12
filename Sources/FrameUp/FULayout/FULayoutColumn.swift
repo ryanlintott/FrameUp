@@ -12,6 +12,7 @@ public struct FULayoutColumn: Equatable {
     public let alignment: FUAlignment
     private(set) var sizes: [Int: CGSize]
     private(set) var maxHeight: CGFloat
+    private(set) var justifiedHeight: CGFloat?
     
     var contentWidth: CGFloat {
         sizes.map(\.value.width).max() ?? .zero
@@ -22,8 +23,12 @@ public struct FULayoutColumn: Equatable {
     }
     
     var spacing: CGFloat {
-        guard alignment.vertical == .justified, sizes.count > 1 else { return minSpacing }
-        return (maxHeight - contentHeight) / CGFloat(sizes.count - 1)
+        guard
+            alignment.vertical == .justified,
+            sizes.count > 1,
+            let justifiedHeight
+        else { return minSpacing }
+        return (justifiedHeight - contentHeight) / CGFloat(sizes.count - 1)
     }
     
     var minColumnHeight: CGFloat {
@@ -34,20 +39,33 @@ public struct FULayoutColumn: Equatable {
         contentHeight + CGFloat(sizes.count - 1) * spacing
     }
     
+    var minColumnSize: CGSize {
+        .init(width: contentWidth, height: minColumnHeight)
+    }
+    
     var columnSize: CGSize {
         .init(width: contentWidth, height: columnHeight)
     }
     
-    public init(alignment: FUAlignment, spacing: CGFloat, firstSize: (key: Int, value: CGSize), maxHeight: CGFloat = .infinity) {
+    public init(
+        alignment: FUAlignment,
+        minSpacing: CGFloat,
+        firstSize: (key: Int, value: CGSize),
+        maxHeight: CGFloat = .infinity
+    ) {
         self.alignment = alignment
-        self.minSpacing = spacing
+        self.minSpacing = minSpacing
         self.sizes = [firstSize.key: firstSize.value]
         self.maxHeight = maxHeight
     }
     
-    public init(alignment: FUAlignment, spacing: CGFloat, maxHeight: CGFloat = .infinity) {
+    public init(
+        alignment: FUAlignment,
+        minSpacing: CGFloat,
+        maxHeight: CGFloat = .infinity
+    ) {
         self.alignment = alignment
-        self.minSpacing = spacing
+        self.minSpacing = minSpacing
         self.sizes = [:]
         self.maxHeight = maxHeight
     }
@@ -76,6 +94,7 @@ public struct FULayoutColumn: Equatable {
 
         for size in sizes.sorted(by: { $0.key < $1.key }) {
             var xOffset = columnXOffset
+            
             switch alignment.horizontal {
             case .leading, .justified:
                 break
@@ -90,5 +109,23 @@ public struct FULayoutColumn: Equatable {
         }
         
         return result
+    }
+    
+    public func justified(height: CGFloat) -> Self {
+        var column = self
+        column.justifiedHeight = height
+        return column
+    }
+}
+
+extension Array<FULayoutColumn> {
+    /// Sets the justified height for all columns to equal the minimum height of the tallest column if alignment on all columns is set to justified.
+    mutating func justifyIfNecessary() {
+        if
+            allSatisfy({ $0.alignment.vertical == .justified }),
+            let maxColumnHeight = map(\.minColumnHeight).max()
+        {
+            self = map { $0.justified(height: maxColumnHeight) }
+        }
     }
 }

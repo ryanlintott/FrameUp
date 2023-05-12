@@ -29,7 +29,7 @@ public struct ZStackFULayout: FULayout {
         maxWidth: CGFloat,
         maxHeight: CGFloat
     ) {
-        self.alignment = alignment ?? .center
+        self.alignment = alignment?.replacingVerticalJustification().replacingHorizontalJustification() ?? .center
         self.maxWidth = maxWidth
         self.maxHeight = maxHeight
     }
@@ -64,6 +64,3 @@ public struct ZStackFULayout: FULayout {
         return result
     }
 }
-
-@available(iOS 16, macOS 13, *)
-extension ZStackFULayout: Layout { }

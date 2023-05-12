@@ -31,20 +31,17 @@ public struct HStackFULayout: FULayout {
         maxHeight: CGFloat,
         maxItemWidth: CGFloat? = nil
     ) {
-        self.alignment = alignment
+        self.alignment = alignment.replacingJustification()
         self.spacing = spacing ?? 10
         self.maxHeight = maxHeight
         self.maxItemWidth = maxItemWidth
     }
     
     public func contentOffsets(sizes: [Int: CGSize]) -> [Int: CGPoint] {
-        var row = Row(alignment: .init(horizontal: .leading, vertical: alignment), spacing: spacing)
+        var row = Row(alignment: .init(horizontal: .leading, vertical: alignment), minSpacing: spacing)
         
         sizes.forEach { row.append($0) }
         
         return row.contentOffsets(rowYOffset: 0)
     }
 }
-
-@available(iOS 16, macOS 13, *)
-extension HStackFULayout: Layout { }

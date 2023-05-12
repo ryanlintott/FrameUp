@@ -9,12 +9,12 @@ import SwiftUI
 import WidgetKit
 
 public extension WidgetFamily {
-#if os(iOS)
+    #if os(iOS)
     /// Supported families for the current device.
     static var supportedFamiliesForCurrentDevice: [WidgetFamily] {
         WidgetSize.supportedSizesForCurrentDevice.compactMap { $0.widgetFamily }
     }
-#endif
+    #endif
 
     /// Equivalent widget size. Only returns nil for unknown values.
     var size: WidgetSize? {

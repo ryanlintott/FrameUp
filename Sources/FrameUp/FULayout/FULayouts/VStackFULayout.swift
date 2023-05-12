@@ -31,20 +31,17 @@ public struct VStackFULayout: FULayout {
         maxWidth: CGFloat,
         maxItemHeight: CGFloat? = nil
     ) {
-        self.alignment = alignment
+        self.alignment = alignment.replacingJustification()
         self.spacing = spacing ?? 10
         self.maxWidth = maxWidth
         self.maxItemHeight = maxItemHeight
     }
     
     public func contentOffsets(sizes: [Int: CGSize]) -> [Int: CGPoint] {
-        var column = Column(alignment: .init(horizontal: alignment, vertical: .top), spacing: spacing)
+        var column = Column(alignment: .init(horizontal: alignment, vertical: .top), minSpacing: spacing)
         
         sizes.forEach { column.append($0) }
         
         return column.contentOffsets(columnXOffset: 0)
     }
 }
-
-@available(iOS 16, macOS 13, *)
-extension VStackFULayout: Layout { }

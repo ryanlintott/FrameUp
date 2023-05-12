@@ -78,6 +78,14 @@ public enum FUAlignment: String, CaseIterable, Identifiable, Equatable, Hashable
     public var alignment: Alignment {
         .init(horizontal: horizontal.alignment, vertical: vertical.alignment)
     }
+    
+    public func replacingVerticalJustification(with alternateAlignment: FUVerticalAlignment = .top) -> Self {
+        .init(horizontal: self.horizontal, vertical: self.vertical.replacingJustification(with: alternateAlignment))
+    }
+    
+    public func replacingHorizontalJustification(with alternateAlignment: FUHorizontalAlignment = .leading) -> Self {
+        .init(horizontal: self.horizontal.replacingJustification(with: alternateAlignment), vertical: self.vertical)
+    }
 }
 
 public enum FUHorizontalAlignment: String, CaseIterable, Identifiable, Equatable, Hashable {
@@ -95,6 +103,15 @@ public enum FUHorizontalAlignment: String, CaseIterable, Identifiable, Equatable
         case .trailing: return .trailing
         }
     }
+    
+    public func replacingJustification(with alternateAlignment: Self = .leading) -> Self {
+        switch self {
+        case .justified:
+            return alternateAlignment
+        default:
+            return self
+        }
+    }
 }
 
 public enum FUVerticalAlignment: String, CaseIterable, Identifiable, Equatable, Hashable {
@@ -110,6 +127,15 @@ public enum FUVerticalAlignment: String, CaseIterable, Identifiable, Equatable, 
         case .top, .justified: return .top
         case .center: return .center
         case .bottom: return .bottom
+        }
+    }
+    
+    public func replacingJustification(with alternateAlignment: Self = .top) -> Self {
+        switch self {
+        case .justified:
+            return alternateAlignment
+        default:
+            return self
         }
     }
 }

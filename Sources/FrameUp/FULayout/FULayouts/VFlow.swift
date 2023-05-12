@@ -51,13 +51,13 @@ public struct VFlow: FULayout {
     ///   - horizontalSpacing: Minimum horizontal spacing between columns.
     ///   - verticalSpacing: Vertical spacing between views in a column
     public init(
-        alignment: FUAlignment? = nil,
+        alignment: FUAlignment = .topLeading,
         maxHeight: CGFloat,
         maxItemHeight: CGFloat? = nil,
         horizontalSpacing: CGFloat? = nil,
         verticalSpacing: CGFloat? = nil
     ) {
-        self.alignment = alignment ?? .topLeading
+        self.alignment = alignment.replacingHorizontalJustification()
         self.maxHeight = maxHeight
         self.maxItemHeight = min(maxHeight, maxItemHeight ?? .infinity)
         self.horizontalSpacing = horizontalSpacing ?? 10
@@ -65,18 +65,20 @@ public struct VFlow: FULayout {
     }
     
     public func contentOffsets(sizes: [Int: CGSize]) -> [Int: CGPoint] {
-        let columns: [Column] = sizes
+        var columns: [Column] = sizes
             .sortedByKey()
             .reduce(into: [Column]()) { partialResult, size in
                 guard partialResult.isEmpty ||
                    !partialResult[partialResult.endIndex - 1].append(size) else {
                     return
                 }
-                partialResult.append(Column(alignment: alignment, spacing: verticalSpacing, firstSize: size, maxHeight: maxHeight))
+                partialResult.append(Column(alignment: alignment, minSpacing: verticalSpacing, firstSize: size, maxHeight: maxHeight))
             }
         
         var currentXOffset: CGFloat = .zero
         var result = [Int: CGPoint]()
+        
+        columns.justifyIfNecessary()
         
         for column in columns {
             column
@@ -89,6 +91,3 @@ public struct VFlow: FULayout {
         return result
     }
 }
-
-@available(iOS 16, macOS 13, *)
-extension VFlow: Layout { }

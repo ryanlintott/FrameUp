@@ -14,10 +14,3 @@ internal extension Dictionary {
         updateValue(element.value, forKey: element.key)
     }
 }
-
-public extension Dictionary where Dictionary.Key: Comparable {
-    /// Creates an array of key value pairs sorted by key.
-    func sortedByKey() -> [(key: Key, value: Value)] {
-        sorted { $0.key < $1.key }
-    }
-}

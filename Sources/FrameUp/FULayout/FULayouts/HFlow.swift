@@ -45,7 +45,7 @@ public struct HFlow: FULayout {
     
     /// Creates a FrameUp layout that arranges views in a row, adding rows when needed.
     /// - Parameters:
-    ///   - alignment: Used to align views vertically in their rows and align rows horizontally relative to each other. Default is top leading.
+    ///   - alignment: Used to align views vertically in their rows and align rows horizontally relative to each other. Default is top leading. Vertical justification will act as top alignment.
     ///   - maxWidth: Maximum width for a row (can be obtained through a `WidthReader`).
     ///   - maxItemWidth: Maximum width for each child view default is the maximum row width.
     ///   - horizontalSpacing: Minimum horizontal spacing between views in a row.
@@ -57,7 +57,7 @@ public struct HFlow: FULayout {
         horizontalSpacing: CGFloat? = nil,
         verticalSpacing: CGFloat? = nil
     ) {
-        self.alignment = alignment
+        self.alignment = alignment.replacingVerticalJustification()
         self.maxWidth = maxWidth
         self.maxItemWidth = min(maxWidth, maxItemWidth ?? .infinity)
         self.horizontalSpacing = horizontalSpacing ?? 10
@@ -69,18 +69,20 @@ public struct HFlow: FULayout {
     }
     
     public func contentOffsets(sizes: [Int: CGSize]) -> [Int: CGPoint] {
-        let rows: [Row] = sizes
+        var rows: [Row] = sizes
             .sortedByKey()
             .reduce(into: [Row]()) { partialResult, size in
                 guard partialResult.isEmpty ||
                    !partialResult[partialResult.endIndex - 1].append(size) else {
                     return
                 }
-                partialResult.append(Row(alignment: alignment, spacing: horizontalSpacing, firstSize: size, maxWidth: maxWidth))
+                partialResult.append(Row(alignment: alignment, minSpacing: horizontalSpacing, firstSize: size, maxWidth: maxWidth))
             }
         
         var currentYOffset: CGFloat = .zero
         var result = [Int: CGPoint]()
+        
+        rows.justifyIfNecessary()
         
         for row in rows {
             row
@@ -93,6 +95,3 @@ public struct HFlow: FULayout {
         return result
     }
 }
-
-@available(iOS 16, macOS 13, *)
-extension HFlow: Layout { }

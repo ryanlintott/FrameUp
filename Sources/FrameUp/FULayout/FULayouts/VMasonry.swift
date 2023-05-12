@@ -65,7 +65,7 @@ public struct VMasonry: FULayout {
     
     public func contentOffsets(sizes: [Int: CGSize]) -> [Int: CGPoint] {
         var columns: [Column] = (0..<columns).map { _ in
-            Column(alignment: .init(horizontal: .leading, vertical: alignment), spacing: verticalSpacing)
+            Column(alignment: .init(horizontal: .leading, vertical: alignment), minSpacing: verticalSpacing)
         }
         
         for size in sizes.sortedByKey() {
@@ -80,6 +80,8 @@ public struct VMasonry: FULayout {
         var currentXOffset: CGFloat = .zero
         var result = [Int: CGPoint]()
         
+        columns.justifyIfNecessary()
+        
         for column in columns {
             column
                 .contentOffsets(columnXOffset: currentXOffset)
@@ -90,6 +92,3 @@ public struct VMasonry: FULayout {
         return result
     }
 }
-
-@available(iOS 16, macOS 13, *)
-extension VMasonry: Layout { }

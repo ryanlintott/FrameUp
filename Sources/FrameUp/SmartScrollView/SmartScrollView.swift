@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+#if os(iOS)
 /// Settings used in `SmartScrollView`
 public struct SmartScrollViewMeasurements: Equatable {
     /// State of scroll view dimensions
@@ -204,7 +205,7 @@ public struct SmartScrollView<Content: View>: View {
             }
         }
         #if os(iOS)
-        /// If the screen rotates or the app returns from the background, reset the state
+        /// If the screen rotates, reset the state
         .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
             if let deviceOrientation = UIDevice.current.orientation.interfaceOrientation, InfoDictionary.supportedInterfaceOrientations.contains(deviceOrientation) {
                 Task {
@@ -239,3 +240,4 @@ struct SmartScrollView_Previews: PreviewProvider {
         .background(Color.red)
     }
 }
+#endif
