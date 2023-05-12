@@ -84,18 +84,33 @@ public struct TabMenu<Tab: Hashable, Content: View>: View {
                                 }
                             }
                         )
-                        .onTapGesture(count: 2, perform: {
-                            if selection == item.tab {
-                                onDoubleTap?.action()
-                            }
-                        })
                         .onTapGesture {
-                            if selection == item.tab {
-                                onReselect?.action()
-                            } else {
+                            if selection != item.tab {
                                 selection = item.tab
                             }
                         }
+                        .overlay(
+                            Group {
+                                if selection == item.tab {
+                                    if let onDoubleTap {
+                                        Color.clear
+                                            .contentShape(Rectangle())
+                                            .onTapGesture(count: 2) {
+                                                onDoubleTap.action()
+                                            }
+                                            .onTapGesture {
+                                                onReselect?.action()
+                                            }
+                                    } else {
+                                        Color.clear
+                                            .contentShape(Rectangle())
+                                            .onTapGesture {
+                                                onReselect?.action()
+                                            }
+                                    }
+                                }
+                            }
+                        )
                         .accessibilityLabel(tabVoiceOverLabel(tabItem: item))
                         .accessibilityHint(tabVoiceOverHint(tabItem: item))
                         .accessibilityAddTraits(selection == item.tab ? .isSelected : [])
