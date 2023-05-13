@@ -78,16 +78,18 @@ public struct FULayoutColumn: Equatable {
         return true
     }
     
-    public func contentOffsets(columnXOffset: CGFloat) -> [Int: CGPoint] {
+    public func contentOffsets(columnXOffset: CGFloat, alignmentHeight: CGFloat? = nil) -> [Int: CGPoint] {
         var currentYOffset = 0.0
         
-        switch alignment.vertical {
-        case .top, .justified:
-            break
-        case .center:
-            currentYOffset -= columnSize.height / 2
-        case .bottom:
-            currentYOffset -= columnSize.height
+        if let alignmentHeight {
+            switch alignment.vertical {
+            case .top, .justified:
+                break
+            case .center:
+                currentYOffset += (alignmentHeight - columnHeight) / 2
+            case .bottom:
+                currentYOffset += alignmentHeight - columnHeight
+            }
         }
         
         var result = [Int: CGPoint]()
@@ -119,10 +121,15 @@ public struct FULayoutColumn: Equatable {
 }
 
 extension Array<FULayoutColumn> {
+    /// The largest min column height
+    var maxMinColumnHeight: CGFloat {
+        map(\.minColumnHeight).max() ?? 0
+    }
+    
     /// Sets the justified height for all columns.
     /// - Parameter height: Optional width to use for justification. If none provided, the largest minWidth of the provided rows will be used.
     mutating func justifyIfNecessary(height: CGFloat? = nil, skipLast: Bool = false) {
-        guard let height = height ?? map(\.minColumnHeight).max() else { return }
+        let height = height ?? maxMinColumnHeight
         
         let justified = map { column in
             guard column.alignment.vertical == .justified else { return column }

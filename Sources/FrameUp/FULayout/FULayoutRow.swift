@@ -78,16 +78,18 @@ public struct FULayoutRow: Equatable {
         return true
     }
     
-    public func contentOffsets(rowYOffset: CGFloat) -> [Int: CGPoint] {
+    public func contentOffsets(rowYOffset: CGFloat, alignmentWidth: CGFloat? = nil) -> [Int: CGPoint] {
         var currentXOffset = 0.0
         
-        switch alignment.horizontal {
-        case .leading, .justified:
-            break
-        case .center:
-            currentXOffset -= rowSize.width / 2
-        case .trailing:
-            currentXOffset -= rowSize.width
+        if let alignmentWidth {
+            switch alignment.horizontal {
+            case .leading, .justified:
+                break
+            case .center:
+                currentXOffset += (alignmentWidth - rowWidth) / 2
+            case .trailing:
+                currentXOffset += alignmentWidth - rowWidth
+            }
         }
         
         var result = [Int: CGPoint]()
@@ -119,10 +121,15 @@ public struct FULayoutRow: Equatable {
 }
 
 extension Array<FULayoutRow> {
+    /// The largest min row width.
+    var maxMinRowWidth: CGFloat {
+        map(\.minRowWidth).max() ?? 0
+    }
+    
     /// Sets the justified width for all rows except the last one.
     /// - Parameter width: Optional width to use for justification. If none provided, the largest minWidth of the provided rows will be used.
     mutating func justifyIfNecessary(width: CGFloat? = nil, skipLast: Bool = false) {
-        guard let width = width ?? map(\.minRowWidth).max() else { return }
+        let width = width ?? maxMinRowWidth
         
         let justified = map { row in
             guard row.alignment.horizontal == .justified else { return row }

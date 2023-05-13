@@ -81,10 +81,11 @@ public struct HMasonry: FULayout {
         var result = [Int: CGPoint]()
         
         rows.justifyIfNecessary()
+        let alignmentWidth = rows.maxMinRowWidth
         
         for row in rows {
             row
-                .contentOffsets(rowYOffset: currentYOffset)
+                .contentOffsets(rowYOffset: currentYOffset, alignmentWidth: alignmentWidth)
                 .forEach { result.update(with: $0) }
             currentYOffset += row.rowSize.height + verticalSpacing
         }

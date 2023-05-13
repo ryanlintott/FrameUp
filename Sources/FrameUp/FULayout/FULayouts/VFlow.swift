@@ -79,10 +79,11 @@ public struct VFlow: FULayout {
         var result = [Int: CGPoint]()
         
         columns.justifyIfNecessary(height: maxHeight, skipLast: true)
+        let alignmentHeight = columns.maxMinColumnHeight
         
         for column in columns {
             column
-                .contentOffsets(columnXOffset: currentXOffset)
+                .contentOffsets(columnXOffset: currentXOffset, alignmentHeight: alignmentHeight)
                 .forEach { result.update(with: $0) }
             
             currentXOffset += column.columnSize.width + horizontalSpacing
