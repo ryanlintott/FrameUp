@@ -23,9 +23,9 @@ public extension WidgetFamily {
         case .systemMedium: return .medium
         case .systemLarge: return .large
         case .systemExtraLarge: return .extraLarge
-        case .accessoryCircular: return nil
-        case .accessoryRectangular: return nil
-        case .accessoryInline: return nil
+        case .accessoryCircular: return .accessoryCircular
+        case .accessoryRectangular: return .accessoryRectangular
+        case .accessoryInline: return .accessoryInline
         @unknown default: return nil
         }
     }

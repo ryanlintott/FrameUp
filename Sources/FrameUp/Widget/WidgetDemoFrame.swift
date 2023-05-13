@@ -14,6 +14,7 @@ public struct WidgetDemoFrame<Content: View>: View {
     public typealias SizeAndCornerRadius = (CGSize, CGFloat) -> Content
     let cornerRadiusDefault: CGFloat = 20
     
+    let widgetSize: WidgetSize
     let designCanvasSize: CGSize
     let homeScreenSize: CGSize
     let cornerRadius: CGFloat
@@ -21,11 +22,13 @@ public struct WidgetDemoFrame<Content: View>: View {
     
     /// Creates a widget demo view with the design canvas frame size scaled to the Home Screen frame size and applies a corner radius.
     /// - Parameters:
+    ///   - widgetSize: Size of widget to display
     ///   - designCanvasSize: Size used by content (can be larger than homeScreenSize)
     ///   - homeScreenSize: Size presented on home screen (content will scale down to fit inside this)
     ///   - cornerRadius: Size of the corner radius relative to homeScreenSize
     ///   - content: view with parameters for the designCanvasSize and designCornerRadius
-    public init(designCanvasSize: CGSize, homeScreenSize: CGSize, cornerRadius: CGFloat? = nil, content: @escaping SizeAndCornerRadius) {
+    public init(widgetSize: WidgetSize, designCanvasSize: CGSize, homeScreenSize: CGSize, cornerRadius: CGFloat? = nil, content: @escaping SizeAndCornerRadius) {
+        self.widgetSize = widgetSize
         self.designCanvasSize = designCanvasSize
         self.homeScreenSize = homeScreenSize
         self.cornerRadius = cornerRadius ?? cornerRadiusDefault
@@ -37,7 +40,14 @@ public struct WidgetDemoFrame<Content: View>: View {
     }
     
     var widgetShape: RoundedRectangle {
-        RoundedRectangle(cornerRadius: designCornerRadius, style: .continuous)
+        switch widgetSize {
+        case .accessoryCircular:
+            return RoundedRectangle(cornerRadius: .infinity, style: .circular)
+        case .accessoryInline:
+            return RoundedRectangle(cornerRadius: 0, style: .continuous)
+        default:
+            return RoundedRectangle(cornerRadius: designCornerRadius, style: .continuous)
+        }
     }
     
     public var body: some View {
@@ -64,6 +74,7 @@ public extension WidgetDemoFrame {
     ///   - content: view with parameters for the designCanvasSize and designCornerRadius
     init(_ widgetSize: WidgetSize, cornerRadius: CGFloat? = nil, content: @escaping SizeAndCornerRadius) {
         self.init(
+            widgetSize: widgetSize,
             designCanvasSize: widgetSize.sizeForCurrentDevice(iPadTarget: .designCanvas),
             homeScreenSize: widgetSize.sizeForCurrentDevice(iPadTarget: .homeScreen),
             cornerRadius: cornerRadius,

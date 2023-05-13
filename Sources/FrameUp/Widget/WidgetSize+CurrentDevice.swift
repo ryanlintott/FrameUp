@@ -24,10 +24,14 @@ public extension WidgetSize {
             if #available(iOS 15.0, *) {
                 return [.small, .medium, .large, .extraLarge]
             } else {
-                fallthrough
+                return [.small, .medium, .large]
             }
         case .phone:
-            return [.small, .medium, .large]
+            if #available(iOS 16, *) {
+                return [.small, .medium, .large, .accessoryCircular, .accessoryRectangular, .accessoryInline]
+            } else {
+                return [.small, .medium, .large]
+            }
         default:
             return []
         }
