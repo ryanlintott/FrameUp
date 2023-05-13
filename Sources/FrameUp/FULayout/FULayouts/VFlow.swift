@@ -78,7 +78,7 @@ public struct VFlow: FULayout {
         var currentXOffset: CGFloat = .zero
         var result = [Int: CGPoint]()
         
-        columns.justifyIfNecessary()
+        columns.justifyIfNecessary(height: maxHeight, skipLast: true)
         
         for column in columns {
             column

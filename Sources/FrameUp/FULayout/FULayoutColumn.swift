@@ -119,13 +119,20 @@ public struct FULayoutColumn: Equatable {
 }
 
 extension Array<FULayoutColumn> {
-    /// Sets the justified height for all columns to equal the minimum height of the tallest column if alignment on all columns is set to justified.
-    mutating func justifyIfNecessary() {
-        if
-            allSatisfy({ $0.alignment.vertical == .justified }),
-            let maxColumnHeight = map(\.minColumnHeight).max()
-        {
-            self = map { $0.justified(height: maxColumnHeight) }
+    /// Sets the justified height for all columns.
+    /// - Parameter height: Optional width to use for justification. If none provided, the largest minWidth of the provided rows will be used.
+    mutating func justifyIfNecessary(height: CGFloat? = nil, skipLast: Bool = false) {
+        guard let height = height ?? map(\.minColumnHeight).max() else { return }
+        
+        let justified = map { column in
+            guard column.alignment.vertical == .justified else { return column }
+            return column.justified(height: height)
+        }
+        
+        if skipLast, let last {
+            self = justified.dropLast() + [last]
+        } else {
+            self = justified
         }
     }
 }

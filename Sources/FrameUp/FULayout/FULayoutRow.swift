@@ -119,13 +119,20 @@ public struct FULayoutRow: Equatable {
 }
 
 extension Array<FULayoutRow> {
-    /// Sets the justified width for all rows to equal the minimum width of the widest row if alignment on all rows is set to justified.
-    mutating func justifyIfNecessary() {
-        if
-            allSatisfy({ $0.alignment.horizontal == .justified }),
-            let maxRowWidth = map(\.minRowWidth).max()
-        {
-            self = map { $0.justified(width: maxRowWidth) }
+    /// Sets the justified width for all rows except the last one.
+    /// - Parameter width: Optional width to use for justification. If none provided, the largest minWidth of the provided rows will be used.
+    mutating func justifyIfNecessary(width: CGFloat? = nil, skipLast: Bool = false) {
+        guard let width = width ?? map(\.minRowWidth).max() else { return }
+        
+        let justified = map { row in
+            guard row.alignment.horizontal == .justified else { return row }
+            return row.justified(width: width)
+        }
+        
+        if skipLast, let last {
+            self = justified.dropLast() + [last]
+        } else {
+            self = justified
         }
     }
 }

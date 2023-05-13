@@ -82,7 +82,7 @@ public struct HFlow: FULayout {
         var currentYOffset: CGFloat = .zero
         var result = [Int: CGPoint]()
         
-        rows.justifyIfNecessary()
+        rows.justifyIfNecessary(width: maxWidth, skipLast: true)
         
         for row in rows {
             row
