@@ -7,7 +7,8 @@
 
 import SwiftUI
 
-/// A tab menu item that can be used in TabMenuView.
+#if os(iOS)
+/// A tab menu item that can be used in TabMenu.
 public struct TabMenuItem<Tab: Hashable>: Equatable {
     /// Icon silhouette for the tab menu item.
     public let icon: AnyView
@@ -42,3 +43,4 @@ public struct TabMenuItem<Tab: Hashable>: Equatable {
         lhs.tab == rhs.tab
     }
 }
+#endif

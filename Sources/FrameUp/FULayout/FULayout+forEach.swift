@@ -18,22 +18,18 @@ public extension FULayout {
     }
 }
 
-fileprivate struct FULayoutEach<Data: RandomAccessCollection, Content: View>: View where Data.Element: Identifiable, Data.Index == Int {
+fileprivate struct FULayoutEach<Data: RandomAccessCollection, Content: View, L: FULayout>: View where Data.Element: Identifiable, Data.Index == Int {
     let data: Array<(Data.Element, Int)>
-    let layout: AnyFULayout
+    let layout: L
     let content: (Data.Element) -> Content
     
     @State private var contentOffsets: [Int: CGPoint] = [:]
     @State private var frameSize: CGSize? = nil
     
-    init(_ data: Data, layout: AnyFULayout, content: @escaping (Data.Element) -> Content) {
+    init(_ data: Data, layout: L, content: @escaping (Data.Element) -> Content) {
         self.data = Array(zip(data, data.indices))
         self.layout = layout
         self.content = content
-    }
-    
-    init<L: FULayout>(_ data: Data, layout: L, content: @escaping (Data.Element) -> Content) {
-        self = .init(data, layout: AnyFULayout(layout), content: content)
     }
     
     var defaultOffset: CGPoint {
@@ -41,9 +37,9 @@ fileprivate struct FULayoutEach<Data: RandomAccessCollection, Content: View>: Vi
     }
     
     var body: some View {
-        AnyFULayoutRootView(layout, contentOffsets: $contentOffsets, frameSize: $frameSize) {
+        FULayoutRootView(layout, contentOffsets: $contentOffsets, frameSize: $frameSize) {
             ForEach(data, id: \.0.id) { (item, index) in
-                AnyFULayoutChildView(layout: layout, index: index, contentOffset: contentOffsets[index], defaultOffset: defaultOffset, content: content(item))
+                FULayoutChildView(layout: layout, index: index, contentOffset: contentOffsets[index], defaultOffset: defaultOffset, content: content(item))
             }
         }
     }

@@ -15,8 +15,7 @@ import SwiftUI
 public struct AnyFULayout: FULayout {
     /// The name of the wrapped layout (just used as a label)
     public let fuLayoutName: String
-    /// An id used to ensure every instance is unique. This is used to ensure layout views are recalculated.
-    public let id = UUID()
+    public let layoutHash: Int
     public let fixedSize: Axis.Set
     public let maxItemWidth: CGFloat?
     public let maxItemHeight: CGFloat?
@@ -31,6 +30,7 @@ public struct AnyFULayout: FULayout {
         maxItemWidth = layout.maxItemWidth
         maxItemHeight = layout.maxItemHeight
         contentOffsets = layout.contentOffsets
+        layoutHash = layout.hashValue
     }
     
     public func contentOffsets(sizes: [Int: CGSize]) -> [Int: CGPoint] {
@@ -39,9 +39,19 @@ public struct AnyFULayout: FULayout {
     
     public static func == (lhs: AnyFULayout, rhs: AnyFULayout) -> Bool {
         lhs.fuLayoutName == rhs.fuLayoutName
-        && lhs.id == rhs.id
+        && lhs.layoutHash == rhs.layoutHash
         && lhs.fixedSize == rhs.fixedSize
         && lhs.maxItemWidth == rhs.maxItemWidth
         && lhs.maxItemHeight == rhs.maxItemHeight
     }
+    
+    public func hash(into hasher: inout Hasher) {
+        /// Use the same hash as the inherited layout
+        hasher.combine(layoutHash)
+        /// Adding a string of this type name will differentiate AnyFULayout(layout) from layout
+        hasher.combine(String(describing: Self.self))
+    }
 }
+
+//@available(iOS 16, macOS 13, *)
+//extension AnyFULayout: Layout { }

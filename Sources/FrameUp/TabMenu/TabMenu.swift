@@ -1,5 +1,5 @@
 //
-//  TabMenuView.swift
+//  TabMenu.swift
 //  FrameUp
 //
 //  Created by Ryan Lintott on 2020-12-31.
@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+#if os(iOS)
 /// Customizable tab menu bar view designed to mimic the style of the default tab menu bar.
 ///
 /// Extra functions available for `onReselect` and `onDoubleTap`
@@ -20,7 +21,7 @@ import SwiftUI
 ///        TabMenuItem(image: Image(systemName: "books.vertical"), name: "About", tab: 3)
 ///     ]
 ///
-///     TabMenuView(selection: $selection, items: items) { isSelected in
+///     TabMenu(selection: $selection, items: items) { isSelected in
 ///        Group {
 ///            if isSelected {
 ///                Color.accentColor
@@ -38,7 +39,7 @@ import SwiftUI
 ///         }
 ///     }
 ///
-public struct TabMenuView<Tab: Hashable, Content: View>: View {
+public struct TabMenu<Tab: Hashable, Content: View>: View {
     @Binding var selection: Tab
     let items: [TabMenuItem<Tab>]
     let isShowingName: Bool
@@ -83,18 +84,33 @@ public struct TabMenuView<Tab: Hashable, Content: View>: View {
                                 }
                             }
                         )
-                        .onTapGesture(count: 2, perform: {
-                            if selection == item.tab {
-                                onDoubleTap?.action()
-                            }
-                        })
                         .onTapGesture {
-                            if selection == item.tab {
-                                onReselect?.action()
-                            } else {
+                            if selection != item.tab {
                                 selection = item.tab
                             }
                         }
+                        .overlay(
+                            Group {
+                                if selection == item.tab {
+                                    if let onDoubleTap {
+                                        Color.clear
+                                            .contentShape(Rectangle())
+                                            .onTapGesture(count: 2) {
+                                                onDoubleTap.action()
+                                            }
+                                            .onTapGesture {
+                                                onReselect?.action()
+                                            }
+                                    } else {
+                                        Color.clear
+                                            .contentShape(Rectangle())
+                                            .onTapGesture {
+                                                onReselect?.action()
+                                            }
+                                    }
+                                }
+                            }
+                        )
                         .accessibilityLabel(tabVoiceOverLabel(tabItem: item))
                         .accessibilityHint(tabVoiceOverHint(tabItem: item))
                         .accessibilityAddTraits(selection == item.tab ? .isSelected : [])
@@ -147,3 +163,4 @@ public struct TabMenuView<Tab: Hashable, Content: View>: View {
 //        return Text("\(tabName)\nTab\n\(tabString)")
 //    }
 }
+#endif

@@ -7,61 +7,103 @@
 
 import SwiftUI
 
-struct FULayoutColumn {
-    let spacing: CGFloat
-    let alignment: Alignment
+public struct FULayoutColumn: Equatable {
+    public let minSpacing: CGFloat
+    public let alignment: FUAlignment
     private(set) var sizes: [Int: CGSize]
-    private(set) var columnSize: CGSize
+    private(set) var maxHeight: CGFloat
+    private(set) var justifiedHeight: CGFloat?
     
-    init(alignment: Alignment, spacing: CGFloat, firstSize: (key: Int, value: CGSize)) {
-        self.alignment = alignment
-        self.spacing = spacing
-        self.sizes = [firstSize.key: firstSize.value]
-        self.columnSize = firstSize.value
+    var contentWidth: CGFloat {
+        sizes.map(\.value.width).max() ?? .zero
     }
     
-    init(alignment: Alignment, spacing: CGFloat, width: CGFloat) {
+    var contentHeight: CGFloat {
+        sizes.map(\.value.height).reduce(into: CGFloat.zero, +=)
+    }
+    
+    var spacing: CGFloat {
+        guard
+            alignment.vertical == .justified,
+            sizes.count > 1,
+            let justifiedHeight
+        else { return minSpacing }
+        return (justifiedHeight - contentHeight) / CGFloat(sizes.count - 1)
+    }
+    
+    var minColumnHeight: CGFloat {
+        contentHeight + CGFloat(sizes.count - 1) * minSpacing
+    }
+    
+    var columnHeight: CGFloat {
+        contentHeight + CGFloat(sizes.count - 1) * spacing
+    }
+    
+    var minColumnSize: CGSize {
+        .init(width: contentWidth, height: minColumnHeight)
+    }
+    
+    var columnSize: CGSize {
+        .init(width: contentWidth, height: columnHeight)
+    }
+    
+    public init(
+        alignment: FUAlignment,
+        minSpacing: CGFloat,
+        firstSize: (key: Int, value: CGSize),
+        maxHeight: CGFloat = .infinity
+    ) {
         self.alignment = alignment
-        self.spacing = spacing
+        self.minSpacing = minSpacing
+        self.sizes = [firstSize.key: firstSize.value]
+        self.maxHeight = maxHeight
+    }
+    
+    public init(
+        alignment: FUAlignment,
+        minSpacing: CGFloat,
+        maxHeight: CGFloat = .infinity
+    ) {
+        self.alignment = alignment
+        self.minSpacing = minSpacing
         self.sizes = [:]
-        self.columnSize = CGSize(width: width, height: .zero)
+        self.maxHeight = maxHeight
     }
     
     @discardableResult
-    mutating func append(_ element: (key: Int, value: CGSize), maxHeight: CGFloat = .infinity) -> Bool {
-        let newHeight = columnSize.height + element.value.height + spacing
+    mutating func append(_ element: (key: Int, value: CGSize)) -> Bool {
+        let newHeight = minColumnHeight + minSpacing + element.value.height
         guard newHeight <= maxHeight else { return false }
         sizes.update(with: element)
-        columnSize.height = newHeight
-        columnSize.width = max(columnSize.width, element.value.width)
         return true
     }
     
-    func contentOffsets(columnXOffset: CGFloat) -> [Int: CGPoint] {
+    public func contentOffsets(columnXOffset: CGFloat, alignmentHeight: CGFloat? = nil) -> [Int: CGPoint] {
         var currentYOffset = 0.0
         
-        switch alignment.vertical {
-        case .center:
-            currentYOffset -= columnSize.height / 2
-        case .bottom:
-            currentYOffset -= columnSize.height
-        default:
-            /// Custom alignments not supported
-            break
+        if let alignmentHeight {
+            switch alignment.vertical {
+            case .top, .justified:
+                break
+            case .center:
+                currentYOffset += (alignmentHeight - columnHeight) / 2
+            case .bottom:
+                currentYOffset += alignmentHeight - columnHeight
+            }
         }
         
         var result = [Int: CGPoint]()
 
         for size in sizes.sorted(by: { $0.key < $1.key }) {
             var xOffset = columnXOffset
+            
             switch alignment.horizontal {
+            case .leading, .justified:
+                break
             case .center:
                 xOffset += (columnSize.width - size.value.width) / 2
             case .trailing:
                 xOffset += columnSize.width - size.value.width
-            default:
-                /// Custom alignments not supported
-                break
             }
             let offset = CGPoint(x: xOffset, y: currentYOffset)
             result.updateValue(offset, forKey: size.key)
@@ -69,5 +111,35 @@ struct FULayoutColumn {
         }
         
         return result
+    }
+    
+    public func justified(height: CGFloat) -> Self {
+        var column = self
+        column.justifiedHeight = height
+        return column
+    }
+}
+
+extension Array<FULayoutColumn> {
+    /// The largest min column height
+    var maxMinColumnHeight: CGFloat {
+        map(\.minColumnHeight).max() ?? 0
+    }
+    
+    /// Sets the justified height for all columns.
+    /// - Parameter height: Optional width to use for justification. If none provided, the largest minWidth of the provided rows will be used.
+    mutating func justifyIfNecessary(height: CGFloat? = nil, skipLast: Bool = false) {
+        let height = height ?? maxMinColumnHeight
+        
+        let justified = map { column in
+            guard column.alignment.vertical == .justified else { return column }
+            return column.justified(height: height)
+        }
+        
+        if skipLast, let last {
+            self = justified.dropLast() + [last]
+        } else {
+            self = justified
+        }
     }
 }

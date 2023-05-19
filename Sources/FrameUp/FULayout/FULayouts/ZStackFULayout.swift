@@ -8,30 +8,30 @@
 import SwiftUI
 
 /// A FrameUp layout version of `ZStackLayout`. Useful when you want to toggle between different FrameUp layouts.
-///
-/// *Only topLeading, top, topTrailing, leading, center, trailing, bottomLeading, bottom, and bottomTrailing alignments are supported*
 public struct ZStackFULayout: FULayout {
-    public let alignment: Alignment
-    public let maxItemWidth: CGFloat?
-    public let maxItemHeight: CGFloat?
+    public let alignment: FUAlignment
+    public let maxWidth: CGFloat
+    public let maxHeight: CGFloat
     
-    public var itemAlignment: Alignment { alignment }
+    public var maxItemWidth: CGFloat? { maxWidth }
+    public var maxItemHeight: CGFloat? { maxHeight }
+    public var itemAlignment: FUAlignment { alignment }
     public let fixedSize: Axis.Set = []
     
     /// Creates a FrameUp layout version of `ZStackLayout`.
     /// - Parameters:
-    ///   - alignment: The guide for aligning the subviews in this stack. *Only topLeading, top, topTrailing, leading, center, trailing, bottomLeading, bottom, and bottomTrailing are supported*.
+    ///   - alignment: Alignment for elements.
     ///   - spacing: Minimum horizontal spacing between views. Default is 10
     ///   - maxHeight: Maximum height (can be obtained through a `HeightReader`).
     ///   - maxItemWidth: Maximum width for each child view. Default is infinity.
     public init(
-        alignment: Alignment? = nil,
+        alignment: FUAlignment? = nil,
         maxWidth: CGFloat,
         maxHeight: CGFloat
     ) {
-        self.alignment = alignment ?? .center
-        self.maxItemWidth = maxWidth
-        self.maxItemHeight = maxHeight
+        self.alignment = alignment?.replacingVerticalJustification().replacingHorizontalJustification() ?? .center
+        self.maxWidth = maxWidth
+        self.maxHeight = maxHeight
     }
     
     public func contentOffsets(sizes: [Int : CGSize]) -> [Int : CGPoint] {
@@ -40,27 +40,21 @@ public struct ZStackFULayout: FULayout {
         for size in sizes.sortedByKey() {
             let xOffset: CGFloat
             switch alignment.horizontal {
-            case .leading:
+            case .leading, .justified:
                 xOffset = .zero
             case .center:
                 xOffset = -size.value.width / 2
             case .trailing:
                 xOffset = -size.value.width
-            default:
-                /// Custom alignments not supported
-                xOffset = .zero
             }
             let yOffset: CGFloat
             switch alignment.vertical {
-            case .top:
+            case .top, .justified:
                 yOffset = .zero
             case .center:
                 yOffset = -size.value.height / 2
             case .bottom:
                 yOffset = -size.value.height
-            default:
-                /// Custom alignments not supported
-                yOffset = .zero
             }
             let offset = CGPoint(x: xOffset, y: yOffset)
             
@@ -68,13 +62,5 @@ public struct ZStackFULayout: FULayout {
         }
 
         return result
-    }
-}
-
-@available(iOS 16, *)
-extension ZStackFULayout {
-    /// SwiftUI layout using the same alignment value.
-    var layout: ZStackLayout {
-        ZStackLayout(alignment: alignment)
     }
 }

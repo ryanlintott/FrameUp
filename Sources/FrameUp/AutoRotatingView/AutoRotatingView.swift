@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+#if os(iOS)
 /// A view that rotates and resizes the content frame to match device orientation.
 public struct AutoRotatingView<Content: View>: View {
     /// The current orientation of the content relative to the device.
@@ -127,3 +128,4 @@ public struct AutoRotatingView<Content: View>: View {
         )
     }
 }
+#endif

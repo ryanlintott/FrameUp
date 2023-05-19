@@ -7,7 +7,9 @@
 
 import SwiftUI
 
+/// A shape that draws a rectangle matching the frame when the rotation angle is facing forward (angles betwen -90 and 90 degrees) and nothing when facing backwards (angles between 90 and 270 degrees).
 fileprivate struct BackfaceCull: Shape {
+    /// Degrees of rotation. Any additional 360 degree rotaitons will be removed before evaluating.
     var degrees: CGFloat
     
     var animatableData: CGFloat {

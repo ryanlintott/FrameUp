@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+#if os(iOS)
 /// Settings used in `SmartScrollView`
 public struct SmartScrollViewMeasurements: Equatable {
     /// State of scroll view dimensions
@@ -203,7 +204,8 @@ public struct SmartScrollView<Content: View>: View {
                 resetMeasurements()
             }
         }
-        /// If the screen rotates or the app returns from the background, reset the state
+        #if os(iOS)
+        /// If the screen rotates, reset the state
         .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
             if let deviceOrientation = UIDevice.current.orientation.interfaceOrientation, InfoDictionary.supportedInterfaceOrientations.contains(deviceOrientation) {
                 Task {
@@ -211,12 +213,13 @@ public struct SmartScrollView<Content: View>: View {
                 }
             }
         }
+        #endif
         /// Debugging overlay
 //        .overlay(
 //            VStack(alignment: .trailing) {
 //                Text("axes: \(axes.rawValue)")
 //                Text("active: \(scrollViewAxes.rawValue)")
-//                Text("contentSize: \(contentSize?.width ?? -1)  \(contentSize?.height ?? -1)")
+//                Text("size: \(state?.scrollView.width ?? -1) \(state?.scrollView.height ?? -1)")
 //            }
 //                .background(Color.gray.opacity(0.5))
 //                .allowsHitTesting(false)
@@ -228,12 +231,13 @@ public struct SmartScrollView<Content: View>: View {
 
 struct SmartScrollView_Previews: PreviewProvider {
     static var previews: some View {
-        SmartScrollView([.vertical], optionalScrolling: false, shrinkToFit: false) {
-            Text("Hello")
-//                .frame(height: 1000)
+        SmartScrollView([.vertical], optionalScrolling: true, shrinkToFit: true) {
+            Text("Hello World here is some text")
+                .frame(height: 1000)
                 .background(Color.blue)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .background(Color.red)
     }
 }
+#endif

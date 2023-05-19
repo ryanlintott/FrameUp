@@ -17,13 +17,9 @@ import SwiftUI
  Example:
  ```swift
  HeightReader { height in
-    HMasonry(columns: 3, maxHeight: height) {
+    HMasonry(rows: 3, maxHeight: height) {
         ForEach(["Hello", "World", "More Text"], id: \.self) { item in
             Text(item.value)
-                .padding(12)
-                .foregroundColor(.white)
-                .background(Color.blue)
-                .cornerRadius(12)
         }
     }
  }
@@ -32,7 +28,7 @@ import SwiftUI
 public struct HMasonry: FULayout {
     typealias Row = FULayoutRow
     
-    public let alignment: HorizontalAlignment
+    public let alignment: FUAlignment
     public let rows: Int
     public let rowHeight: CGFloat
     public let horizontalSpacing: CGFloat
@@ -50,13 +46,13 @@ public struct HMasonry: FULayout {
     ///   - horizontalSpacing: Minimum horizontal spacing between columns.
     ///   - verticalSpacing: Vertical spacing between views in a column
     public init(
-        alignment: HorizontalAlignment = .leading,
+        alignment: FUAlignment = .leading,
         rows: Int,
         maxHeight: CGFloat,
         horizontalSpacing: CGFloat? = nil,
         verticalSpacing: CGFloat? = nil
     ) {
-        self.alignment = alignment
+        self.alignment = alignment.replacingVerticalJustification()
         self.rows = max(1, rows)
         self.horizontalSpacing = horizontalSpacing ?? 10
         self.verticalSpacing = verticalSpacing ?? 10
@@ -65,11 +61,11 @@ public struct HMasonry: FULayout {
     
     public func contentOffsets(sizes: [Int: CGSize]) -> [Int: CGPoint] {
         var rows: [Row] = (0..<rows).map { _ in
-            Row(alignment: Alignment(horizontal: alignment, vertical: .top), spacing: verticalSpacing, height: rowHeight)
+            Row(alignment: alignment, minSpacing: verticalSpacing)
         }
         
         for size in sizes.sortedByKey() {
-            // Get the shortest column
+            // Get the shortest row
             if let row = rows
                 .enumerated()
                 .min(by: { $0.1.rowSize.width < $1.1.rowSize.width }) {
@@ -80,9 +76,12 @@ public struct HMasonry: FULayout {
         var currentYOffset: CGFloat = .zero
         var result = [Int: CGPoint]()
         
+        rows.justifyIfNecessary()
+        let alignmentWidth = rows.maxMinRowWidth
+        
         for row in rows {
             row
-                .contentOffsets(rowYOffset: currentYOffset)
+                .contentOffsets(rowYOffset: currentYOffset, alignmentWidth: alignmentWidth)
                 .forEach { result.update(with: $0) }
             currentYOffset += row.rowSize.height + verticalSpacing
         }

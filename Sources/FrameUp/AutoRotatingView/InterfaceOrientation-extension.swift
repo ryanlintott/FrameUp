@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+#if os(iOS)
 @available(iOS, deprecated: 15.0, message: "This extension is no longer necessary as it's built into the API")
 public enum InterfaceOrientation: CaseIterable {
     case portrait
@@ -70,3 +71,4 @@ internal extension InterfaceOrientation {
         }
     }
 }
+#endif

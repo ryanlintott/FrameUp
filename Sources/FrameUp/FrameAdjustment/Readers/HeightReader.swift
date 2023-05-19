@@ -20,16 +20,16 @@ struct HeightKey: PreferenceKey {
     }
 }
 
-/// Provides the available height while fitting to the width of the content.
+/// A view that takes the available height and provides this measurement to its content. Unlike 'GeometryReader' this view will not take up all the available width and will instead fit the width of the content.
 ///
-/// Useful inside horizontal scroll views where you want to get the height without specifying a frame width.
+/// Useful inside horizontal scroll views where you want to measure the height without specifying a frame width.
 public struct HeightReader<Content: View>: View {
     let alignment: VerticalAlignment
     @ViewBuilder let content: (CGFloat) -> Content
     
     @State private var height: CGFloat = 0
     
-    /// Creates a view that fills the available height while fitting to the width of the content
+    /// Creates a view takes the available height and provides this measurement to its content.
     /// - Parameters:
     ///   - alignment: Vertical alignment
     ///   - content: any `View`

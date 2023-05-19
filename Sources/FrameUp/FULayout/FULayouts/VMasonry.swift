@@ -16,23 +16,19 @@ import SwiftUI
  
  Example:
  ```swift
-    WidthReader { width in
-        VMasonry(columns: 3, maxWidth: width) {
-            ForEach(["Hello", "World", "More Text"], id: \.self) { item in
-                Text(item.value)
-                    .padding(12)
-                    .foregroundColor(.white)
-                    .background(Color.blue)
-                    .cornerRadius(12)
-            }
-        }
-    }
+ WidthReader { width in
+     VMasonry(columns: 3, maxWidth: width) {
+         ForEach(["Hello", "World", "More Text"], id: \.self) { item in
+             Text(item.value)
+         }
+     }
+ }
  ```
  */
 public struct VMasonry: FULayout {
     typealias Column = FULayoutColumn
     
-    public let alignment: VerticalAlignment
+    public let alignment: FUAlignment
     public let columns: Int
     public let columnWidth: CGFloat
     public let horizontalSpacing: CGFloat
@@ -50,13 +46,13 @@ public struct VMasonry: FULayout {
     ///   - horizontalSpacing: Minimum horizontal spacing between columns.
     ///   - verticalSpacing: Vertical spacing between views in a column
     public init(
-        alignment: VerticalAlignment = .top,
+        alignment: FUAlignment = .top,
         columns: Int,
         maxWidth: CGFloat,
         horizontalSpacing: CGFloat? = nil,
         verticalSpacing: CGFloat? = nil
     ) {
-        self.alignment = alignment
+        self.alignment = alignment.replacingHorizontalJustification()
         self.columns = max(1, columns)
         self.horizontalSpacing = horizontalSpacing ?? 10
         self.verticalSpacing = verticalSpacing ?? 10
@@ -65,7 +61,7 @@ public struct VMasonry: FULayout {
     
     public func contentOffsets(sizes: [Int: CGSize]) -> [Int: CGPoint] {
         var columns: [Column] = (0..<columns).map { _ in
-            Column(alignment: Alignment(horizontal: .leading, vertical: alignment), spacing: verticalSpacing, width: columnWidth)
+            Column(alignment: alignment, minSpacing: verticalSpacing)
         }
         
         for size in sizes.sortedByKey() {
@@ -80,9 +76,12 @@ public struct VMasonry: FULayout {
         var currentXOffset: CGFloat = .zero
         var result = [Int: CGPoint]()
         
+        columns.justifyIfNecessary()
+        let alignmentHeight = columns.maxMinColumnHeight
+        
         for column in columns {
             column
-                .contentOffsets(columnXOffset: currentXOffset)
+                .contentOffsets(columnXOffset: currentXOffset, alignmentHeight: alignmentHeight)
                 .forEach { result.update(with: $0) }
             currentXOffset += columnWidth + horizontalSpacing
         }

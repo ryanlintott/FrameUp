@@ -12,20 +12,16 @@ import SwiftUI
 
  Each column width will be determined by the widest element. The overall frame size will fit to the size of the laid out content.
 
- A maximum width must be provided but `WidthReader` can be used to get the value (especially helpful when inside a `ScrollView`).
+ A maximum height must be provided but `HeightReader` can be used to get the value (especially helpful when inside a `ScrollView`).
 
  A FrameUp layout is not a view but it works like a view by using `callAsFunction`. There is also an alternative view function `.forEach()` that works like `ForEach`
 
  Example:
  ```swift
- WidthReader { width in
-     VFlow(maxWidth: width) {
+ HeightReader { height in
+     VFlow(maxHeight: height) {
          ForEach(["Hello", "World", "More Text"], id: \.self) { item in
              Text(item.value)
-                 .padding(12)
-                 .foregroundColor(.white)
-                 .background(Color.blue)
-                 .cornerRadius(12)
          }
      }
  }
@@ -34,7 +30,7 @@ import SwiftUI
 public struct VFlow: FULayout {
     typealias Column = FULayoutColumn
     
-    public let alignment: Alignment
+    public let alignment: FUAlignment
     public let maxHeight: CGFloat
     public let maxItemHeight: CGFloat?
     public let horizontalSpacing: CGFloat
@@ -51,13 +47,13 @@ public struct VFlow: FULayout {
     ///   - horizontalSpacing: Minimum horizontal spacing between columns.
     ///   - verticalSpacing: Vertical spacing between views in a column
     public init(
-        alignment: Alignment? = nil,
+        alignment: FUAlignment = .topLeading,
         maxHeight: CGFloat,
         maxItemHeight: CGFloat? = nil,
         horizontalSpacing: CGFloat? = nil,
         verticalSpacing: CGFloat? = nil
     ) {
-        self.alignment = alignment ?? .topLeading
+        self.alignment = alignment.replacingHorizontalJustification()
         self.maxHeight = maxHeight
         self.maxItemHeight = min(maxHeight, maxItemHeight ?? .infinity)
         self.horizontalSpacing = horizontalSpacing ?? 10
@@ -65,22 +61,25 @@ public struct VFlow: FULayout {
     }
     
     public func contentOffsets(sizes: [Int: CGSize]) -> [Int: CGPoint] {
-        let columns: [Column] = sizes
+        var columns: [Column] = sizes
             .sortedByKey()
             .reduce(into: [Column]()) { partialResult, size in
                 guard partialResult.isEmpty ||
-                   !partialResult[partialResult.endIndex - 1].append(size, maxHeight: maxHeight) else {
+                   !partialResult[partialResult.endIndex - 1].append(size) else {
                     return
                 }
-                partialResult.append(Column(alignment: alignment, spacing: verticalSpacing, firstSize: size))
+                partialResult.append(Column(alignment: alignment, minSpacing: verticalSpacing, firstSize: size, maxHeight: maxHeight))
             }
         
         var currentXOffset: CGFloat = .zero
         var result = [Int: CGPoint]()
         
+        columns.justifyIfNecessary(height: maxHeight, skipLast: true)
+        let alignmentHeight = columns.maxMinColumnHeight
+        
         for column in columns {
             column
-                .contentOffsets(columnXOffset: currentXOffset)
+                .contentOffsets(columnXOffset: currentXOffset, alignmentHeight: alignmentHeight)
                 .forEach { result.update(with: $0) }
             
             currentXOffset += column.columnSize.width + horizontalSpacing
