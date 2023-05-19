@@ -14,10 +14,11 @@ A Swift Package with a collection of SwiftUI framing views and tools to help wit
 - ['Frame Adjustment'(#frameadjustment) tools like [`WidthReader`](#widthreader), [`HeightReader`](#heightreader), [`onSizeChange(perform:)`](#onsizechangeperform), [`.relativePadding`](#relativepaddingedges-lengthfactor), [`ScaledView`](#scaledview) and [`OverlappingImage`](#overlappingimage).
 - [`FULayout`](#fulayout) for building custom layouts (similar to SwiftUI `Layout`).
 - Included FULayouts: [`HFlow`](#hflow), [`VFlow`](#vflow), [`HMasonry`](#hmasonry), and [`VMasonry`](#vmasonry).
+- [`AnyFULayout`](#anyfulayout) to wrap multiple layouts and switch between with animation.
 - [`FUViewThatFits`](#fuviewthatfits) (similar to SwiftUI `ViewThatFits`)
 - [`FULayoutThatFits`](#fulayoutthatfits) to use an `FULayout` that fits with the same content.
-- Make your own [`CustomFULayout`](#make-your-own-fulayout).
-- [SwiftUI `Layout`](#swiftuilayout) versions of included `FULayout` views.
+- Make your own [`Custom FULayout`](#customfulayout).
+- SwiftUI [`Layout`](#layout) versions of `FULayout` views built using [`LayoutFromFULayout`](#layoutfromfulayout).
 - [`LayoutThatFits`](#layoutthatfits) to use a `Layout` that fits with the same content.
 - [`SmartScrollView`](#smartscrollview) with optional scrolling, a content-fitable frame, and live edge inset values.
 - [`TabMenuView`](#tabmenuview), a customizable iOS tab menu with `onReselect` and `onDoubleTap` functions.
@@ -25,12 +26,13 @@ A Swift Package with a collection of SwiftUI framing views and tools to help wit
 - [`WidgetSize`](#widgetsize) - Similar to WidgetFamily but returns widget frame sizes by device and doesn't require `WidgetKit`
 - [`WidgetDemoFrame`](#widgetdemoframe) creates accurately sized widget frames you can use in an iOS or macOS app.
 - [`WidgetRelativeShape`](#widgetrelativeshape) fixes a `ContainerRelativeShape` bug on iPad.
+- [`TwoSidedView`](#twosidedview) for making flippable views with a different view on the back side.
 
 # FrameUpExample
 Check out the [example app](https://github.com/ryanlintott/FrameUpExample) to see how you can use this package in your iOS app.
 
 # Installation
-1. In Xcode 13 `File -> Add Packages` or in Xcode 12 go to `File -> Swift Packages -> Add Package Dependency`
+1. In Xcode 13 and up use `File -> Add Packages` or in Xcode 12 go to `File -> Swift Packages -> Add Package Dependency`
 2. Paste in the repo's url: `https://github.com/ryanlintott/FrameUp` and select by version.
 
 # Usage
@@ -49,7 +51,8 @@ If you like this package, buy me a coffee to say thanks!
 
 - - -
 # Details
-## AutoRotatingView (iOS only)
+## AutoRotatingView
+*iOS only*
 A view that rotates any view to match the current device orientation if it's in an array of allowed orientations. This is most useful for allowing fullscreen image views to use landscape orientations while inside a portrait-only app. It can also be used to limit orientations such as landscape-only in an app that allows portrait. Rotations can be animated.
 
 ```swift
@@ -284,7 +287,7 @@ HeightReader { height in
  ```
 
 ### FULayout Stacks
-Alternative stack layouts that can be wrapped in `AnyFULayout` and then toggled between with animation. Usefull when you want to toggle between VStack and HStack based on available space.
+Alternative stack layouts that can be wrapped in `AnyFULayout` and then toggled between with animation. Useful when you want to toggle between VStack and HStack based on available space.
 
 #### HStackFULayout
 Similar to HStack but `Spacer()` cannot be used and content will always use a fixed size on the horizontal axis.
@@ -293,7 +296,7 @@ Similar to HStack but `Spacer()` cannot be used and content will always use a fi
 Similar to VStack but `Spacer()` cannot be used and content will always use a fixed size on the vertical axis.
 
 #### ZStackFULayout
-Similar to ZStack but content will always use a fixed size on both the vertical and horizonal axes.
+Similar to ZStack but content will always use a fixed size on both the vertical and horizontal axes.
 
 ### AnyFULayout
 A type-erased FrameUp layout can be used to wrap multiple layouts and switch between them with animation.
@@ -350,7 +353,7 @@ FULayoutThatFits(maxWidth: maxWidth, layouts: [HStackFULayout(maxHeight: 1000), 
 ```
 
 ### Custom FULayout
-The FrameUp layout protocol requires you to define which axes are fixed, the maximum item size, and a function that takes view sizes and ouputs view offsets.
+The FrameUp layout protocol requires you to define which axes are fixed, the maximum item size, and a function that takes view sizes and outputs view offsets.
 
 Below is an example layout that arranges views on left and right sides of a central line.
 
@@ -369,23 +372,9 @@ struct CustomFULayout: FULayout {
 }
 ```
 
-### LayoutFromFULayout
-A protocol that quickly lets you make a `Layout` from an `FULayout`
+## Layout
+*iOS 16+ or macOS 13+*
 
-```swift
-struct CustomLayout: LayoutFromFULayout {
-    /// Add parameters here to adjust layout
-    
-    /// Add this function that will create the associated FULayout
-    func fuLayout(maxSize: CGSize) -> CustomFULayout {
-        CustomFULayout(
-            /// Pass parameters through to FULayout using maxSize to help define the maximum item size.
-        )
-    }
-}
-```
-
-## Layouts (iOS 16 and macOS 13 and up)
 ### Included Layouts
 These SwiftUI `Layout` equivalents to the included `FULayout` views require iOS 16 or macOS 13 but you no longer need to supply a maxWidth or maxHeight.
 
@@ -414,7 +403,24 @@ LayoutThatFits(in: .horizontal, [HStackLayout(), VStackLayout()]) {
 }
 ```
 
-## SmartScrollView (iOS only)
+### LayoutFromFULayout
+A protocol that quickly lets you make a `Layout` from an `FULayout`
+
+```swift
+struct CustomLayout: LayoutFromFULayout {
+    /// Add parameters here to adjust layout
+    
+    /// Add this function that will create the associated FULayout
+    func fuLayout(maxSize: CGSize) -> CustomFULayout {
+        CustomFULayout(
+            /// Pass parameters through to FULayout using maxSize to help define the maximum item size.
+        )
+    }
+}
+```
+
+## SmartScrollView
+*iOS only*
 A ScrollView with extra features.
 - Optional Scrolling - When active, the view will only be scrollable if the content is too large to fit in the parent frame. Enabled by default.
 - Shrink to Fit - When active, the view will only take as much vertical and horizontal space as is required to fit the content. Enabled by default.
@@ -434,8 +440,9 @@ SmartScrollView(.vertical, showsIndicators: true, optionalScrolling: true, shrin
 - If the available space for this view grows for any reason other than screen rotation, this view will not grow to fill the space. If you know the value that causes this change, add an `.id(value)` modifier below this view to force the view to reinitialize. This will cause it to scroll to the top.
 - `FULayout` views like `HFlow`, `VMasonry`, etc will not work inside `SmartScrollView`
 
-## TabMenuView (iOS only)
-Customizable tab menu bar view designed to mimic the style of the default tab menu bar on iPhone. Images or views and name provied are used to mask another provided view which is often a color.
+## TabMenuView
+*iOS only*
+Customizable tab menu bar view designed to mimic the style of the default tab menu bar on iPhone. Images or views and name provided are used to mask another provided view which is often a color.
 
 Features:
 - Use any image or AnyView as a mask for the menu item.
@@ -473,10 +480,10 @@ TabMenuView(selection: $selection, items: items) { isSelected in
 ```
 
 ## TagView
-Similar to the `HFlow` but a much simpler imlementation not based on `FULayout`.
+Similar to the `HFlow` but a much simpler implementation not based on `FULayout`.
 
 ### TagView
-A view that creates views based on an array of elments from left to right, adding rows when needed. Each row height will be determined by the tallest element.
+A view that creates views based on an array of elements from left to right, adding rows when needed. Each row height will be determined by the tallest element.
 
 *Warning: Does not work in ScrollView.*
 
@@ -487,7 +494,7 @@ TagView(elements: ["One", "Two", "Three"]) { element in
 ```
 
 ### TagViewForScrollView
-A view that creates views based on an array of elments from left to right, adding rows when needed. Each row height will be determined by the tallest element.
+A view that creates views based on an array of elements from left to right, adding rows when needed. Each row height will be determined by the tallest element.
 
 A maximum width must be provided but `WidthReader` can be used to get the value.
 
