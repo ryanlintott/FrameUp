@@ -6,9 +6,9 @@
 
 import SwiftUI
 
-/// A view that creates views based on an array of elments from left to right, adding rows when needed.
+/// A view that creates views based on an array of elments from left to right, adding rows when needed. Each row height will be determined by the tallest element.
 ///
-/// Each row height will be determined by the tallest element. A maximum width must be provided but `WidthReader` can be used to get the value (especially helpful when  inside a `ScrollView`). Using variables inside the view body is not recommended by Apple. You can use `HFlow` for a more Apple-approved methodology and more advanced features.
+/// Each row height will be determined by the tallest element. A maximum width must be provided but `WidthReader` can be used to get the value (especially helpful when  inside a `ScrollView`).
 ///
 ///     WidthReader { width in
 ///         TagViewForScrollView(maxWidth: width, elements: ["One", "Two", "Three"]) { element in
@@ -33,6 +33,7 @@ public struct TagViewForScrollView<Element: Hashable, Content: View>: View {
     }
 
     public var body: some View {
+        /// Using variables inside the view body is not recommended by Apple but it works.
         var x = CGFloat.zero
         var y = CGFloat.zero
         var rowHeight = CGFloat.zero

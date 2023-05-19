@@ -10,7 +10,7 @@ import SwiftUI
 /// A template with similar elements to WidgetFamily that can be used without importing WidgetKit
 ///
 /// Used to specify widget sizes for preview purposes inside an app.
-public enum WidgetSize: String, Identifiable {
+public enum WidgetSize: String, Identifiable, CaseIterable {
     case small
     case medium
     case large
@@ -33,13 +33,6 @@ public enum WidgetTarget {
 
 public extension WidgetSize {
     typealias Size = (CGFloat, CGFloat)
-    /// Smallest widget size possibe for each WidgetFamily
-    static let minimumSizes: [WidgetSize: CGSize] = [
-            .small: CGSize(width: 141, height: 141),
-            .medium: CGSize(width: 292, height: 141),
-            .large: CGSize(width: 292, height: 311),
-            .extraLarge: CGSize(width: 540, height: 260)
-        ]
     
     /// Widget sizes for iPhone
     /// - Parameter screenSize: iPhone screen size ignoring orientation.
@@ -112,7 +105,28 @@ public extension WidgetSize {
     
     /// Smallest size for this widget size.
     var minimumSize: CGSize {
-        Self.minimumSizes[self] ?? .zero
+        switch self {
+        case .small: return CGSize(width: 141, height: 141)
+        case .medium: return CGSize(width: 292, height: 141)
+        case .large: return CGSize(width: 292, height: 311)
+        case .extraLarge: return CGSize(width: 540, height: 260)
+        case .accessoryCircular: return CGSize(width: 68, height: 68)
+        case .accessoryRectangular: return CGSize(width: 153, height: 68)
+        case .accessoryInline: return CGSize(width: 234, height: 26)
+        }
+    }
+    
+    /// Largest size for this widget size.
+    var maximumSize: CGSize {
+        switch self {
+        case .small: return CGSize(width: 188, height: 188)
+        case .medium: return CGSize(width: 412, height: 188)
+        case .large: return CGSize(width: 412, height: 412)
+        case .extraLarge: return CGSize(width: 860, height: 412)
+        case .accessoryCircular: return CGSize(width: 76, height: 76)
+        case .accessoryRectangular: return CGSize(width: 172, height: 76)
+        case .accessoryInline: return CGSize(width: 257, height: 26)
+        }
     }
     
     /// Size for this widget on an iPhone with the specified screen size.
@@ -128,6 +142,15 @@ public extension WidgetSize {
     /// - Returns: Size for this widget. Zero if widget size is not available.
     func sizeForiPad(screenSize: CGSize, target: WidgetTarget) -> CGSize {
         Self.sizesForiPad(screenSize: screenSize, target: target)[self] ?? .zero
+    }
+    
+    /// How much the widget is scaled down to fit on the Home Screen.
+    ///
+    /// Home Screen width divided by design canvas width
+    /// - Parameter screenSize: iPad screen size ignoring orientation.
+    /// - Returns: Widget scale factor between design canvas and Home Screen.
+    func scaleFactorForiPad(screenSize: CGSize) -> CGFloat {
+        sizeForiPad(screenSize: screenSize, target: .homeScreen).width / sizeForiPad(screenSize: screenSize, target: .designCanvas).width
     }
 }
 

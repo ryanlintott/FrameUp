@@ -58,15 +58,6 @@ public extension WidgetSize {
     
     /// How much the widget is scaled down to fit on the Home Screen.
     ///
-    /// Home Screen width divided by design canvas width
-    /// - Parameter screenSize: iPad screen size ignoring orientation.
-    /// - Returns: Widget scale factor between design canvas and Home Screen.
-    func scaleFactorForiPad(screenSize: CGSize) -> CGFloat {
-        sizeForiPad(screenSize: Self.currentScreenSize, target: .homeScreen).width / sizeForiPad(screenSize: Self.currentScreenSize, target: .designCanvas).width
-    }
-    
-    /// How much the widget is scaled down to fit on the Home Screen.
-    ///
     /// Home Screen width divided by design canvas width. iPhone value will always be 1.
     var scaleFactorForCurrentDevice: CGFloat {
         guard Self.currentDevice == .pad else {

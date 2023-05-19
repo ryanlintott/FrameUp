@@ -7,6 +7,18 @@
 
 import SwiftUI
 
+/**
+ A layout that arranges views into columns, adding views to the shortest column.
+ 
+ Example:
+ ```swift
+ VMasonry(columns: 3) {
+     ForEach(["Hello", "World", "More Text"], id: \.self) { item in
+         Text(item.value)
+     }
+ }
+ ```
+ */
 @available(iOS 16, macOS 13, *)
 public struct VMasonryLayout: LayoutFromFULayout {
     public let alignment: FUAlignment

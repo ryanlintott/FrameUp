@@ -18,9 +18,9 @@ public extension WidgetSize {
         case .extraLarge:
             if #available(iOS 15.0, *) {
                 #if os(iOS)
-                    return .systemExtraLarge
+                return .systemExtraLarge
                 #else
-                    return nil
+                return nil
                 #endif
             } else {
                 return nil
@@ -55,7 +55,6 @@ public extension WidgetSize {
             } else {
                 return nil
             }
-            
         }
     }
 }

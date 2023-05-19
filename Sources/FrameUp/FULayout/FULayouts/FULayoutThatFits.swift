@@ -7,6 +7,18 @@
 
 import SwiftUI
 
+/**
+ Creates an FULayout using the first layout that fits maxWidth, maxHeight, or both provided from the array of layout preferences.
+ 
+ Example:
+ ```swift
+ FULayoutThatFits(maxWidth: maxWidth, layouts: [HStackFULayout(maxHeight: 1000), VStackFULayout(maxWidth: maxWidth)]) {
+     Color.green.frame(width: 50, height: 50)
+     Color.yellow.frame(width: 50, height: 200)
+     Color.blue.frame(width: 50, height: 100)
+ }
+ ```
+ */
 public struct FULayoutThatFits: FULayout {
     public let layouts: [AnyFULayout]
     public var maxItemWidth: CGFloat?

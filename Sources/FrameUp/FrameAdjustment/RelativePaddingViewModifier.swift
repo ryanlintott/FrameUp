@@ -55,19 +55,19 @@ struct RelativePaddingViewModifier: ViewModifier {
 }
 
 public extension View {
-    /// A view that pads this view inside the specified edge insets with a percentage of the size.
+    /// Adds a padding amount to specified edges of this view relative to the size of the view.
     /// - Parameters:
     ///   - edges: The set of edges along which to pad this view. The default is .all.
     ///   - lengthFactor: The amount to inset this view as a fraction of the view size on the specified edges. Width is used for .leading/.trailing and height is used for .top/.bottom.
-    /// - Returns: A view that pads this view using the specified edge insets with specified percentage of padding.
+    /// - Returns: A view that's padded on specified edges by the relative amount specified.
     func relativePadding(_ edges: Edge.Set = .all, _ lengthFactor: CGFloat) -> some View {
         self.modifier(RelativePaddingViewModifier(edges: edges, lengthFactor: lengthFactor))
     }
     
-    /// A view that pads this view inside the specified edge insets with a percentage of the size.
+    /// Adds a padding amount to this view relative to the size of the view.
     /// - Parameters:
     ///   - lengthFactor: The amount to inset this view as a fraction of the view size on the specified edges. Width is used for .leading/.trailing and height is used for .top/.bottom.
-    /// - Returns: A view that pads this view on all edges with specified percentage of padding.
+    /// - Returns: A view that's padded on all edges by the relative amount specified.
     func relativePadding(_ lengthFactor: CGFloat) -> some View {
         self.modifier(RelativePaddingViewModifier(edges: .all, lengthFactor: lengthFactor))
     }

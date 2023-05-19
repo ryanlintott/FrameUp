@@ -17,13 +17,9 @@ import SwiftUI
  Example:
  ```swift
  HeightReader { height in
-    HMasonry(columns: 3, maxHeight: height) {
+    HMasonry(rows: 3, maxHeight: height) {
         ForEach(["Hello", "World", "More Text"], id: \.self) { item in
             Text(item.value)
-                .padding(12)
-                .foregroundColor(.white)
-                .background(Color.blue)
-                .cornerRadius(12)
         }
     }
  }

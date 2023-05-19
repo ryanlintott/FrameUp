@@ -12,20 +12,16 @@ import SwiftUI
  
  Each row height will be determined by the tallest element. The overall frame size will fit to the size of the laid out content.
  
- A maximum height must be provided but `HeightReader` can be used to get the value (especially helpful when inside a `ScrollView`).
+ A maximum width must be provided but `WidthReader` can be used to get the value (especially helpful when inside a `ScrollView`).
  
  A FrameUp layout is not a view but it works like a view by using `callAsFunction`. There is also an alternative view function `.forEach()` that works like `ForEach`
  
  Example:
  ```swift
- HeightReader { height in
-    HFlow(maxHeight: height) {
+ WidthReader { width in
+    HFlow(maxWidth: width) {
         ForEach(["Hello", "World", "More Text"], id: \.self) { item in
             Text(item.value)
-                .padding(12)
-                .foregroundColor(.white)
-                .background(Color.blue)
-                .cornerRadius(12)
         }
     }
  }

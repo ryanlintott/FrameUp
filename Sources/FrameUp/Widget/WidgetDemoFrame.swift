@@ -62,7 +62,25 @@ public struct WidgetDemoFrame<Content: View>: View {
         .clipShape(widgetShape)
         .contentShape(widgetShape)
         .frame(designCanvasSize)
-        .scaledToFrame(homeScreenSize, contentMode: .fit)    }
+        .scaledToFrame(homeScreenSize, contentMode: .fit)
+    }
+}
+
+public extension WidgetDemoFrame {
+    /// Creates a widget demo view for a specified widget size and corner radius for the current device.
+    /// - Parameters:
+    ///   - widgetSize: Size of widget (all sizes are supported regardless of iOS version or device type)
+    ///   - cornerRadius: Size of the corner radius relative to homeScreenSize
+    ///   - content: view with parameters for the designCanvasSize and designCornerRadius
+    static func minimumSize(_ widgetSize: WidgetSize, cornerRadius: CGFloat? = nil, content: @escaping SizeAndCornerRadius) -> Self {
+        self.init(
+            widgetSize: widgetSize,
+            designCanvasSize: widgetSize.minimumSize,
+            homeScreenSize: widgetSize.minimumSize,
+            cornerRadius: cornerRadius,
+            content: content
+        )
+    }
 }
 
 #if os(iOS)

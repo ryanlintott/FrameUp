@@ -7,6 +7,18 @@
 
 import SwiftUI
 
+/**
+ A layout that arranges views into rows, adding views to the shortest row.
+ 
+ Example:
+ ```swift
+ HMasonryLayout(rows: 3) {
+    ForEach(["Hello", "World", "More Text"], id: \.self) { item in
+        Text(item.value)
+    }
+ }
+ ```
+ */
 @available(iOS 16, macOS 13, *)
 public struct HMasonryLayout: LayoutFromFULayout {
     public let alignment: FUAlignment

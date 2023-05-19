@@ -7,7 +7,18 @@
 
 import SwiftUI
 
-/// Creates a layout using the first layout that fits in the axes provided from the array of layout preferences.
+/**
+ Creates a layout using the first layout that fits in the axes provided from the array of layout preferences.
+
+ Example:
+ ```swift
+ LayoutThatFits(in: .horizontal, [HStackLayout(), VStackLayout()]) {
+     Color.green.frame(width: 50, height: 50)
+     Color.yellow.frame(width: 50, height: 200)
+     Color.blue.frame(width: 50, height: 100)
+ }
+ ```
+ */
 @available(iOS 16, macOS 13, *)
 public struct LayoutThatFits: Layout {
     public let axes: Axis.Set
@@ -23,7 +34,7 @@ public struct LayoutThatFits: Layout {
     }
     
     public func layoutThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> AnyLayout? {
-        layoutPreferences.first(where: { layout in
+        layoutPreferences.first { layout in
             var cache = layout.makeCache(subviews: subviews)
             let size = layout.sizeThatFits(proposal: proposal, subviews: subviews, cache: &cache)
             
@@ -31,7 +42,7 @@ public struct LayoutThatFits: Layout {
             let heightFits = size.height <= (proposal.height ?? .infinity)
             
             return (widthFits || !axes.contains(.horizontal)) && (heightFits || !axes.contains(.vertical))
-        })
+        }
     }
     
     public func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {

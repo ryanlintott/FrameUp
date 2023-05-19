@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-/// A type of SwiftUI Layout that is based on an FULayout
+/// A type of SwiftUI `Layout` that is based on a FrameUp `FULayout`
 ///
 /// `sizeThatFits()` and `placeSubviews()` are generated automatically based on an associated `FULayout`
 @available(iOS 16, macOS 13, *)
@@ -24,6 +24,11 @@ public protocol LayoutFromFULayout: Layout {
 
 @available(iOS 16, macOS 13, *)
 extension LayoutFromFULayout {
+    /// Generates a dictionary of view sizes keyed by their index from the subview dimensions in the proposed view size.
+    /// - Parameters:
+    ///   - subviews: A collection of proxies for the subviews of a layout view.
+    ///   - proposal: A proposal for the size of a view.
+    /// - Returns: A dictionary of view sizes keyed by their index from the subview dimensions in the proposed view size.
     public func sizes(for subviews: Subviews, proposal: ProposedViewSize) -> [Int: CGSize] {
         subviews
             .map {

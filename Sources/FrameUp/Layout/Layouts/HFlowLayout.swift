@@ -7,6 +7,20 @@
 
 import SwiftUI
 
+/**
+ A layout that arranges views in a row, adding rows when needed.
+ 
+ Each row height will be determined by the tallest element. The overall frame size will fit to the size of the laid out content.
+ 
+ Example:
+ ```swift
+     HFlowLayout {
+        ForEach(["Hello", "World", "More Text"], id: \.self) { item in
+            Text(item.value)
+        }
+     }
+ ```
+ */
 @available(iOS 16, macOS 13, *)
 public struct HFlowLayout: LayoutFromFULayout {
     public let alignment: FUAlignment

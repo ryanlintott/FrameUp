@@ -7,6 +7,20 @@
 
 import SwiftUI
 
+/**
+ A layout that arranges views in a column, adding columns when needed.
+
+ Each column width will be determined by the widest element. The overall frame size will fit to the size of the laid out content.
+
+ Example:
+ ```swift
+ VFlowLayout {
+     ForEach(["Hello", "World", "More Text"], id: \.self) { item in
+         Text(item.value)
+     }
+ }
+ ```
+ */
 @available(iOS 16, macOS 13, *)
 public struct VFlowLayout: LayoutFromFULayout {
     public let alignment: FUAlignment
