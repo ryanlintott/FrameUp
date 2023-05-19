@@ -21,7 +21,7 @@ A Swift Package with a collection of SwiftUI framing views and tools to help wit
 - SwiftUI [`Layout`](#layout) versions of `FULayout` views built using [`LayoutFromFULayout`](#layoutfromfulayout).
 - [`LayoutThatFits`](#layoutthatfits) to use a `Layout` that fits with the same content.
 - [`SmartScrollView`](#smartscrollview) with optional scrolling, a content-fitable frame, and live edge inset values.
-- [`TabMenuView`](#tabmenuview), a customizable iOS tab menu with `onReselect` and `onDoubleTap` functions.
+- [`TabMenu`](#tabmenu), a customizable iOS tab menu with `onReselect` and `onDoubleTap` functions.
 - [`TagView`](#tagview) and [`TagViewForScrollView`](#tagviewforscrollview) for simple flow view based on an array of elements.
 - [`WidgetSize`](#widgetsize) - Similar to WidgetFamily but returns widget frame sizes by device and doesn't require `WidgetKit`
 - [`WidgetDemoFrame`](#widgetdemoframe) creates accurately sized widget frames you can use in an iOS or macOS app.
@@ -52,7 +52,8 @@ If you like this package, buy me a coffee to say thanks!
 - - -
 # Details
 ## AutoRotatingView
-*iOS only*
+*\*iOS only*
+
 A view that rotates any view to match the current device orientation if it's in an array of allowed orientations. This is most useful for allowing fullscreen image views to use landscape orientations while inside a portrait-only app. It can also be used to limit orientations such as landscape-only in an app that allows portrait. Rotations can be animated.
 
 ```swift
@@ -373,7 +374,7 @@ struct CustomFULayout: FULayout {
 ```
 
 ## Layout
-*iOS 16+ or macOS 13+*
+*\*iOS 16+ or macOS 13+*
 
 ### Included Layouts
 These SwiftUI `Layout` equivalents to the included `FULayout` views require iOS 16 or macOS 13 but you no longer need to supply a maxWidth or maxHeight.
@@ -420,7 +421,8 @@ struct CustomLayout: LayoutFromFULayout {
 ```
 
 ## SmartScrollView
-*iOS only*
+*\*iOS only*
+
 A ScrollView with extra features.
 - Optional Scrolling - When active, the view will only be scrollable if the content is too large to fit in the parent frame. Enabled by default.
 - Shrink to Fit - When active, the view will only take as much vertical and horizontal space as is required to fit the content. Enabled by default.
@@ -440,8 +442,9 @@ SmartScrollView(.vertical, showsIndicators: true, optionalScrolling: true, shrin
 - If the available space for this view grows for any reason other than screen rotation, this view will not grow to fill the space. If you know the value that causes this change, add an `.id(value)` modifier below this view to force the view to reinitialize. This will cause it to scroll to the top.
 - `FULayout` views like `HFlow`, `VMasonry`, etc will not work inside `SmartScrollView`
 
-## TabMenuView
-*iOS only*
+## TabMenu
+*\*iOS only*
+
 Customizable tab menu bar view designed to mimic the style of the default tab menu bar on iPhone. Images or views and name provided are used to mask another provided view which is often a color.
 
 Features:
@@ -540,7 +543,8 @@ WidgetDemoFrame(.medium, cornerRadius: 20) { size, cornerRadius in
 ```
 
 ### WidgetRelativeShape
-*iOS only*
+*\*iOS only*
+
 A re-scaled version of `ContainerRelativeShape` used to fix a bug with the corner radius on iPads running iOS 15 and earlier.
 
 Example:
