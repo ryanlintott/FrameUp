@@ -11,7 +11,7 @@
 A Swift Package with a collection of SwiftUI framing views and tools to help with layout.
 
 - [`AutoRotatingView`](#autorotatingview) to set allowable orientations for a view.
-- ['Frame Adjustment'(#frameadjustment) tools like [`WidthReader`](#widthreader), [`HeightReader`](#heightreader), [`onSizeChange(perform:)`](#onsizechangeperform), [`.relativePadding`](#relativepaddingedges-lengthfactor), [`ScaledView`](#scaledview) and [`OverlappingImage`](#overlappingimage).
+- [Frame Adjustment](#frame-adjustment) tools like [`WidthReader`](#widthreader), [`HeightReader`](#heightreader), [`onSizeChange(perform:)`](#onsizechangeperform), [`.relativePadding`](#relativepaddingedges-lengthfactor), [`ScaledView`](#scaledview) and [`OverlappingImage`](#overlappingimage).
 - [`FULayout`](#fulayout) for building custom layouts (similar to SwiftUI `Layout`).
 - Included FULayouts: [`HFlow`](#hflow), [`VFlow`](#vflow), [`HMasonry`](#hmasonry), and [`VMasonry`](#vmasonry).
 - [`AnyFULayout`](#anyfulayout) to wrap multiple layouts and switch between with animation.
@@ -539,7 +539,8 @@ WidgetDemoFrame(.medium, cornerRadius: 20) { size, cornerRadius in
 }
 ```
 
-### WidgetRelativeShape (iOS only)
+### WidgetRelativeShape
+*iOS only*
 A re-scaled version of `ContainerRelativeShape` used to fix a bug with the corner radius on iPads running iOS 15 and earlier.
 
 Example:
