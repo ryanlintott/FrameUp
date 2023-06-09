@@ -103,6 +103,24 @@ public extension WidgetSize {
         ]
     }
     
+    /// Widget sizes for Apple Watch.
+    /// - Parameter watchSize: Apple Watch size in mm.
+    /// - Returns: A dictionary of sizes based on widget size.
+    static func sizesForWatch(watchSize: CGFloat) -> [WidgetSize: CGSize] {
+        let size: (CGFloat, CGFloat)
+        
+        /// source: https://developer.apple.com/design/human-interface-guidelines/widgets#Specifications
+        switch watchSize {
+        case 49...: size = (382, 163)
+        case 45...: size = (368, 161)
+        case 44...: size = (346, 153)
+        case 41...: size = (330, 145)
+        default: size = (304, 139)
+        }
+        
+        return [.medium: .init(width: size.0, height: size.1)]
+    }
+    
     /// Smallest size for this widget size.
     var minimumSize: CGSize {
         switch self {
@@ -142,6 +160,13 @@ public extension WidgetSize {
     /// - Returns: Size for this widget. Zero if widget size is not available.
     func sizeForiPad(screenSize: CGSize, target: WidgetTarget) -> CGSize {
         Self.sizesForiPad(screenSize: screenSize, target: target)[self] ?? .zero
+    }
+    
+    /// Size for this widget on an iPhone with the specified screen size.
+    /// - Parameter screenSize: Apple Watch size in mm.
+    /// - Returns: Size for this widget. Zero if widget size is not available.
+    func sizeForWatch(watchSize: CGFloat) -> CGSize {
+        Self.sizesForWatch(watchSize: watchSize)[self] ?? .zero
     }
     
     /// How much the widget is scaled down to fit on the Home Screen.
