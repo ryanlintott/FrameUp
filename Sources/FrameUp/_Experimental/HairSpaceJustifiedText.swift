@@ -6,6 +6,7 @@
 //
 import SwiftUI
 
+#if os(iOS)
 extension StringProtocol {
     /// Returns the size of this string when printed in a single line in the specified font.
     /// - Parameter font: Font used when measuring size.
@@ -177,3 +178,4 @@ UIFont must be used as that is how the text width is calculated.
         .padding()
     }
 }
+#endif
