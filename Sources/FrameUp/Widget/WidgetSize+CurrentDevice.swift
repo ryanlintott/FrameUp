@@ -5,9 +5,10 @@
 //  Created by Ryan Lintott on 2022-01-25.
 //
 
-import SwiftUI
 
 #if os(iOS)
+import SwiftUI
+
 public extension WidgetSize {
     /// The screen size ignoring orientation.
     private static let currentScreenSize = UIScreen.main.fixedCoordinateSpace.bounds.size

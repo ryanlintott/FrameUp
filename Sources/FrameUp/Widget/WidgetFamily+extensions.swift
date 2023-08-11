@@ -5,6 +5,7 @@
 //  Created by Ryan Lintott on 2021-05-28.
 //
 
+#if canImport(WidgetKit)
 import SwiftUI
 import WidgetKit
 
@@ -30,3 +31,4 @@ public extension WidgetFamily {
         }
     }
 }
+#endif

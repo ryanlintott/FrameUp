@@ -5,6 +5,7 @@
 //  Created by Ryan Lintott on 2021-09-17.
 //
 
+#if canImport(WidgetKit)
 import Foundation
 import WidgetKit
 
@@ -58,3 +59,4 @@ public extension WidgetSize {
         }
     }
 }
+#endif
