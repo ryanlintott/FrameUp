@@ -8,11 +8,36 @@
 import SwiftUI
 
 public struct FULayoutRow: Equatable {
-    public let minSpacing: CGFloat
     public let alignment: FUAlignment
+    public let minSpacing: CGFloat
     private(set) var sizes: [Int: CGSize]
     private(set) var maxWidth: CGFloat
     private(set) var justifiedWidth: CGFloat? = nil
+    
+    public init(
+        alignment: FUAlignment,
+        minSpacing: CGFloat,
+        maxWidth: CGFloat = .infinity
+    ) {
+        self.alignment = alignment
+        self.minSpacing = minSpacing
+        self.sizes = [:]
+        self.maxWidth = maxWidth
+    }
+}
+
+public extension FULayoutRow {
+    init(
+        alignment: FUAlignment,
+        minSpacing: CGFloat,
+        firstSize: (key: Int, value: CGSize),
+        maxWidth: CGFloat = .infinity
+    ) {
+        self.alignment = alignment
+        self.minSpacing = minSpacing
+        self.sizes = [firstSize.key: firstSize.value]
+        self.maxWidth = maxWidth
+    }
     
     var contentHeight: CGFloat {
         sizes.map(\.value.height).max() ?? .zero
@@ -47,29 +72,6 @@ public struct FULayoutRow: Equatable {
         .init(width: rowWidth, height: contentHeight)
     }
     
-    public init(
-        alignment: FUAlignment,
-        minSpacing: CGFloat,
-        firstSize: (key: Int, value: CGSize),
-        maxWidth: CGFloat = .infinity
-    ) {
-        self.alignment = alignment
-        self.minSpacing = minSpacing
-        self.sizes = [firstSize.key: firstSize.value]
-        self.maxWidth = maxWidth
-    }
-    
-    public init(
-        alignment: FUAlignment,
-        minSpacing: CGFloat,
-        maxWidth: CGFloat = .infinity
-    ) {
-        self.alignment = alignment
-        self.minSpacing = minSpacing
-        self.sizes = [:]
-        self.maxWidth = maxWidth
-    }
-    
     @discardableResult
     mutating func append(_ element: (key: Int, value: CGSize)) -> Bool {
         let newWidth = minRowWidth + minSpacing + element.value.width
@@ -78,7 +80,7 @@ public struct FULayoutRow: Equatable {
         return true
     }
     
-    public func contentOffsets(rowYOffset: CGFloat, alignmentWidth: CGFloat? = nil) -> [Int: CGPoint] {
+    func contentOffsets(rowYOffset: CGFloat, alignmentWidth: CGFloat? = nil) -> [Int: CGPoint] {
         var currentXOffset = 0.0
         
         if let alignmentWidth {
@@ -113,14 +115,14 @@ public struct FULayoutRow: Equatable {
         return result
     }
     
-    public func justified(width: CGFloat) -> Self {
+    func justified(width: CGFloat) -> Self {
         var row = self
         row.justifiedWidth = width
         return row
     }
 }
 
-extension Array<FULayoutRow> {
+public extension Array<FULayoutRow> {
     /// The largest min row width.
     var maxMinRowWidth: CGFloat {
         map(\.minRowWidth).max() ?? 0

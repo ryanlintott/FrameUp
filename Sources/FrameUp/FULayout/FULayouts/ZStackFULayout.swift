@@ -21,7 +21,6 @@ public struct ZStackFULayout: FULayout {
     /// Creates a FrameUp layout version of `ZStackLayout`.
     /// - Parameters:
     ///   - alignment: Alignment for elements.
-    ///   - spacing: Minimum horizontal spacing between views. Default is 10
     ///   - maxHeight: Maximum height (can be obtained through a `HeightReader`).
     ///   - maxItemWidth: Maximum width for each child view. Default is infinity.
     public init(

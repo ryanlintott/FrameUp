@@ -8,11 +8,36 @@
 import SwiftUI
 
 public struct FULayoutColumn: Equatable {
-    public let minSpacing: CGFloat
     public let alignment: FUAlignment
+    public let minSpacing: CGFloat
     private(set) var sizes: [Int: CGSize]
     private(set) var maxHeight: CGFloat
     private(set) var justifiedHeight: CGFloat?
+    
+    public init(
+        alignment: FUAlignment,
+        minSpacing: CGFloat,
+        maxHeight: CGFloat = .infinity
+    ) {
+        self.alignment = alignment
+        self.minSpacing = minSpacing
+        self.sizes = [:]
+        self.maxHeight = maxHeight
+    }
+}
+
+public extension FULayoutColumn {
+    init(
+        alignment: FUAlignment,
+        minSpacing: CGFloat,
+        firstSize: (key: Int, value: CGSize),
+        maxHeight: CGFloat = .infinity
+    ) {
+        self.alignment = alignment
+        self.minSpacing = minSpacing
+        self.sizes = [firstSize.key: firstSize.value]
+        self.maxHeight = maxHeight
+    }
     
     var contentWidth: CGFloat {
         sizes.map(\.value.width).max() ?? .zero
@@ -47,29 +72,6 @@ public struct FULayoutColumn: Equatable {
         .init(width: contentWidth, height: columnHeight)
     }
     
-    public init(
-        alignment: FUAlignment,
-        minSpacing: CGFloat,
-        firstSize: (key: Int, value: CGSize),
-        maxHeight: CGFloat = .infinity
-    ) {
-        self.alignment = alignment
-        self.minSpacing = minSpacing
-        self.sizes = [firstSize.key: firstSize.value]
-        self.maxHeight = maxHeight
-    }
-    
-    public init(
-        alignment: FUAlignment,
-        minSpacing: CGFloat,
-        maxHeight: CGFloat = .infinity
-    ) {
-        self.alignment = alignment
-        self.minSpacing = minSpacing
-        self.sizes = [:]
-        self.maxHeight = maxHeight
-    }
-    
     @discardableResult
     mutating func append(_ element: (key: Int, value: CGSize)) -> Bool {
         let newHeight = minColumnHeight + minSpacing + element.value.height
@@ -78,7 +80,7 @@ public struct FULayoutColumn: Equatable {
         return true
     }
     
-    public func contentOffsets(columnXOffset: CGFloat, alignmentHeight: CGFloat? = nil) -> [Int: CGPoint] {
+    func contentOffsets(columnXOffset: CGFloat, alignmentHeight: CGFloat? = nil) -> [Int: CGPoint] {
         var currentYOffset = 0.0
         
         if let alignmentHeight {
@@ -113,14 +115,14 @@ public struct FULayoutColumn: Equatable {
         return result
     }
     
-    public func justified(height: CGFloat) -> Self {
+    func justified(height: CGFloat) -> Self {
         var column = self
         column.justifiedHeight = height
         return column
     }
 }
 
-extension Array<FULayoutColumn> {
+public extension Array<FULayoutColumn> {
     /// The largest min column height
     var maxMinColumnHeight: CGFloat {
         map(\.minColumnHeight).max() ?? 0
