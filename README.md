@@ -5,6 +5,7 @@
 ![License - MIT](https://img.shields.io/github/license/ryanlintott/FrameUp)
 ![Version](https://img.shields.io/github/v/tag/ryanlintott/FrameUp?label=version)
 ![GitHub last commit](https://img.shields.io/github/last-commit/ryanlintott/FrameUp)
+[![Mastodon](https://img.shields.io/badge/mastodon-@ryanlintott-5c4ee4.svg?style=flat)](http://mastodon.social/@ryanlintott)
 [![Twitter](https://img.shields.io/badge/twitter-@ryanlintott-blue.svg?style=flat)](http://twitter.com/ryanlintott)
 
 # Overview
@@ -32,7 +33,7 @@ A Swift Package with a collection of SwiftUI framing views and tools to help wit
 Check out the [example app](https://github.com/ryanlintott/FrameUpExample) to see how you can use this package in your iOS app.
 
 # Installation
-1. In Xcode 13 and up use `File -> Add Packages` or in Xcode 12 go to `File -> Swift Packages -> Add Package Dependency`
+1. In Xcode go to `File -> Add Packages`
 2. Paste in the repo's url: `https://github.com/ryanlintott/FrameUp` and select by version.
 
 # Usage
