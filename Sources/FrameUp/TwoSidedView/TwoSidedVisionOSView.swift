@@ -8,18 +8,16 @@
 #if os(visionOS)
 import SwiftUI
 
-struct TwoSidedVisionOSView<Front: View, Back: View>: View {
+struct TwoSidedVisionOSViewModifier<Back: View>: ViewModifier {
     let angle: Angle
     let axis: RotationAxis3D
     let anchor: UnitPoint3D
-    let front: () -> Front
-    let back: () -> Back
+    let back: Back
     
-    init(angle: Angle, axis: RotationAxis3D, anchor: UnitPoint3D = .center, front: @escaping () -> Front, back: @escaping () -> Back) {
+    init(angle: Angle, axis: RotationAxis3D, anchor: UnitPoint3D = .center, back: Back) {
         self.angle = angle
         self.axis = axis
         self.anchor = anchor
-        self.front = front
         self.back = back
     }
     
@@ -36,12 +34,12 @@ struct TwoSidedVisionOSView<Front: View, Back: View>: View {
         }
     }
     
-    var body: some View {
-        front()
+    func body(content: Content) -> some View {
+        content
             .accessibilityElement(children: isFaceUp ? .contain : .ignore)
             .accessibilityHidden(isFaceUp)
             .background {
-                back()
+                back
                     .accessibilityElement(children: isFaceUp ? .ignore : .contain)
                     .accessibilityHidden(!isFaceUp)
                     .offset(z: -thickness / 2)
@@ -52,6 +50,26 @@ struct TwoSidedVisionOSView<Front: View, Back: View>: View {
     }
 }
 
+extension View {
+    /// Rotates this view’s rendered output in three dimensions around the given axis of rotation with a closure containing a different view on the back.
+    /// - Parameters:
+    ///   - angle: The angle at which to rotate the view.
+    ///   - axis: The x, y and z elements that specify the axis of rotation.
+    ///   - anchor: The location with a default of center that defines a point in 3D space about which the rotation is anchored.
+    ///   - anchorZ: The location with a default of 0 that defines a point in 3D space about which the rotation is anchored.
+    ///   - perspective: The relative vanishing point with a default of 1 for this rotation.
+    ///   - back: View to show on the back.
+    /// - Returns: A rotated view with another view showing on the back.
+    public func rotation3DEffect<Back: View>(
+        _ angle: Angle,
+        axis: RotationAxis3D,
+        anchor: UnitPoint3D = .center,
+        back: () -> Back
+    ) -> some View {
+        modifier(TwoSidedVisionOSViewModifier(angle: angle, axis: axis, anchor: anchor, back: back()))
+    }
+}
+
 struct TwoSidedVisionOSView_Previews: PreviewProvider {
     struct PreviewData: View {
         @State private var angle: Angle = .degrees(0)
@@ -59,13 +77,10 @@ struct TwoSidedVisionOSView_Previews: PreviewProvider {
         
         var body: some View {
             VStack {
-                TwoSidedVisionOSView(
-                    angle: angle,
-                    axis: axis == .horizontal ? .y : .x) {
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(.blue)
-                            .overlay(Text("Up"))
-                    } back: {
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(.blue)
+                    .overlay(Text("Up"))
+                    .rotation3DEffect(angle, axis: axis == .horizontal ? .y : .x) {
                         RoundedRectangle(cornerRadius: 20)
                             .fill(.red)
                             .overlay(Text("Down"))
