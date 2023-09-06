@@ -87,14 +87,19 @@ public extension WidgetDemoFrame {
 public extension WidgetDemoFrame {
     /// Creates a widget demo view for a specified widget size and corner radius for the current device.
     /// - Parameters:
-    ///   - widgetSize: Size of widget (all sizes are supported regardless of iOS version or device type)
+    ///   - widgetSize: Size of widget (all sizes are supported regardless of iOS version)
     ///   - cornerRadius: Size of the corner radius relative to homeScreenSize
     ///   - content: view with parameters for the designCanvasSize and designCornerRadius
-    init(_ widgetSize: WidgetSize, cornerRadius: CGFloat? = nil, content: @escaping SizeAndCornerRadius) {
+    init?(_ widgetSize: WidgetSize, cornerRadius: CGFloat? = nil, content: @escaping SizeAndCornerRadius) {
+        guard
+            let designCanvasSize = widgetSize.sizeForCurrentDevice(iPadTarget: .designCanvas),
+            let homeScreenSize = widgetSize.sizeForCurrentDevice(iPadTarget: .homeScreen)
+        else { return nil }
+        
         self.init(
             widgetSize: widgetSize,
-            designCanvasSize: widgetSize.sizeForCurrentDevice(iPadTarget: .designCanvas),
-            homeScreenSize: widgetSize.sizeForCurrentDevice(iPadTarget: .homeScreen),
+            designCanvasSize: designCanvasSize,
+            homeScreenSize: homeScreenSize,
             cornerRadius: cornerRadius,
             content: content
         )

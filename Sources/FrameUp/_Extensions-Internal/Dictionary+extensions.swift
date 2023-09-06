@@ -1,6 +1,6 @@
 //
-//  File.swift
-//  
+//  Dictionary+extensions.swift
+//  FrameUp
 //
 //  Created by Ryan Lintott on 2022-09-09.
 //

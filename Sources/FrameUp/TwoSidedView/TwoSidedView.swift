@@ -1,32 +1,13 @@
 //
 //  TwoSidedView.swift
-//  FrameUpExample
+//  FrameUp
 //
 //  Created by Ryan Lintott on 2022-07-11.
 //
 
 import SwiftUI
 
-/// A shape that draws a rectangle matching the frame when the rotation angle is facing forward (angles between -90 and 90 degrees) and nothing when facing backwards (angles between 90 and 270 degrees).
-fileprivate struct BackfaceCull: Shape {
-    /// Degrees of rotation. Any additional 360 degree rotaitons will be removed before evaluating.
-    var degrees: CGFloat
-    
-    var animatableData: CGFloat {
-        get { degrees }
-        set { degrees = newValue }
-    }
-    
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        switch abs(degrees).truncatingRemainder(dividingBy: 360) {
-        case 90...270: break
-        default: path.addRect(rect)
-        }
-        return path
-    }
-}
-
+@available(visionOS, deprecated, renamed: "TwoSidedVisionOSViewModifier")
 struct TwoSidedViewModifier<Back: View>: ViewModifier {
     let angle: Angle
     let axis: (x: CGFloat, y: CGFloat, z: CGFloat)
@@ -89,6 +70,7 @@ extension View {
     ///   - perspective: The relative vanishing point with a default of 1 for this rotation.
     ///   - back: View to show on the back.
     /// - Returns: A rotated view with another view showing on the back.
+    @available(visionOS, deprecated, message: "Use rotation3DEffect without perspective")
     public func rotation3DEffect<Back: View>(
         _ angle: Angle,
         axis: (x: CGFloat, y: CGFloat, z: CGFloat),
@@ -101,6 +83,7 @@ extension View {
     }
 }
 
+@available(visionOS, deprecated, message: "Use rotation3DEffect without perspective")
 struct TwoSidedView_Previews: PreviewProvider {
     struct PreviewData: View {
         @State private var angle: Angle = .zero

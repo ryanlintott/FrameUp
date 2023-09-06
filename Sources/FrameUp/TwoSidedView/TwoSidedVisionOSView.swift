@@ -1,6 +1,6 @@
 //
 //  TwoSidedVisionOSView.swift
-//
+//  FrameUp
 //
 //  Created by Ryan Lintott on 2023-08-11.
 //
@@ -12,19 +12,15 @@ struct TwoSidedVisionOSViewModifier<Back: View>: ViewModifier {
     let angle: Angle
     let axis: RotationAxis3D
     let anchor: UnitPoint3D
+    let thickness: CGFloat
     let back: Back
     
-    init(angle: Angle, axis: RotationAxis3D, anchor: UnitPoint3D = .center, back: Back) {
+    init(angle: Angle, axis: RotationAxis3D, anchor: UnitPoint3D = .center, thickness: CGFloat? = nil, back: Back) {
         self.angle = angle
         self.axis = axis
         self.anchor = anchor
+        self.thickness = thickness ?? 2
         self.back = back
-    }
-    
-    var backAngle: Angle { angle + .degrees(180) }
-    
-    var thickness: Double {
-        2
     }
     
     var isFaceUp: Bool {
@@ -42,10 +38,10 @@ struct TwoSidedVisionOSViewModifier<Back: View>: ViewModifier {
                 back
                     .accessibilityElement(children: isFaceUp ? .ignore : .contain)
                     .accessibilityHidden(!isFaceUp)
-                    .offset(z: -thickness / 2)
-                    .rotation3DEffect(.degrees(180), axis: axis, anchor: .init(x: anchor.x, y: anchor.y, z: anchor.z - thickness))
+                    .offset(z: -thickness)
+                    .rotation3DEffect(.degrees(180), axis: axis, anchor: .center)
             }
-            .offset(z: -thickness / 2)
+            .offset(z: thickness / 2)
             .rotation3DEffect(angle, axis: axis, anchor: anchor)
     }
 }
@@ -64,9 +60,10 @@ extension View {
         _ angle: Angle,
         axis: RotationAxis3D,
         anchor: UnitPoint3D = .center,
+        thickness: CGFloat? = nil,
         back: () -> Back
     ) -> some View {
-        modifier(TwoSidedVisionOSViewModifier(angle: angle, axis: axis, anchor: anchor, back: back()))
+        modifier(TwoSidedVisionOSViewModifier(angle: angle, axis: axis, anchor: anchor, thickness: thickness, back: back()))
     }
 }
 
@@ -80,12 +77,17 @@ struct TwoSidedVisionOSView_Previews: PreviewProvider {
                 RoundedRectangle(cornerRadius: 20)
                     .fill(.blue)
                     .overlay(Text("Up"))
-                    .rotation3DEffect(angle, axis: axis == .horizontal ? .y : .x) {
+                    .rotation3DEffect(
+                        angle,
+                        axis: axis == .horizontal ? .y : .x,
+                        thickness: 2
+                    ) {
                         RoundedRectangle(cornerRadius: 20)
                             .fill(.red)
                             .overlay(Text("Down"))
                     }
                     .padding()
+                    
                 
                 Picker("Axis", selection: $axis) {
                     ForEach(Axis.allCases, id: \.self) { axis in

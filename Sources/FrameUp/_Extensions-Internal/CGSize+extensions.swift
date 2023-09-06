@@ -43,4 +43,22 @@ internal extension CGSize {
     var maxDimension: CGFloat {
         proportionableSize.maxDimension
     }
+    
+    func scaledToFit(_ frame: CGSize) -> CGSize {
+        if self == .zero { return .zero }
+        switch aspectRatio - frame.aspectRatio {
+        case 0: return frame
+        case ..<0: return .init(width: frame.height * aspectRatio, height: frame.height)
+        default: return .init(width: frame.width, height: frame.height / aspectRatio)
+        }
+    }
+    
+    func scaledToFill(_ frame: CGSize) -> CGSize {
+        if self == .zero { return .zero }
+        switch aspectRatio - frame.aspectRatio {
+        case 0: return frame
+        case ..<0: return .init(width: frame.width, height: frame.height / aspectRatio)
+        default: return .init(width: frame.height * aspectRatio, height: frame.height)
+        }
+    }
 }
