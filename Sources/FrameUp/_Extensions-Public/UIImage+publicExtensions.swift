@@ -11,6 +11,7 @@ import SwiftUI
 public extension UIImage {
     func scale(_ scale: CGFloat) -> UIImage? {
         let newSize = CGSize(width: size.width * scale, height: size.height * scale)
+        /// Change this to UIGraphicsImageRenderer(size: newSize)
         UIGraphicsBeginImageContextWithOptions(newSize, false, self.scale)
         draw(in: .init(origin: .zero, size: newSize), blendMode: .normal, alpha: 1)
         let newImage = UIGraphicsGetImageFromCurrentImageContext()
