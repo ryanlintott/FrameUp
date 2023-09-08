@@ -1,40 +1,27 @@
 //
-//  TwoSidedView.swift
+//  TwoSidedVisionOSView.swift
 //  FrameUp
 //
-//  Created by Ryan Lintott on 2022-07-11.
+//  Created by Ryan Lintott on 2023-08-11.
 //
 
+#if os(visionOS)
 import SwiftUI
 
-@available(visionOS, deprecated, renamed: "TwoSidedVisionOSViewModifier")
-struct TwoSidedViewModifier<Back: View>: ViewModifier {
+struct TwoSidedVisionOSViewModifier<Back: View>: ViewModifier {
     let angle: Angle
-    let axis: (x: CGFloat, y: CGFloat, z: CGFloat)
-    let anchor: UnitPoint
-    let anchorZ: CGFloat
-    let perspective: CGFloat
+    let axis: RotationAxis3D
+    let anchor: UnitPoint3D
+    let thickness: CGFloat
     let back: Back
     
-    init(_ angle: Angle, axis: (x: CGFloat, y: CGFloat, z: CGFloat), anchor: UnitPoint, anchorZ: CGFloat, perspective: CGFloat, back: Back) {
+    init(angle: Angle, axis: RotationAxis3D, anchor: UnitPoint3D = .center, thickness: CGFloat? = nil, back: Back) {
         self.angle = angle
         self.axis = axis
         self.anchor = anchor
-        self.anchorZ = anchorZ
-        self.perspective = perspective
+        self.thickness = thickness ?? 2
         self.back = back
     }
-    
-    init(_ angle: Angle, axis: (x: CGFloat, y: CGFloat, z: CGFloat), anchor: UnitPoint, anchorZ: CGFloat, perspective: CGFloat, back: () -> Back) {
-        self.angle = angle
-        self.axis = axis
-        self.anchor = anchor
-        self.anchorZ = anchorZ
-        self.perspective = perspective
-        self.back = back()
-    }
-    
-    var backAngle: Angle { angle + .degrees(180) }
     
     var isFaceUp: Bool {
         switch abs(angle.degrees).truncatingRemainder(dividingBy: 360) {
@@ -44,19 +31,18 @@ struct TwoSidedViewModifier<Back: View>: ViewModifier {
     }
     
     func body(content: Content) -> some View {
-        ZStack {
-            back
-                .clipShape(BackfaceCull(degrees: backAngle.degrees))
-                .rotation3DEffect(backAngle, axis: axis, anchor: anchor, anchorZ: anchorZ, perspective: perspective)
-                .accessibilityElement(children: isFaceUp ? .ignore : .contain)
-                .accessibilityHidden(!isFaceUp)
-            
-            content
-                .clipShape(BackfaceCull(degrees: angle.degrees))
-                .rotation3DEffect(angle, axis: axis, anchor: anchor, anchorZ: anchorZ, perspective: perspective)
-                .accessibilityElement(children: isFaceUp ? .contain : .ignore)
-                .accessibilityHidden(isFaceUp)
-        }
+        content
+            .accessibilityElement(children: isFaceUp ? .contain : .ignore)
+            .accessibilityHidden(isFaceUp)
+            .background {
+                back
+                    .accessibilityElement(children: isFaceUp ? .ignore : .contain)
+                    .accessibilityHidden(!isFaceUp)
+                    .offset(z: -thickness)
+                    .rotation3DEffect(.degrees(180), axis: axis, anchor: .center)
+            }
+            .offset(z: thickness / 2)
+            .rotation3DEffect(angle, axis: axis, anchor: anchor)
     }
 }
 
@@ -70,23 +56,20 @@ extension View {
     ///   - perspective: The relative vanishing point with a default of 1 for this rotation.
     ///   - back: View to show on the back.
     /// - Returns: A rotated view with another view showing on the back.
-    @available(visionOS, deprecated, message: "Use rotation3DEffect without perspective")
     public func rotation3DEffect<Back: View>(
         _ angle: Angle,
-        axis: (x: CGFloat, y: CGFloat, z: CGFloat),
-        anchor: UnitPoint = .center,
-        anchorZ: CGFloat = .zero,
-        perspective: CGFloat = 1,
-        back: @escaping () -> Back
+        axis: RotationAxis3D,
+        anchor: UnitPoint3D = .center,
+        thickness: CGFloat? = nil,
+        back: () -> Back
     ) -> some View {
-        modifier(TwoSidedViewModifier(angle, axis: axis, anchor: anchor, anchorZ: anchorZ, perspective: perspective, back: back))
+        modifier(TwoSidedVisionOSViewModifier(angle: angle, axis: axis, anchor: anchor, thickness: thickness, back: back()))
     }
 }
 
-@available(visionOS, deprecated, message: "Use rotation3DEffect without perspective")
-struct TwoSidedView_Previews: PreviewProvider {
+struct TwoSidedVisionOSView_Previews: PreviewProvider {
     struct PreviewData: View {
-        @State private var angle: Angle = .zero
+        @State private var angle: Angle = .degrees(0)
         @State private var axis: Axis = .horizontal
         
         var body: some View {
@@ -94,12 +77,17 @@ struct TwoSidedView_Previews: PreviewProvider {
                 RoundedRectangle(cornerRadius: 20)
                     .fill(.blue)
                     .overlay(Text("Up"))
-                    .rotation3DEffect(angle, axis: axis == .horizontal ? (0,1,0) : (1,0,0), perspective: 0.5) {
+                    .rotation3DEffect(
+                        angle,
+                        axis: axis == .horizontal ? .y : .x,
+                        thickness: 2
+                    ) {
                         RoundedRectangle(cornerRadius: 20)
                             .fill(.red)
                             .overlay(Text("Down"))
                     }
                     .padding()
+                    
                 
                 Picker("Axis", selection: $axis) {
                     ForEach(Axis.allCases, id: \.self) { axis in
@@ -128,3 +116,4 @@ struct TwoSidedView_Previews: PreviewProvider {
         PreviewData()
     }
 }
+#endif

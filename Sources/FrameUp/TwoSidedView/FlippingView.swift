@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+@available(visionOS, deprecated, message: "No replacement at this time")
 public struct FlippingView<Front: View, Back: View>: View {
     let axis: Axis
     @Binding var flips: Int
@@ -154,6 +155,7 @@ public struct FlippingView<Front: View, Back: View>: View {
     }
 }
 
+@available(visionOS, deprecated, message: "No replacement at this time")
 struct FlippingView_Previews: PreviewProvider {
     struct PreviewData: View {
         @State private var flips: Int = 0

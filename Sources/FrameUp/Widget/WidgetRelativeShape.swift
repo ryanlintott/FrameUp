@@ -5,10 +5,10 @@
 //  Created by Ryan Lintott on 2021-11-24.
 //
 
-import WidgetKit
-import SwiftUI
-
 #if os(iOS)
+import SwiftUI
+import WidgetKit
+
 @available(iOS, unavailable)
 @available(iOSApplicationExtension 14.0, *)
 /// A scalable version of ContainerRelativeShape.

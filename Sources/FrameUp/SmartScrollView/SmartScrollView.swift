@@ -183,6 +183,13 @@ public struct SmartScrollView<Content: View>: View {
                     .fixedSize(horizontal: axes.contains(.horizontal), vertical: axes.contains(.vertical))
 //                    .opacity(state == nil ? 0 : 1)
             }
+            .ifAvailable {
+                if #available(iOS 17, *) {
+                    $0.scrollBounceBehavior(optionalScrolling ? .basedOnSize : .always)
+                } else {
+                    $0
+                }
+            }
         }
         /// A frame that's able to shrink the scroll view is applied only when the state is known.
         .frame(maxWidth: state?.scrollView.width, maxHeight: state?.scrollView.height)
