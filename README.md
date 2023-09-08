@@ -28,6 +28,7 @@ A Swift Package with a collection of SwiftUI framing views and tools to help wit
 - [`WidgetDemoFrame`](#widgetdemoframe) creates accurately sized widget frames you can use in an iOS or macOS app.
 - [`WidgetRelativeShape`](#widgetrelativeshape) fixes a `ContainerRelativeShape` bug on iPad.
 - [`TwoSidedView`](#twosidedview) for making flippable views with a different view on the back side.
+- [`AccessoryInlineImage`](#accessoryinlineimage) to use any image inside an `accessoryInline` widget
 
 # FrameUpExample
 Check out the [example app](https://github.com/ryanlintott/FrameUpExample) to see how you can use this package in your iOS app.
@@ -600,3 +601,17 @@ extension CGSize: Proportionable { }
 
 ### frame(size:,alignment:)
 Alternative to the `frame(width:,height:,alignment:)` View modifier that takes a `CGSize` parameter instead.
+
+## AccessoryInlineImage
+An image that will be scaled and have the rendering mode adjusted to work inside an `accessoryInline` widget. The image will scale to fit the frame and have the template rendering mode applied.
+
+Use inside a Label's icon property.
+
+```swift
+Label {
+    Text("Label Text")
+} icon: {
+    AccessoryInlineImage("myImage")
+}
+```
+
