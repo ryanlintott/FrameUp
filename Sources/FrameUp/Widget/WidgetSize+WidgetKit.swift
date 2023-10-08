@@ -10,12 +10,27 @@ import Foundation
 import WidgetKit
 
 public extension WidgetSize {
-    /// Equivalent widget family. Optional as extraLarge will return nil unless running iOS 15.0 or later.
+    /// Equivalent widget family. Optional as extraLarge will return nil unless running iOS 15.0 or later, or running on watchOS.
     var widgetFamily: WidgetFamily? {
         switch self {
-        case .small: return .systemSmall
-        case .medium: return .systemMedium
-        case .large: return .systemLarge
+        case .small:
+            #if os(iOS)
+            return .systemSmall
+            #else
+            return nil
+            #endif
+        case .medium:
+            #if os(iOS)
+            return .systemMedium
+            #else
+            return nil
+            #endif
+        case .large:
+            #if os(iOS)
+            return .systemLarge
+            #else
+            return nil
+            #endif
         case .extraLarge:
             if #available(iOS 15.0, *) {
                 #if os(iOS)

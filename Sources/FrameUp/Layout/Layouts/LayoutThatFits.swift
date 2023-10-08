@@ -19,7 +19,7 @@ import SwiftUI
  }
  ```
  */
-@available(iOS 16, macOS 13, *)
+@available(iOS 16, macOS 13, watchOS 9, *)
 public struct LayoutThatFits: Layout {
     public let axes: Axis.Set
     public let layoutPreferences: [AnyLayout]

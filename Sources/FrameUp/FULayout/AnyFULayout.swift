@@ -53,5 +53,5 @@ public struct AnyFULayout: FULayout {
     }
 }
 
-//@available(iOS 16, macOS 13, *)
+//@available(iOS 16, macOS 13, watchOS 9, *)
 //extension AnyFULayout: Layout { }
