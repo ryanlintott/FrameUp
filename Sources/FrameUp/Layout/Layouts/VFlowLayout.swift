@@ -21,7 +21,7 @@ import SwiftUI
  }
  ```
  */
-@available(iOS 16, macOS 13, watchOS 9, *)
+@available(iOS 16, macOS 13, *)
 public struct VFlowLayout: LayoutFromFULayout {
     public let alignment: FUAlignment
     public let horizontalSpacing: CGFloat?

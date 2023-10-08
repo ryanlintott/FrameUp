@@ -9,7 +9,6 @@
 import SwiftUI
 import WidgetKit
 
-@available(watchOS 9, *)
 public extension WidgetFamily {
     #if os(iOS)
     /// Supported families for the current device.
