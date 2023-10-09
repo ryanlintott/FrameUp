@@ -105,7 +105,9 @@ public struct FlippingView<Front: View, Back: View>: View {
                             }
                         }
                     }
-                        .gesture(dragToFlip ? drag : nil)
+                    #if !os(tvOS)
+                    .gesture(dragToFlip ? drag : nil)
+                    #endif
                 )
                 .onChange(of: isDragging) { isDragging in
                     if !isDragging { onDragEnded() }
@@ -132,6 +134,7 @@ public struct FlippingView<Front: View, Back: View>: View {
         }
     }
     
+    #if !os(tvOS)
     var drag: some Gesture {
         DragGesture()
             .updating($isDragging) { value, gestureState, transaction in
@@ -148,6 +151,7 @@ public struct FlippingView<Front: View, Back: View>: View {
                 }
             }
     }
+    #endif
     
     func onDragEnded() {
         flips += min(max(-1, Int((predictedDragOffset / flipDistance).rounded())), 1)
@@ -194,12 +198,13 @@ struct FlippingView_Previews: PreviewProvider {
                         .pickerStyle(.segmented)
                         #endif
                     }
-                
+                    #if !os(tvOS)
                     HStack {
                         Text("Perspective")
                         Slider(value: $perspective, in: 0...1)
                             .padding()
                     }
+                    #endif
                     HStack {
                         Text("Programmatic flip")
                         Button("-1") { flips -= 1 }
