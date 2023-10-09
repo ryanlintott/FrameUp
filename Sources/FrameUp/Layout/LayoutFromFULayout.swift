@@ -54,7 +54,7 @@ extension LayoutFromFULayout {
         for (index, subview) in subviews.enumerated() {
             if let offset = offsets[index] {
                 let globalOffset = CGPoint(x: offset.x + bounds.origin.x, y: offset.y + bounds.origin.y)
-                subview.place(at: globalOffset, proposal: .unspecified)
+                subview.place(at: globalOffset, proposal: proposal)
             }
         }
     }
