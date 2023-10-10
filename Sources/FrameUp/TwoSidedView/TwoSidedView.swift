@@ -106,7 +106,7 @@ struct TwoSidedView_Previews: PreviewProvider {
                         Text("\(axis.description)")
                     }
                 }
-                .pickerStyle(.segmented)
+                .pickerStyle(pickerStyle)
                 
                 Text("Change Rotation")
                 HStack {
@@ -121,6 +121,14 @@ struct TwoSidedView_Previews: PreviewProvider {
                 }
                 .padding()
             }
+        }
+        
+        var pickerStyle: some PickerStyle {
+            #if os(watchOS)
+            .automatic
+            #else
+            .segmented
+            #endif
         }
     }
     

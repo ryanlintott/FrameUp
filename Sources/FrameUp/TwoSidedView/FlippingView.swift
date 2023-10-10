@@ -63,6 +63,7 @@ public struct FlippingView<Front: View, Back: View>: View {
     @State private var dragOffset: CGFloat = .zero
     @State private var predictedDragOffset: CGFloat = .zero
     @GestureState private var isDragging: Bool = false
+    @State private var isFocused = false
     
     var isFaceUp: Bool { (flips % 2) == 0 }
     var angle: Angle { .radians(CGFloat(flips) * .pi) }
@@ -87,32 +88,39 @@ public struct FlippingView<Front: View, Back: View>: View {
                 )
                 .animation(animation, value: flips)
                 .animation(animation, value: dragOffset)
-                .overlay(
-                    ZStack {
-                        Color.clear
-                            .contentShape(Rectangle())
-                        
-                        if tapToFlip {
-                            switch axis {
-                            case .horizontal:
-                                HStack(spacing: 0) {
-                                    tapToFlipTargets
-                                }
-                            case .vertical:
-                                VStack(spacing: 0) {
-                                    tapToFlipTargets
-                                }
-                            }
-                        }
+                .overlay(gestureOverlay)
+        }
+    }
+    
+    #if os(tvOS)
+    var gestureOverlay: some View {
+        Color.clear
+    }
+    #else
+    var gestureOverlay: some View {
+        ZStack {
+            Color.clear
+                .contentShape(Rectangle())
+            
+            if tapToFlip {
+                switch axis {
+                case .horizontal:
+                    HStack(spacing: 0) {
+                        tapToFlipTargets
                     }
-                        .gesture(dragToFlip ? drag : nil)
-                )
-                .onChange(of: isDragging) { isDragging in
-                    if !isDragging { onDragEnded() }
+                case .vertical:
+                    VStack(spacing: 0) {
+                        tapToFlipTargets
+                    }
                 }
-                .accessibilityAction {
-                    flips += 1
-                }
+            }
+        }
+        .gesture(dragToFlip ? drag : nil)
+        .onChange(of: isDragging) { isDragging in
+            if !isDragging { onDragEnded() }
+        }
+        .accessibilityAction {
+            flips += 1
         }
     }
     
@@ -148,6 +156,7 @@ public struct FlippingView<Front: View, Back: View>: View {
                 }
             }
     }
+    #endif
     
     func onDragEnded() {
         flips += min(max(-1, Int((predictedDragOffset / flipDistance).rounded())), 1)
@@ -190,13 +199,18 @@ struct FlippingView_Previews: PreviewProvider {
                                 Text("\(axis.description)")
                             }
                         }
-                        .pickerStyle(.segmented)
                     }
                 
                     HStack {
+                        #if os(tvOS)
+                        Text("Perspective \(perspective)")
+                        Button("-") { perspective = max(0, perspective - 0.1) }
+                        Button("+") { perspective = min(1, perspective + 0.1) }
+                        #else
                         Text("Perspective")
                         Slider(value: $perspective, in: 0...1)
                             .padding()
+                        #endif
                     }
                     HStack {
                         Text("Programmatic flip")

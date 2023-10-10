@@ -52,7 +52,7 @@ public struct WidgetDemoFrame<Content: View>: View {
     
     public var body: some View {
         Group {
-            if #available(iOS 15.0, macOS 12, *) {
+            if #available(iOS 15.0, macOS 12, watchOS 8, tvOS 15, *) {
                 content(designCanvasSize, designCornerRadius)
                     .containerShape(widgetShape)
             } else {
