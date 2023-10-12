@@ -9,7 +9,7 @@
 [![Twitter](https://img.shields.io/badge/twitter-@ryanlintott-blue.svg?style=flat)](http://twitter.com/ryanlintott)
 
 # Overview
-A Swift Package with a collection of SwiftUI framing views and tools to help with layout.
+A collection of SwiftUI framing views and tools to help with layout.
 
 - [`AutoRotatingView`](#autorotatingview) to set allowable orientations for a view.
 - [Frame Adjustment](#frame-adjustment) tools like [`WidthReader`](#widthreader), [`HeightReader`](#heightreader), [`onSizeChange(perform:)`](#onsizechangeperform), [`.relativePadding`](#relativepaddingedges-lengthfactor), [`ScaledView`](#scaledview) and [`OverlappingImage`](#overlappingimage).
@@ -31,7 +31,7 @@ A Swift Package with a collection of SwiftUI framing views and tools to help wit
 - [`AccessoryInlineImage`](#accessoryinlineimage) to use any image inside an `accessoryInline` widget
 
 # FrameUpExample
-Check out the [example app](https://github.com/ryanlintott/FrameUpExample) to see how you can use this package in your iOS app.
+Check out the [example app](https://github.com/ryanlintott/FrameUpExample) to see how you can use this package in your iOS, macOS, tvOS, or visionOS app.
 
 # Installation
 1. In Xcode go to `File -> Add Packages`
@@ -41,10 +41,12 @@ Check out the [example app](https://github.com/ryanlintott/FrameUpExample) to se
 Import the package using `import FrameUp`
 
 # Platforms
-This package is compatible with iOS 14 or later and macOS 11 or later.
+This package is compatible with iOS 14+, macOS 11+, watchOS 7+, tvOS 14+, and visionOS (beta).
 
 # Is this Production-Ready?
 Really it's up to you. I currently use this package in my own [Old English Wordhord app](https://oldenglishwordhord.com/app).
+
+Additionally, if you find a bug or want a new feature add an issue and I will get back to you about it.
 
 # Support
 If you like this package, buy me a coffee to say thanks!
@@ -376,7 +378,7 @@ struct CustomFULayout: FULayout {
 ```
 
 ## Layout
-*\*iOS 16+ or macOS 13+*
+*\*iOS 16+, macOS 13+, watchOS 9+, tvOS 16+*
 
 ### Included Layouts
 These SwiftUI `Layout` equivalents to the included `FULayout` views require iOS 16 or macOS 13 but you no longer need to supply a maxWidth or maxHeight.
