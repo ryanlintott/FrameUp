@@ -38,7 +38,10 @@ public struct SmartScrollViewKey: PreferenceKey {
     public typealias Value = SmartScrollViewMeasurements?
     public static let defaultValue: SmartScrollViewMeasurements? = nil
     public static func reduce(value: inout SmartScrollViewMeasurements?, nextValue: () -> SmartScrollViewMeasurements?) {
-        value = nextValue()
+        let nextValue = nextValue()
+        if value != nextValue {
+            value = nextValue
+        }
     }
 }
 
@@ -109,7 +112,8 @@ public struct SmartScrollView<Content: View>: View {
     /// Sizes required for displaying scrollview
     @State private var state: SmartScrollViewState? = nil
     
-    @State private var contentID: UUID = UUID()
+    /// Last orientation is saved
+    @State private var lastOrientation: InterfaceOrientation? = UIDevice.current.orientation.interfaceOrientation
     
     /// Axes that will be used on ScrollView
     var scrollViewAxes: Axis.Set {
@@ -118,17 +122,17 @@ public struct SmartScrollView<Content: View>: View {
     }
     
     func resetMeasurements() {
-        state = nil
-        contentID = UUID()
+        /// Measurement reset must happen on the next view cycle to ensure everything is reset properly
+        DispatchQueue.main.asyncAfter(deadline: .now()) {
+            state = nil
+        }
     }
     
     func updateValues(_ measurements: SmartScrollViewMeasurements?) {
         guard let measurements else {
             /// Settings have not been set or have for some unknown reason been set to nil
             if state != nil {
-//                Task {
-                    resetMeasurements()
-//                }
+                resetMeasurements()
             }
             return
         }
@@ -142,25 +146,19 @@ public struct SmartScrollView<Content: View>: View {
         
         guard let state else {
             /// State is nil so initialize state
-//            Task {
-                self.state = .init(content: contentSize, scrollView: scrollViewSize)
-//            }
+            self.state = .init(content: contentSize, scrollView: scrollViewSize)
             return
         }
         
         guard state.content.equals(contentSize, precision: 0.01) else {
             /// Content size has changed so reset state.
-//            Task {
-                resetMeasurements()
-//            }
+            resetMeasurements()
             return
         }
         
         guard state.scrollView.equals(scrollViewSize, precision: 0.01) else {
             /// Scroll view size has changed (it can only shrink) so update state.
-//            Task {
-                self.state = .init(content: contentSize, scrollView: scrollViewSize)
-//            }
+            self.state = .init(content: contentSize, scrollView: scrollViewSize)
             return
         }
         
@@ -168,20 +166,21 @@ public struct SmartScrollView<Content: View>: View {
         onScroll?(measurements.edgeInsets)
     }
     
-    let randomNumber = Int.random(in: 0...1000)
-    
     public var body: some View {
         GeometryReader { proxy in
             ScrollView(scrollViewAxes, showsIndicators: showsIndicators) {
                 content
-                    .id(contentID)
                     .anchorPreference(key: SmartScrollViewKey.self, value: .bounds) { anchor in
                         let contentFrame = proxy[anchor]
                         let scrollViewSize = proxy.size
                         return .init(contentFrame: contentFrame, scrollViewSize: scrollViewSize)
                     }
                     .fixedSize(horizontal: axes.contains(.horizontal), vertical: axes.contains(.vertical))
-//                    .opacity(state == nil ? 0 : 1)
+                
+                /// This change of content forces ScrollView to re-evaluate the layout when the state is set to nil
+                if state == nil {
+                    EmptyView()
+                }
             }
             .ifAvailable {
                 if #available(iOS 17, *) {
@@ -211,16 +210,16 @@ public struct SmartScrollView<Content: View>: View {
                 resetMeasurements()
             }
         }
-        #if os(iOS)
-        /// If the screen rotates, reset the state
+        /// If the screen rotates to a different supported orientation, reset the state.
+        /// Ignore rotations to face up and face down as they don't effect layout
         .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
-            if let deviceOrientation = UIDevice.current.orientation.interfaceOrientation, InfoDictionary.supportedInterfaceOrientations.contains(deviceOrientation) {
-                Task {
-                    resetMeasurements()
-                }
+            if let deviceOrientation = UIDevice.current.orientation.interfaceOrientation, InfoDictionary.supportedInterfaceOrientations.contains(deviceOrientation),
+               deviceOrientation != lastOrientation {
+                /// Update lastOrientation to the current state
+                lastOrientation = deviceOrientation
+                resetMeasurements()
             }
         }
-        #endif
         /// Debugging overlay
 //        .overlay(
 //            VStack(alignment: .trailing) {
