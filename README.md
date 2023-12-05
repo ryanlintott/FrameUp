@@ -442,9 +442,8 @@ SmartScrollView(.vertical, showsIndicators: true, optionalScrolling: true, shrin
 ```
 
 **Limitations:**
-- If placed directly inside a NavigationView with a resizing header, this view may behave strangely when scrolling. To avoid this add 1 point of padding to the top of this view.
-- If the available space for this view grows for any reason other than screen rotation, this view will not grow to fill the space. If you know the value that causes this change, add an `.id(value)` modifier below this view to force the view to reinitialize. This will cause it to scroll to the top.
-- `FULayout` views like `HFlow`, `VMasonry`, etc will not work inside `SmartScrollView`
+- If placed directly inside a NavigationView with a resizing header, this view may behave strangely when scrolling. To avoid this add 1 point of padding just inside the NavigationView.
+- If the available space for this view grows for any reason other than screen rotation, this view might not grow to fill the space.
 
 ## TabMenu
 *\*iOS only*
