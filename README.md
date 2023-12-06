@@ -430,14 +430,14 @@ struct CustomLayout: LayoutFromFULayout {
 A ScrollView with extra features.
 - Optional Scrolling - When active, the view will only be scrollable if the content is too large to fit in the parent frame. Enabled by default.
 - Shrink to Fit - When active, the view will only take as much vertical and horizontal space as is required to fit the content. Enabled by default.
-- Edge Insets - An onScroll function runs when the view is scrolled and reports the edge insets. Insets are negative when content edges are beyond the scroll view edges.
+- Edge Insets - An onScroll function runs when the edge insets update. This occurs on scroll, on first load and on any size change to the scroll view or the content. Insets are negative when content edges are beyond the scroll view edges. Values may not be exactly 0 but will be less than 1 when content edges match scroll view edges.
 
 Example:
 ```swift
 SmartScrollView(.vertical, showsIndicators: true, optionalScrolling: true, shrinkToFit: true) {
     // Content here
 } onScroll: { edgeInsets in
-    // Runs when view is scrolled
+    // Runs when edge insets change
 }
 ```
 
