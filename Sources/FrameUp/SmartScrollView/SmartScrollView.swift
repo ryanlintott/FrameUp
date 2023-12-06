@@ -11,10 +11,10 @@ import SwiftUI
 /// Settings used in `SmartScrollView`
 public struct SmartScrollViewMeasurements: Equatable {
     /// State of scroll view dimensions
-    public var state: SmartScrollViewState
+    public let state: SmartScrollViewState
     
     /// Edge insets based on the content frame and scroll view size.
-    public var edgeInsets: EdgeInsets
+    public let edgeInsets: EdgeInsets
 }
 
 extension SmartScrollViewMeasurements {
@@ -92,7 +92,7 @@ public struct SmartScrollView<Content: View>: View {
     ///   - optionalScrolling: A Boolean value that indicates whether scrolling should be disabled if the content fits the available space. The default value is true.
     ///   - shrinkToFit: A Boolean value that indicates whether the outer frame should shrink to fit the content. The default value is true.
     ///   - content: The view builder that creates the scrollable view.
-    ///   - onScroll: An action that will be run when the view has been scrolled. Edge insets are passed as a parameter.
+    ///   - onScroll: An action that will be run when the edge insets have changed. This occurs with scrolling, when the view appears and on any scroll view or content resizing. Edge insets are passed as a parameter.
     public init(
         _ axes: Axis.Set = .vertical,
         showsIndicators: Bool = true,
@@ -159,6 +159,8 @@ public struct SmartScrollView<Content: View>: View {
         guard state.scrollView.equals(scrollViewSize, precision: 0.01) else {
             /// Scroll view size has changed (it can only shrink) so update state.
             self.state = .init(content: contentSize, scrollView: scrollViewSize)
+            /// Update edgeInsets when scroll view size changes
+            onScroll?(measurements.edgeInsets)
             return
         }
         
