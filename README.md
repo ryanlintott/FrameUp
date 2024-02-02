@@ -139,7 +139,7 @@ struct OnSizeChangeExample: View {
 ```
 
 ### keyboardHeight
-An environment variable that will update with animation as the iOS keyboard appears and disappears.
+An environment variable that will update with animation as the iOS keyboard appears and disappears. It will always be zero for non-iOS platforms. 
 
 `Animation.keyboard` is added as an approximation of the keyboard animation curve and is used by keyboardHeight.
 
