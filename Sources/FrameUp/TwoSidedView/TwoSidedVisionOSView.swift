@@ -86,6 +86,8 @@ struct TwoSidedVisionOSView_Previews: PreviewProvider {
                             .fill(.red)
                             .overlay(Text("Down"))
                     }
+                    .offset(z: 100)
+                    .frame(maxWidth: 200, maxHeight: 200)
                     .padding()
                     
                 
@@ -98,7 +100,7 @@ struct TwoSidedVisionOSView_Previews: PreviewProvider {
                 
                 Text("Change Rotation")
                 HStack {
-                    ForEach([-360,-180,-120,-45,45,120,180,360], id: \.self) { i in
+                    ForEach([-360,-180,-90,-45,45,90,180,360], id: \.self) { i in
                         Button("\(i > 0 ? "+" : "")\(i)") {
                             withAnimation(.spring().speed(0.4)) {
                                 angle += .degrees(Double(i))

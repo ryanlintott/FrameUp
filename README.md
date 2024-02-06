@@ -12,7 +12,7 @@
 A collection of SwiftUI framing views and tools to help with layout.
 
 - [`AutoRotatingView`](#autorotatingview) to set allowable orientations for a view.
-- [Frame Adjustment](#frame-adjustment) tools like [`WidthReader`](#widthreader), [`HeightReader`](#heightreader), [`onSizeChange(perform:)`](#onsizechangeperform), [`.relativePadding`](#relativepaddingedges-lengthfactor), [`ScaledView`](#scaledview) and [`OverlappingImage`](#overlappingimage).
+- [Frame Adjustment](#frame-adjustment) tools like [`WidthReader`](#widthreader), [`HeightReader`](#heightreader), [`onSizeChange(perform:)`](#onsizechangeperform), [`keyboardHeight`](#keyboardHeight), [`.relativePadding`](#relativepaddingedges-lengthfactor), [`ScaledView`](#scaledview) and [`OverlappingImage`](#overlappingimage).
 - [`FULayout`](#fulayout) for building custom layouts (similar to SwiftUI `Layout`).
 - Included FULayouts: [`HFlow`](#hflow), [`VFlow`](#vflow), [`HMasonry`](#hmasonry), and [`VMasonry`](#vmasonry).
 - [`AnyFULayout`](#anyfulayout) to wrap multiple layouts and switch between with animation.
@@ -134,6 +134,39 @@ struct OnSizeChangeExample: View {
                 self.size = size
             }
             .overlay(Text("size: \(size.width) x \(size.height)"), alignment: .bottom)
+    }
+}
+```
+
+### keyboardHeight
+An environment variable that will update with animation as the iOS keyboard appears and disappears. It will always be zero for non-iOS platforms. 
+
+`Animation.keyboard` is added as an approximation of the keyboard animation curve and is used by keyboardHeight.
+
+In order to use keyboardHeight you first need to add it somewhere at the top of your view heirachry so it can see the entire frame. It will use a GeometryReader on a background layer to measure the keyboard so ensure the view is using the entire available height.
+
+```swift
+struct ContentView: View {
+    var body: some View {
+        MyView()
+            .frame(maxHeight: .infinity)
+            .keyboardHeightEnvironmentValue()
+    }
+}
+```
+
+When you want to access the keyboardHeight use an environment variable. If you're using it to adjust the position of a view that should avoid the keyboard use the keyboardHeight directly and make sure the view ignores the keyboard safe area.
+
+```swift
+struct MyView: View {
+    @Environment(\.keyboardHeight) var keyboardHeight
+    @State private var text = ""
+    
+    var body: some View {
+        TextField("Moves with keyboard", text: $text)
+            .keyboardHeightEnvironmentValue()
+            .padding(.bottom, keyboardHeight == 0 ? 100 : keyboardHeight)
+            .ignoresSafeArea(.keyboard)
     }
 }
 ```
