@@ -12,10 +12,10 @@ import SwiftUI
 /// Used by `HeightReader`.
 ///
 /// Only one key is necessary and works even in nested situations because the value is captured and used inside reader view. Nested views will replace the value before reading it so the correct value should always be sent through.
-struct HeightKey: PreferenceKey {
-    typealias Value = CGFloat
-    static let defaultValue: CGFloat = .zero
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+public struct HeightKey: PreferenceKey {
+    public typealias Value = CGFloat
+    public static let defaultValue: CGFloat = .zero
+    public static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
         value = nextValue()
     }
 }
