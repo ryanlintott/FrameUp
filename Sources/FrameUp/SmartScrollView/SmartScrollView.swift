@@ -9,7 +9,7 @@ import SwiftUI
 
 #if os(iOS)
 /// Settings used in `SmartScrollView`
-public struct SmartScrollViewMeasurements: Equatable {
+public struct SmartScrollViewMeasurements: Equatable, Sendable {
     /// State of scroll view dimensions
     public let state: SmartScrollViewState
     
@@ -45,7 +45,7 @@ public struct SmartScrollViewKey: PreferenceKey {
     }
 }
 
-public struct SmartScrollViewState: Equatable {
+public struct SmartScrollViewState: Equatable, Sendable {
     /// Content size
     let content: CGSize
     /// Scroll view size
