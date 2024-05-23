@@ -20,9 +20,10 @@ public struct WidthKey: PreferenceKey {
     }
 }
 
-/// A view that takes the available width and provides this measurement to its content. Unlike 'GeometryReader' this view will not take up all the available height and will instead fit the height of the content.
+/// A view that takes the available width and provides this measurement to its content. Unlike `GeometryReader` this view will not take up all the available height and will instead fit the height of the content.
 ///
 /// Useful inside vertical scroll views where you want to measure the width without specifying a frame height.
+@MainActor
 public struct WidthReader<Content: View>: View {
     let alignment: HorizontalAlignment
     @ViewBuilder let content: (CGFloat) -> Content
@@ -38,18 +39,43 @@ public struct WidthReader<Content: View>: View {
         self.content = content
     }
     
-    public var body: some View {
-        VStack(alignment: alignment, spacing: 0) {
+    @MainActor    
+    @ViewBuilder
+    public var elements: some View {
+        Color.clear.overlay(
             GeometryReader { proxy in
                 Color.clear
                     .preference(key: WidthKey.self, value: proxy.size.width)
             }
-            .frame(height: 0)
-            .onPreferenceChange(WidthKey.self) { width in
-                self.width = width
+        )
+        .frame(height: 0)
+        .onPreferenceChange(WidthKey.self) { newWidth in
+            if width == newWidth { return }
+            /// Using a task will break animation on width changes but it prevents crashes (especially on macOS when the width changes frequently.
+            Task { @MainActor in
+                if width == newWidth { return }
+                width = newWidth
             }
-
+        }
+        
+        /// Only show the content if the width has been set (is not zero)
+        if width > 0 {
             content(width)
+        }
+    }
+    
+    public var body: some View {
+        /// This extra VStack is here because trying to apply frame modifiers to WidthReader may not work correctly without it.
+        VStack {
+            if #available(iOS 16, macOS 13, tvOS 16, watchOS 8, *) {
+                FittedVStack(alignment: .init(alignment) ?? .center) {
+                    elements
+                }
+            } else {
+                VStack(alignment: alignment, spacing: 0) {
+                    elements
+                }
+            }
         }
     }
 }
