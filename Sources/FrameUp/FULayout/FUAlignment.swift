@@ -86,6 +86,22 @@ public enum FUAlignment: String, CaseIterable, Identifiable, Equatable, Hashable
     public func replacingHorizontalJustification(with alternateAlignment: FUHorizontalAlignment = .leading) -> Self {
         .init(horizontal: self.horizontal.replacingJustification(with: alternateAlignment), vertical: self.vertical)
     }
+    
+    /// Creates `FUAlignment` from `Alignment` for cases `.topLeading`, `.top`,  `.topTrailing`,  `.leading`,  `.center`,  `.trailing`,  `.bottomLeading`,  `.bottom`,  and `.bottomTrailing` and returns nil for all other cases.
+    public init?(from alignment: Alignment) {
+        switch alignment {
+        case .topLeading: self = .topLeading
+        case .top: self = .top
+        case .topTrailing: self = .topTrailing
+        case .leading: self = .leading
+        case .center: self = .center
+        case .trailing: self = .trailing
+        case .bottomLeading: self = .bottomLeading
+        case .bottom: self = .bottom
+        case .bottomTrailing: self = .bottomTrailing
+        default: return nil
+        }
+    }
 }
 
 public enum FUHorizontalAlignment: String, CaseIterable, Identifiable, Equatable, Hashable {
@@ -112,6 +128,16 @@ public enum FUHorizontalAlignment: String, CaseIterable, Identifiable, Equatable
             return self
         }
     }
+    
+    /// Creates `FUHorizontalAlignment` from `HoriztonalAlignment` for cases `.leading`, `.center`, and `.trailing` and returns nil for all other cases.
+    public init?(_ horizontalAlignment: HorizontalAlignment) {
+        switch horizontalAlignment {
+        case .leading: self = .leading
+        case .center: self = .center
+        case .trailing: self = .trailing
+        default: return nil
+        }
+    }
 }
 
 public enum FUVerticalAlignment: String, CaseIterable, Identifiable, Equatable, Hashable {
@@ -136,6 +162,16 @@ public enum FUVerticalAlignment: String, CaseIterable, Identifiable, Equatable, 
             return alternateAlignment
         default:
             return self
+        }
+    }
+    
+    /// Creates `FUVerticalAlignment` from `VerticalAlignment` for cases `.top`, `.center`, and `.bottom` and returns nil for all other cases.
+    public init?(_ verticalAlignment: VerticalAlignment) {
+        switch verticalAlignment {
+        case .top: self = .top
+        case .center: self = .center
+        case .bottom: self = .bottom
+        default: return nil
         }
     }
 }
