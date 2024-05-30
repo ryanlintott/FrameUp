@@ -23,6 +23,7 @@ public struct HeightKey: PreferenceKey {
 /// A view that takes the available height and provides this measurement to its content. Unlike 'GeometryReader' this view will not take up all the available width and will instead fit the width of the content.
 ///
 /// Useful inside horizontal scroll views where you want to measure the height without specifying a frame width.
+@MainActor
 public struct HeightReader<Content: View>: View {
     let alignment: VerticalAlignment
     @ViewBuilder let content: (CGFloat) -> Content
@@ -38,18 +39,43 @@ public struct HeightReader<Content: View>: View {
         self.content = content
     }
     
-    public var body: some View {
-        HStack(alignment: alignment, spacing: 0) {
+    @MainActor
+    @ViewBuilder
+    public var elements: some View {
+        Color.clear.overlay(
             GeometryReader { proxy in
                 Color.clear
                     .preference(key: HeightKey.self, value: proxy.size.height)
             }
-            .frame(width: 0)
-            .onPreferenceChange(HeightKey.self) { height in
-                self.height = height
+        )
+        .frame(width: 0)
+        .onPreferenceChange(HeightKey.self) { newHeight in
+            if height == newHeight { return }
+            /// Using a task will break animation on height changes but it prevents crashes (especially on macOS when the height changes frequently.
+            Task { @MainActor in
+                if height == newHeight { return }
+                height = newHeight
             }
-            
+        }
+        
+        /// Only show the content if the height has been set (is not zero)
+        if height > 0 {
             content(height)
+        }
+    }
+    
+    public var body: some View {
+        /// This extra HStack is here because trying to apply frame modifiers to HeightReader may not work correctly without it.
+        HStack {
+            if #available(iOS 16, macOS 13, tvOS 16, watchOS 9, *) {
+                FittedHStack(alignment: .init(alignment) ?? .center) {
+                    elements
+                }
+            } else {
+                HStack(alignment: alignment, spacing: 0) {
+                    elements
+                }
+            }
         }
     }
 }

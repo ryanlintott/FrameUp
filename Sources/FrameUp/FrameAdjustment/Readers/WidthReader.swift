@@ -67,7 +67,7 @@ public struct WidthReader<Content: View>: View {
     public var body: some View {
         /// This extra VStack is here because trying to apply frame modifiers to WidthReader may not work correctly without it.
         VStack {
-            if #available(iOS 16, macOS 13, tvOS 16, watchOS 8, *) {
+            if #available(iOS 16, macOS 13, tvOS 16, watchOS 9, *) {
                 FittedVStack(alignment: .init(alignment) ?? .center) {
                     elements
                 }
