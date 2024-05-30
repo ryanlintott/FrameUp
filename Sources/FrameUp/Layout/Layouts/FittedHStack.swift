@@ -7,6 +7,18 @@
 
 import SwiftUI
 
+/**
+ A layout that arranges views in an `HStack` but (unlike `HStack`) ensures the overall height is never larger than the proposed height. This is only used inside `HeightReader`.
+
+ Example:
+ ```swift
+ FittedHStack {
+     ForEach(["Hello", "World", "More Text"], id: \.self) { item in
+         Text(item.value)
+     }
+ }
+ ```
+ */
 @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
 struct FittedHStack: Layout {
     let alignment: FUVerticalAlignment

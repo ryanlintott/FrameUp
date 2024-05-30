@@ -7,8 +7,18 @@
 
 import SwiftUI
 
-#warning("Check other OS")
-#warning("Make FittedHStack")
+/**
+ A layout that arranges views in a `VStack` but (unlike `VStack`) ensures the overall width is never larger than the proposed width. This is only used inside `WidthReader`.
+
+ Example:
+ ```swift
+ FittedVStack {
+     ForEach(["Hello", "World", "More Text"], id: \.self) { item in
+         Text(item.value)
+     }
+ }
+ ```
+ */
 @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
 struct FittedVStack: Layout {
     let alignment: FUHorizontalAlignment
