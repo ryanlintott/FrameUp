@@ -54,3 +54,19 @@ public struct VMasonryLayout: LayoutFromFULayout {
         )
     }
 }
+
+@available(iOS 16, macOS 13, watchOS 9, tvOS 16, *)
+public extension VMasonryLayout {
+    /// Creates a `Layout` that arranges views into a set number of columns by adding each view to the shortest column.
+    /// - Parameters:
+    ///   - alignment: Used to align columns vertically relative to each other. Default is top.
+    ///   - columns: Number of columns to place views in.
+    ///   - spacing: Minimum spacing between views.
+    init(
+        alignment: FUAlignment = .top,
+        columns: Int,
+        spacing: CGFloat
+    ) {
+        self.init(alignment: alignment, columns: columns, horizontalSpacing: spacing, verticalSpacing: spacing)
+    }
+}

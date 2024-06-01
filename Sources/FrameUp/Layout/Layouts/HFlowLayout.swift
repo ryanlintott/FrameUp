@@ -51,3 +51,17 @@ public struct HFlowLayout: LayoutFromFULayout {
         )
     }
 }
+
+@available(iOS 16, macOS 13, watchOS 9, tvOS 16, *)
+public extension HFlowLayout {
+    /// Creates a `Layout` that arranges views in horizontal rows flowing from one to the next.
+    /// - Parameters:
+    ///   - alignment: Used to align views vertically in their rows and align rows horizontally relative to each other. Default is top leading. Vertical justification will act as top alignment.
+    ///   - spacing: Minimum spacing between views.
+    init(
+        alignment: FUAlignment = .topLeading,
+        spacing: CGFloat
+    ) {
+        self.init(alignment: alignment, horizontalSpacing: spacing, verticalSpacing: spacing)
+    }
+}

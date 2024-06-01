@@ -30,7 +30,6 @@ public struct HMasonryLayout: LayoutFromFULayout {
     /// - Parameters:
     ///   - alignment: Used to align rows horizontally relative to each other. Default is leading.
     ///   - rows: Number of rows to place views in.
-    ///   - maxHeight: Maximum height containing all rows (can be obtained through a `HeightReader`).
     ///   - horizontalSpacing: Minimum horizontal spacing between columns.
     ///   - verticalSpacing: Vertical spacing between views in a column
     public init(
@@ -53,5 +52,21 @@ public struct HMasonryLayout: LayoutFromFULayout {
             horizontalSpacing: horizontalSpacing,
             verticalSpacing: verticalSpacing
         )
+    }
+}
+
+@available(iOS 16, macOS 13, watchOS 9, tvOS 16, *)
+public extension HMasonryLayout {
+    /// Creates a `Layout` that arranges views into a set number of rows by adding each view to the shortest row.
+    /// - Parameters:
+    ///   - alignment: Used to align rows horizontally relative to each other. Default is leading.
+    ///   - rows: Number of rows to place views in.
+    ///   - spacing: Minimum spacing between views.
+    init(
+        alignment: FUAlignment = .leading,
+        rows: Int,
+        spacing: CGFloat
+    ) {
+        self.init(alignment: alignment, rows: rows, horizontalSpacing: spacing, verticalSpacing: spacing)
     }
 }

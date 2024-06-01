@@ -51,3 +51,17 @@ public struct VFlowLayout: LayoutFromFULayout {
         )
     }
 }
+
+@available(iOS 16, macOS 13, watchOS 9, tvOS 16, *)
+public extension VFlowLayout {
+    /// Creates a `Layout` that arranges views in vertical columns flowing from one to the next
+    /// - Parameters:
+    ///   - alignment: Used to align views horizontally in their columns and align columns vertically relative to each other. Default is top leading.
+    ///   - spacing: Minimum spacing between views.
+    init(
+        alignment: FUAlignment = .topLeading,
+        spacing: CGFloat
+    ) {
+        self.init(alignment: alignment, horizontalSpacing: spacing, verticalSpacing: spacing)
+    }
+}
