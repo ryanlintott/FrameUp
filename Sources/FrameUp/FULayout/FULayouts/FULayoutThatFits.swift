@@ -1,6 +1,6 @@
 //
 //  FULayoutThatFits.swift
-//  
+//  FrameUp
 //
 //  Created by Ryan Lintott on 2022-11-01.
 //
@@ -8,11 +8,16 @@
 import SwiftUI
 
 /**
- Creates an FULayout using the first layout that fits maxWidth, maxHeight, or both provided from the array of layout preferences.
- 
- Example:
+ An `FULayout` that picks the first provided layout that will fit the content in the provided maxWidth, maxHeight, or both. This is most helpful when switching between `HStackFULayout` and `VStackFULayout` as the content only needs to be provided once and will even animate when the stack changes.
+
  ```swift
- FULayoutThatFits(maxWidth: maxWidth, layouts: [HStackFULayout(maxHeight: 1000), VStackFULayout(maxWidth: maxWidth)]) {
+ FULayoutThatFits(
+     maxWidth: maxWidth,
+     layouts: [
+         HStackFULayout(maxHeight: 1000),
+         VStackFULayout(maxWidth: maxWidth)
+     ]
+ ) {
      Color.green.frame(width: 50, height: 50)
      Color.yellow.frame(width: 50, height: 200)
      Color.blue.frame(width: 50, height: 100)

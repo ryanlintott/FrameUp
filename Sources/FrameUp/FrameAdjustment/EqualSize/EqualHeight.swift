@@ -1,6 +1,6 @@
 //
-//  SwiftUIView.swift
-//  
+//  EqualHeight.swift
+//  FrameUp
 //
 //  Created by Ryan Lintott on 2024-03-08.
 //

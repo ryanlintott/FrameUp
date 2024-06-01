@@ -8,17 +8,17 @@
 import SwiftUI
 
 /**
- A layout that arranges views in a row, adding rows when needed.
+ A `Layout` that arranges views in horizontal rows flowing from one to the next with adjustable horizontal and vertical spacing and support for horiztonal and vertical alignment including a justified alignment that will space elements in completed rows evenly.
  
- Each row height will be determined by the tallest element. The overall frame size will fit to the size of the laid out content.
+ Each row height will be determined by the tallest view in that row.
  
  Example:
  ```swift
-     HFlowLayout {
-        ForEach(["Hello", "World", "More Text"], id: \.self) { item in
-            Text(item.value)
-        }
+ HFlowLayout {
+     ForEach(["Hello", "World", "More Text"], id: \.self) { item in
+         Text(item.value)
      }
+ }
  ```
  */
 @available(iOS 16, macOS 13, watchOS 9, tvOS 16, *)
@@ -27,7 +27,7 @@ public struct HFlowLayout: LayoutFromFULayout {
     public let horizontalSpacing: CGFloat?
     public let verticalSpacing: CGFloat?
     
-    /// Creates a layout that arranges views in a row, adding rows when needed.
+    /// Creates a `Layout` that arranges views in horizontal rows flowing from one to the next.
     /// - Parameters:
     ///   - alignment: Used to align views vertically in their rows and align rows horizontally relative to each other. Default is top leading. Vertical justification will act as top alignment.
     ///   - horizontalSpacing: Minimum horizontal spacing between views in a row.

@@ -1,12 +1,33 @@
 //
 //  FUViewThatFits.swift
-//  
+//  FrameUp
 //
 //  Created by Ryan Lintott on 2022-10-31.
 //
 
 import SwiftUI
 
+/**
+ An `FULayout` that presents the first view that fits the provided maxWidth, maxHeight, or both depending on which parameters are used.
+ 
+ As this view cannot measure the available space the maxWidth and/or maxHeight parameters need to be passed in using a `GeometryReader`, `WidthReader`, or `HeightReader`.
+ 
+ Example:
+ ```swift
+ WidthReader { width in
+     FUViewThatFits(maxWidth: width) {
+         Group {
+             Text("This layout will pick the first view that fits the available width.")
+             Text("Maybe this?")
+             Text("OK!")
+         }
+         .fixedSize(horizontal: true, vertical: false)
+     }
+ }
+ ```
+ 
+ (`.fixedSize` needs to be used in this example or the first view will automatically fit by truncating the text)
+ */
 public struct FUViewThatFits: FULayout {
     public var maxItemWidth: CGFloat?
     public let maxItemHeight: CGFloat?

@@ -1,6 +1,6 @@
 //
-//  LabelledAction.swift
-//  
+//  NamedAction.swift
+//  FrameUp
 //
 //  Created by Ryan Lintott on 2022-09-11.
 //

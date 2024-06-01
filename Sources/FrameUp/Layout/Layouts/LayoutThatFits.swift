@@ -1,6 +1,6 @@
 //
 //  LayoutThatFits.swift
-//  
+//  FrameUp
 //
 //  Created by Ryan Lintott on 2022-06-09.
 //
@@ -8,7 +8,7 @@
 import SwiftUI
 
 /**
- Creates a layout using the first layout that fits in the axes provided from the array of layout preferences.
+ A `Layout` that uses the first layout that fits (in the axes provided) from the array of layout preferences.
 
  Example:
  ```swift
@@ -24,7 +24,7 @@ public struct LayoutThatFits: Layout {
     public let axes: Axis.Set
     public let layoutPreferences: [AnyLayout]
     
-    /// Creates a layout using the first layout that fits in the axes provided from the array of layout preferences.
+    /// Creates a `Layout` that uses the first layout that fits (in the axes provided) from the array of layout preferences.
     /// - Parameters:
     ///   - axes: Axes this content must fit in.
     ///   - layoutPreferences: Layout preferences from largest to smallest.

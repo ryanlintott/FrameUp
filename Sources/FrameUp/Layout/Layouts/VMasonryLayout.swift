@@ -1,6 +1,6 @@
 //
-//  SwiftUIView.swift
-//
+//  VMasonryLayout.swift
+//  FrameUp
 //
 //  Created by Ryan Lintott on 2023-05-12.
 //
@@ -8,11 +8,11 @@
 import SwiftUI
 
 /**
- A layout that arranges views into columns, adding views to the shortest column.
+ A `Layout` that arranges views into a set number of columns by adding each view to the shortest column.
  
  Example:
  ```swift
- VMasonry(columns: 3) {
+ VMasonryLayout(columns: 3) {
      ForEach(["Hello", "World", "More Text"], id: \.self) { item in
          Text(item.value)
      }
@@ -26,7 +26,7 @@ public struct VMasonryLayout: LayoutFromFULayout {
     public let horizontalSpacing: CGFloat?
     public let verticalSpacing: CGFloat?
     
-    /// Creates a layout that arranges views columns, adding views to the shortest column.
+    /// Creates a `Layout` that arranges views into a set number of columns by adding each view to the shortest column.
     /// - Parameters:
     ///   - alignment: Used to align columns vertically relative to each other. Default is top.
     ///   - columns: Number of columns to place views in.

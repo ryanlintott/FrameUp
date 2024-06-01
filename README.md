@@ -11,24 +11,28 @@
 # Overview
 A collection of SwiftUI framing views and tools to help with layout.
 
+- SwiftUI [`Layouts`](#layouts) like [`HFlowLayout`](#hflowlayout), [`VFlowLayout`](#vflowlayout), [`VMasonryLayout`](#vmasonrylayout), [`HMasonryLayout`](#hmasonrylayout), and [`LayoutThatFits`](#layoutthatfits)
 - [`AutoRotatingView`](#autorotatingview) to set allowable orientations for a view.
 - [Frame Adjustment](#frame-adjustment) tools like [`WidthReader`](#widthreader), [`HeightReader`](#heightreader), [`onSizeChange(perform:)`](#onsizechangeperform), [`keyboardHeight`](#keyboardHeight), [`.relativePadding`](#relativepaddingedges-lengthfactor), [`ScaledView`](#scaledview) and [`OverlappingImage`](#overlappingimage).
-- [`FULayout`](#fulayout) for building custom layouts (similar to SwiftUI `Layout`).
-- Included FULayouts: [`HFlow`](#hflow), [`VFlow`](#vflow), [`HMasonry`](#hmasonry), and [`VMasonry`](#vmasonry).
-- [`AnyFULayout`](#anyfulayout) to wrap multiple layouts and switch between with animation.
-- [`FUViewThatFits`](#fuviewthatfits) (similar to SwiftUI `ViewThatFits`)
-- [`FULayoutThatFits`](#fulayoutthatfits) to use an `FULayout` that fits with the same content.
-- Make your own [`Custom FULayout`](#customfulayout).
-- SwiftUI [`Layout`](#layout) versions of `FULayout` views built using [`LayoutFromFULayout`](#layoutfromfulayout).
-- [`LayoutThatFits`](#layoutthatfits) to use a `Layout` that fits with the same content.
 - [`SmartScrollView`](#smartscrollview) with optional scrolling, a content-fitable frame, and live edge inset values.
+- [`TwoSidedView`](#twosidedview) and [`FlippingView`](#flippingview) for making flippable views with a different view on the back side.
 - [`TabMenu`](#tabmenu), a customizable iOS tab menu with `onReselect` and `onDoubleTap` functions.
-- [`TagView`](#tagview) and [`TagViewForScrollView`](#tagviewforscrollview) for simple flow view based on an array of elements.
+
+Some tools for widgets
+
+- [`AccessoryInlineImage`](#accessoryinlineimage) to use any image inside an `accessoryInline` widget
 - [`WidgetSize`](#widgetsize) - Similar to WidgetFamily but returns widget frame sizes by device and doesn't require `WidgetKit`
 - [`WidgetDemoFrame`](#widgetdemoframe) creates accurately sized widget frames you can use in an iOS or macOS app.
+
+Additional features for iOS 14 and 15 
+
+- [`FULayout`](#fulayout) for building custom layouts (similar to SwiftUI `Layout`).
+- FULayouts: [`HFlow`](#hflow), [`VFlow`](#vflow), [`HMasonry`](#hmasonry), [`VMasonry`](#vmasonry), [`FULayoutThatFits`](#fulayoutthatfits), and [`FUViewThatFits`](#fuviewthatfits)
+- [`AnyFULayout`](#anyfulayout) to wrap multiple layouts and switch between with animation.
+- Make your own [`Custom FULayout`](#customfulayout) and add a SwiftUI `Layout` version using [`LayoutFromFULayout`](#layoutfromfulayout)
+- [`TagView`](#tagview) for a simple flow view based on an array of elements.
 - [`WidgetRelativeShape`](#widgetrelativeshape) fixes a `ContainerRelativeShape` bug on iPad.
-- [`TwoSidedView`](#twosidedview) for making flippable views with a different view on the back side.
-- [`AccessoryInlineImage`](#accessoryinlineimage) to use any image inside an `accessoryInline` widget
+
 
 # FrameUpExample
 Check out the [example app](https://github.com/ryanlintott/FrameUpExample) to see how you can use this package in your iOS, macOS, tvOS, or visionOS app.
@@ -54,7 +58,75 @@ If you like this package, buy me a coffee to say thanks!
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/X7X04PU6T)
 
 - - -
-# Details
+# Features
+
+## Layout
+*\*iOS 16+, macOS 13+, watchOS 9+, tvOS 16+*
+Check out the nearly equivalent ['FULayout'](#fulayout) if you target older OSs.
+
+### HFlowLayout
+A `Layout` that arranges views in horizontal rows flowing from one to the next with adjustable horizontal and vertical spacing and support for horiztonal and vertical alignment including a justified alignment that will space elements in completed rows evenly.
+
+Each row height will be determined by the tallest element. The overall frame size will fit to the size of the laid out content.
+
+Example:
+```swift
+HFlowLayout {
+    ForEach(["Hello", "World", "More Text"], id: \.self) { item in
+        Text(item.value)
+    }
+}
+```
+
+### VFlowLayout
+A `Layout` that arranges views in vertical columns flowing from one to the next with adjustable horizontal and vertical spacing and support for horiztonal and vertical alignment including a justified alignment that will space elements in completed columns evenly.
+
+Each column width will be determined by the widest element. The overall frame size will fit to the size of the laid out content.
+
+Example:
+```swift
+VFlowLayout {
+    ForEach(["Hello", "World", "More Text"], id: \.self) { item in
+        Text(item.value)
+    }
+}
+```
+
+### VMasonryLayout
+A `Layout` that arranges views into a set number of columns by adding each view to the shortest column.
+
+Example:
+```swift
+VMasonryLayout(columns: 3) {
+    ForEach(["Hello", "World", "More Text"], id: \.self) { item in
+        Text(item.value)
+    }
+}
+```
+ 
+### HMasonryLayout
+A `Layout` that arranges views into a set number of rows by adding each view to the shortest row.
+
+Example:
+```swift
+HMasonryLayout(rows: 3) {
+    ForEach(["Hello", "World", "More Text"], id: \.self) { item in
+        Text(item.value)
+    }
+}
+```
+
+### LayoutThatFits
+Creates a layout using the first layout that fits in the axes provided from the array of layout preferences.
+
+```swift
+LayoutThatFits(in: .horizontal, [HStackLayout(), VStackLayout()]) {
+    Color.green.frame(width: 50, height: 50)
+    Color.yellow.frame(width: 50, height: 200)
+    Color.blue.frame(width: 50, height: 100)
+}
+```
+
 ## AutoRotatingView
 *\*iOS only*
 
@@ -181,7 +253,6 @@ Text("This text will have padding based on the width and height of its frame.")
     .relativePadding([.leading, .top], 0.2)
 ```
 
-
 ### ScaledView
 A view modifier that scales a view using `scaleEffect` to match a frame size.
 
@@ -220,243 +291,6 @@ VStack(spacing: 0) {
 }
 ```
 
-## FULayout
-Similar to the SwiftUI `Layout` protocol available in iOS 16 and macOS 13, the FrameUp layout `FULayout` protocol is used to define view layouts.
-
-### ViewBuilder
-Use `FULayout` the same way as other built-in layout containers. It looks like a trailing closure but its using `callAsFunction()` on the initialized `FULayout`.
-
-```swift
-VFlow(maxWidth: 200) {
-    Text("Hello")
-    Text("World")
-}
-```
-
-*Caution: Creating a container like this uses Apple's private protocol `_VariadicView` under the hood. There is a small risk Apple could change the implementation so if this concerns you, use method 2 below.*
-
-### `.forEach()`
-This method works in a very similar way to `ForEach()`.
-
-```swift
-MyFULayout().forEach(["Hello", "World"], id: \.self) { item in
-        Text(item.value)
-    }
-}
-```
-
-## Included FULayouts
-### HFlow
-A FrameUp layout that arranges views in a row, adding rows when needed.
- 
-Each row height will be determined by the tallest element. The overall frame size will fit to the size of the laid out content.
- 
-A maximum height must be provided but `HeightReader` can be used to get the value (especially helpful when inside a `ScrollView`).
- 
-A FrameUp layout is not a view but it works like a view by using `callAsFunction`. There is also an alternative view function `.forEach()` that works like `ForEach`
- 
-Example:
-```swift
-HeightReader { height in
-    HFlow(maxHeight: height) {
-        ForEach(["Hello", "World", "More Text"], id: \.self) { item in
-            Text(item.value)
-        }
-    }
-}
-```
-
-### VFlow
- A FrameUp layout that arranges views in a column, adding columns when needed.
-
- Each column width will be determined by the widest element. The overall frame size will fit to the size of the laid out content.
-
- A maximum width must be provided but `WidthReader` can be used to get the value (especially helpful when inside a `ScrollView`).
-
- A FrameUp layout is not a view but it works like a view by using `callAsFunction`. There is also an alternative view function `.forEach()` that works like `ForEach`
-
- Example:
- ```swift
- WidthReader { width in
-     VFlow(maxWidth: width) {
-         ForEach(["Hello", "World", "More Text"], id: \.self) { item in
-             Text(item.value)
-         }
-     }
- }
- ```
- 
-### HMasonry
- A FrameUp layout that arranges views into rows, adding views to the shortest row.
- 
- A maximum height must be provided but `HeightReader` can be used to get the value (especially helpful when inside a `ScrollView`).
- 
- A FrameUp layout is not a view but it works like a view by using `callAsFunction`. There is also an alternative view function `.forEach()` that works like `ForEach`
- 
- Example:
- ```swift
- HeightReader { height in
-    HMasonry(columns: 3, maxHeight: height) {
-        ForEach(["Hello", "World", "More Text"], id: \.self) { item in
-            Text(item.value)
-                .frame(maxHeight: .infinity, alignment: .center)
-        }
-    }
- }
- ```
-
-### VMasonry
- A FrameUp layout that arranges views into columns, adding views to the shortest column.
- 
- A maximum width must be provided but `WidthReader` can be used to get the value (especially helpful when inside a `ScrollView`).
- 
- A FrameUp layout is not a view but it works like a view by using `callAsFunction`. There is also an alternative view function `.forEach()` that works like `ForEach`
- 
- Example:
- ```swift
-    WidthReader { width in
-        VMasonry(columns: 3, maxWidth: width) {
-            ForEach(["Hello", "World", "More Text"], id: \.self) { item in
-                Text(item.value)
-                    .frame(maxWidth: .infinity, alignment: .center)
-            }
-        }
-    }
- ```
-
-### FULayout Stacks
-Alternative stack layouts that can be wrapped in `AnyFULayout` and then toggled between with animation. Useful when you want to toggle between VStack and HStack based on available space.
-
-#### HStackFULayout
-Similar to HStack but `Spacer()` cannot be used and content will always use a fixed size on the horizontal axis.
-
-#### VStackFULayout
-Similar to VStack but `Spacer()` cannot be used and content will always use a fixed size on the vertical axis.
-
-#### ZStackFULayout
-Similar to ZStack but content will always use a fixed size on both the vertical and horizontal axes.
-
-### AnyFULayout
-A type-erased FrameUp layout can be used to wrap multiple layouts and switch between them with animation.
-
-```swift
-struct AnyFULayoutSimple: View {
-    let isVStack: Bool
-    let maxSize: CGSize
-    
-    var layout: any FULayout {
-        isVStack ? VStackFULayout(maxWidth: maxSize.width) : HStackFULayout(maxHeight: maxSize.height)
-    }
-    
-    var body: some View {
-        AnyFULayout(layout) {
-            Text("First")
-            Text("Second")
-            Text("Third")
-        }
-        .animation(.spring(), value: isVStack)
-    }
-}
-```
-
-### FUViewThatFits
-A layout that picks the first provided view that fits the available space.
-
-A maxWidth, maxHeight, or both must be provided.
-
-```swift
-FUViewThatFits(maxWidth: 300, maxHeight: 30) {
-    Group {
-        Text("This layout will pick the first view that fits the available width.")
-        Text("Maybe this?")
-        Text("OK!")
-    }
-    .fixedSize(horizontal: true, vertical: false)
-}
-```
-
-(`.fixedSize` needs to be used in this example or the first view will automatically fit by truncating the text)
-
-### FULayoutThatFits
-A layout that picks the first provided layout that will fit the provided content in the available space. This is most helpful when switching between `HStackFULayout` and `VStackFULayout` as the content only needs to be provided once and will even animate when the stack changes. 
-
-A maxWidth, maxHeight, or both must be provided.
-
-```swift
-FULayoutThatFits(maxWidth: maxWidth, layouts: [HStackFULayout(maxHeight: 1000), VStackFULayout(maxWidth: maxWidth)]) {
-    Color.green.frame(width: 50, height: 50)
-    Color.yellow.frame(width: 50, height: 200)
-    Color.blue.frame(width: 50, height: 100)
-}
-```
-
-### Custom FULayout
-The FrameUp layout protocol requires you to define which axes are fixed, the maximum item size, and a function that takes view sizes and outputs view offsets.
-
-Below is an example layout that arranges views on left and right sides of a central line.
-
-```swift
-struct CustomFULayout: FULayout {
-    /// Add parameters here to adjust layout
-    
-    /// Define these required parameters
-    var fixedSize: Axis.Set = .horizontal
-    var maxItemWidth: CGFloat? { maxWidth }
-    var maxItemHeight: CGFloat? = nil
-    
-    func contentOffsets(sizes: [Int : CGSize]) -> [Int : CGPoint] {
-        /// Write code that uses the dictionary of sizes and your parameters to output a dictionary of offsets from the top left corner.
-    }
-}
-```
-
-## Layout
-*\*iOS 16+, macOS 13+, watchOS 9+, tvOS 16+*
-
-### Included Layouts
-These SwiftUI `Layout` equivalents to the included `FULayout` views require iOS 16 or macOS 13 but you no longer need to supply a maxWidth or maxHeight.
-
-- `HFlowLayout`
-- `VFlowLayout`
-- `HMasonryLayout`
-- `VMasonryLayout`
-
-Example:
-```swift
-HFlowLayout {
-    ForEach(["Hello", "World", "More Text"], id: \.self) { item in
-        Text(item.value)
-    }
-}
-```
-
-### LayoutThatFits
-Creates a layout using the first layout that fits in the axes provided from the array of layout preferences.
-
-```swift
-LayoutThatFits(in: .horizontal, [HStackLayout(), VStackLayout()]) {
-    Color.green.frame(width: 50, height: 50)
-    Color.yellow.frame(width: 50, height: 200)
-    Color.blue.frame(width: 50, height: 100)
-}
-```
-
-### LayoutFromFULayout
-A protocol that quickly lets you make a `Layout` from an `FULayout`
-
-```swift
-struct CustomLayout: LayoutFromFULayout {
-    /// Add parameters here to adjust layout
-    
-    /// Add this function that will create the associated FULayout
-    func fuLayout(maxSize: CGSize) -> CustomFULayout {
-        CustomFULayout(
-            /// Pass parameters through to FULayout using maxSize to help define the maximum item size.
-        )
-    }
-}
-```
-
 ## SmartScrollView
 *\*iOS only*
 
@@ -477,6 +311,32 @@ SmartScrollView(.vertical, showsIndicators: true, optionalScrolling: true, shrin
 **Limitations:**
 - If placed directly inside a NavigationView with a resizing header, this view may behave strangely when scrolling. To avoid this add 1 point of padding just inside the NavigationView.
 - If the available space for this view grows for any reason other than screen rotation, this view might not grow to fill the space.
+
+## TwoSidedView
+### rotation3DEffect(angle:, axis:, anchor:, anchorZ, perspective:, back:)
+An alternative to rotation3DEffect that provides a closure for views that will be seen on the back side of this view.
+
+The example below is a view with two sides. One blue side that says "Front" and a red side on the back that says "Back". Changing the angle will show each side as it becomes visible.
+
+```swift
+Color.blue.overlay(Text("Front"))
+    .rotation3DEffect(angle) {
+        Color.red.overlay(Text("Back"))
+    }
+```
+
+### FlippingView
+A two-sided view that can be flipped by tapping or swiping.
+
+The axis, anchor, perspective, drag distance to flip, animation for tap to flip and more can all be customized.
+
+```swift
+FlippingView(flips: $flips) {
+    Color.blue.overlay(Text("Up"))
+} back: {
+    Color.red.overlay(Text("Back"))
+}
+```
 
 ## TabMenu
 *\*iOS only*
@@ -518,34 +378,20 @@ TabMenuView(selection: $selection, items: items) { isSelected in
 }
 ```
 
-## TagView
-Similar to the `HFlow` but a much simpler implementation not based on `FULayout`.
-
-### TagView
-A view that creates views based on an array of elements from left to right, adding rows when needed. Each row height will be determined by the tallest element.
-
-*Warning: Does not work in ScrollView.*
-
-```swift
-TagView(elements: ["One", "Two", "Three"]) { element in
-    Text(element)
-}
-```
-
-### TagViewForScrollView
-A view that creates views based on an array of elements from left to right, adding rows when needed. Each row height will be determined by the tallest element.
-
-A maximum width must be provided but `WidthReader` can be used to get the value.
-
-```swift
-WidthReader { width in
-    TagView(maxWidth: width, elements: ["One", "Two", "Three"]) { element in
-        Text(element)
-    }
-}
-```
-
 ## Widgets
+### AccessoryInlineImage
+An image that will be scaled and have the rendering mode adjusted to work inside an `accessoryInline` widget. The image will scale to fit the frame and have the template rendering mode applied.
+
+Use inside a Label's icon property.
+
+```swift
+Label {
+    Text("Label Text")
+} icon: {
+    AccessoryInlineImage("myImage")
+}
+```
+
 ### WidgetSize
 An enum similar to WidgetFamily but returns widget frame sizes by device and doesn't require `WidgetKit` so it can be used inside your main iOS or macOS app.
 
@@ -578,50 +424,6 @@ WidgetDemoFrame(.medium, cornerRadius: 20) { size, cornerRadius in
 }
 ```
 
-### WidgetRelativeShape
-*\*iOS only*
-
-A re-scaled version of `ContainerRelativeShape` used to fix a bug with the corner radius on iPads running iOS 15 and earlier.
-
-Example:
-This widget view has a blue background with a 1 point inset. On an iPad running iOS 15 or earlier, the red background will show on the corners as the corner radius does not match.
-```swift
-Text("Example widget")
-    .background(.blue)
-    .clipShape(WidgetRelativeShape(.systemSmall))
-    .background(
-        ContainerRelativeShape()
-            .fill(.red)
-    )
-    .padding(1)
-```
-
-## TwoSidedView
-### rotation3DEffect(angle:, axis:, anchor:, anchorZ, perspective:, back:)
-An alternative to rotation3DEffect that provides a closure for views that will be seen on the back side of this view.
-
-The example below is a view with two sides. One blue side that says "Front" and a red side on the back that says "Back". Changing the angle will show each side as it becomes visible.
-
-```swift
-Color.blue.overlay(Text("Front"))
-    .rotation3DEffect(angle) {
-        Color.red.overlay(Text("Back"))
-    }
-```
-
-### FlippingView
-A two-sided view that can be flipped by tapping or swiping.
-
-The axis, anchor, perspective, drag distance to flip, animation for tap to flip and more can all be customized.
-
-```swift
-FlippingView(flips: $flips) {
-    Color.blue.overlay(Text("Up"))
-} back: {
-    Color.red.overlay(Text("Back"))
-}
-```
-
 ## Additional Tools
 ### Proportionable
 A protocol that adds helpful parameters like `aspectFormat`, `aspectRatio`, `minDimension`, and `maxDimension`.
@@ -636,16 +438,275 @@ extension CGSize: Proportionable { }
 ### frame(size:,alignment:)
 Alternative to the `frame(width:,height:,alignment:)` View modifier that takes a `CGSize` parameter instead.
 
-## AccessoryInlineImage
-An image that will be scaled and have the rendering mode adjusted to work inside an `accessoryInline` widget. The image will scale to fit the frame and have the template rendering mode applied.
+----
+# Features for iOS 14+15
 
-Use inside a Label's icon property.
+## FULayout
+If you like the SwiftUI `Layout` protocol but you need to target an older OS that doesn't support it then the `FULayout` protocol might be your answer!
+
+An `FULayout` will work in the same way as a SwiftUI `Layout`. The main difference is it will require a `maxWidth` or `maxHeight` parameter when initializing in order to know the available space. This can be provided by `GeometryReader` or with [`WidthReader`](#widthreader) or [`HeightReader`](#heightreader) from this package.
+
+### ViewBuilder
+An `FULayout` uses `callAsFunction()` with a view builder so you can use it just like a SwiftUI `Layout`.
 
 ```swift
-Label {
-    Text("Label Text")
-} icon: {
-    AccessoryInlineImage("myImage")
+VFlow(maxWidth: 200) {
+    Text("Hello")
+    Text("World")
 }
 ```
+
+*Caution: This method uses Apple's private protocol `_VariadicView` under the hood. There is a small risk Apple could change the implementation so if this concerns you, use method 2 below.*
+
+### `.forEach()`
+This method works in a very similar way to `ForEach()`.
+
+```swift
+MyFULayout().forEach(["Hello", "World"], id: \.self) { item in
+        Text(item.value)
+    }
+}
+```
+
+## FULayouts
+### HFlow
+The [`FULayout`](#fulayout) equivalent of [`HFlowLayout`](#hflowlayout).
+
+A FrameUp `FULayout` that arranges views in horizontal rows flowing from one to the next with adjustable horizontal and vertical spacing and support for horiztonal and vertical alignment including a justified alignment that will space elements in completed rows evenly.
+
+Each row height will be determined by the tallest view in that row.
+
+Example:
+```swift
+WidthReader { width in
+    HFlow(maxWidth: width) {
+        ForEach(["Hello", "World", "More Text"], id: \.self) { item in
+            Text(item.value)
+        }
+    }
+}
+```
+
+### VFlow
+The [`FULayout`](#fulayout) equivalent of [`VFlowLayout`](#vflowlayout).
+
+A FrameUp `FULayout` that arranges views in vertical columns flowing from one to the next with adjustable horizontal and vertical spacing and support for horiztonal and vertical alignment including a justified alignment that will space elements in completed columns evenly.
+
+Each column width will be determined by the widest element.
+
+Example:
+```swift
+WidthReader { width in
+    VFlow(maxWidth: width) {
+        ForEach(["Hello", "World", "More Text"], id: \.self) { item in
+            Text(item.value)
+        }
+    }
+}
+```
+ 
+### HMasonry
+The [`FULayout`](#fulayout) equivalent of [`HMasonryLayout`](#hmasonrylayout).
+
+A FrameUp `FULayout` that arranges views into a set number of rows by adding each view to the shortest row.
+ 
+Example:
+```swift
+HeightReader { height in
+    HMasonry(columns: 3, maxHeight: height) {
+        ForEach(["Hello", "World", "More Text"], id: \.self) { item in
+            Text(item.value)
+                .frame(maxHeight: .infinity, alignment: .center)
+        }
+    }
+}
+```
+
+### VMasonry
+The [`FULayout`](#fulayout) equivalent of [`VMasonryLayout`](#vmasonrylayout).
+
+A FrameUp `FULayout` that arranges views into a set number of rows by adding each view to the shortest row.
+ 
+Example:
+```swift
+WidthReader { width in
+    VMasonry(columns: 3, maxWidth: width) {
+        ForEach(["Hello", "World", "More Text"], id: \.self) { item in
+            Text(item.value)
+                .frame(maxWidth: .infinity, alignment: .center)
+        }
+    }
+}
+```
+
+### FULayoutThatFits
+The [`FULayout`](#fulayout) equivalent of [`LayoutThatFits`](#layoutthatfits).
+
+An `FULayout` that picks the first provided layout that will fit the content in the provided maxWidth, maxHeight, or both. This is most helpful when switching between `HStackFULayout` and `VStackFULayout` as the content only needs to be provided once and will even animate when the stack changes.
+
+```swift
+FULayoutThatFits(
+    maxWidth: maxWidth,
+    layouts: [
+        HStackFULayout(maxHeight: 1000),
+        VStackFULayout(maxWidth: maxWidth)
+    ]
+) {
+    Color.green.frame(width: 50, height: 50)
+    Color.yellow.frame(width: 50, height: 200)
+    Color.blue.frame(width: 50, height: 100)
+}
+```
+
+### FUViewThatFits
+The [`FULayout`](#fulayout) equivalent of SwiftUI `ViewThatFits`.
+
+An `FULayout` that presents the first view that fits the provided maxWidth, maxHeight, or both depending on which parameters are used.
+
+As this view cannot measure the available space the maxWidth and/or maxHeight parameters need to be passed in using a `GeometryReader`, `WidthReader`, or `HeightReader`.
+ 
+Example:
+```swift
+WidthReader { width in
+    FUViewThatFits(maxWidth: width) {
+        Group {
+            Text("This layout will pick the first view that fits the available width.")
+            Text("Maybe this?")
+            Text("OK!")
+        }
+        .fixedSize(horizontal: true, vertical: false)
+    }
+}
+```
+
+(`.fixedSize` needs to be used in this example or the first view will automatically fit by truncating the text)
+
+### FULayout Stacks
+Alternative stack layouts that can be wrapped in `AnyFULayout` and then toggled between with animation. Useful when you want to toggle between VStack and HStack based on available space.
+
+#### HStackFULayout
+Similar to `HStack` but `Spacer()` cannot be used and content will always use a fixed size on the horizontal axis.
+
+#### VStackFULayout
+Similar to `VStack` but `Spacer()` cannot be used and content will always use a fixed size on the vertical axis.
+
+#### ZStackFULayout
+Similar to `ZStack` but content will always use a fixed size on both the vertical and horizontal axes.
+
+### AnyFULayout
+The [`FULayout`](#fulayout) equivalent of SwiftUI `AnyLayout`.
+
+A type-erased FrameUp layout can be used to wrap multiple layouts and switch between them with animation.
+
+```swift
+struct AnyFULayoutSimple: View {
+    let isVStack: Bool
+    let maxSize: CGSize
+    
+    var layout: any FULayout {
+        isVStack ? VStackFULayout(maxWidth: maxSize.width) : HStackFULayout(maxHeight: maxSize.height)
+    }
+    
+    var body: some View {
+        AnyFULayout(layout) {
+            Text("First")
+            Text("Second")
+            Text("Third")
+        }
+        .animation(.spring(), value: isVStack)
+    }
+}
+```
+
+### Custom FULayout
+
+The FrameUp [`FULayout`](#fulayout) protocol requires you to define which axes are fixed, the maximum item size, and a function that takes view sizes and outputs view offsets.
+
+Below is an example layout that arranges views on left and right sides of a central line.
+
+```swift
+struct CustomFULayout: FULayout {
+    /// Add parameters here to adjust layout
+    
+    /// Define these required parameters
+    var fixedSize: Axis.Set = .horizontal
+    var maxItemWidth: CGFloat? { maxWidth }
+    var maxItemHeight: CGFloat? = nil
+    
+    func contentOffsets(sizes: [Int : CGSize]) -> [Int : CGPoint] {
+        /// Write code that uses the dictionary of sizes and your parameters to output a dictionary of offsets from the top left corner.
+    }
+}
+```
+
+### LayoutFromFULayout
+
+If you've created an [`FULayout`](#fulayout) you can use it to easily create a SwiftUI `Layout`.
+
+```swift
+struct CustomLayout: LayoutFromtFULayout {
+    /// Add parameters here to adjust layout
+    
+    /// Add this function that will create the associated FULayout
+    func fuLayout(maxSize: CGSize) -> CustomFULayout {
+        CustomFULayout(
+            /// Pass parameters through to FULayout using maxSize to help define the maximum item size.
+        )
+    }
+}
+```
+
+## TagView
+An older and much simpler version of [`HFlow`](#hflow) not based on `FULayout`.
+
+### TagView
+A view that creates views based on an array of elements from left to right, adding rows when needed. Each row height will be determined by the tallest element.
+
+*Warning: Does not work in ScrollView.*
+
+```swift
+TagView(elements: ["One", "Two", "Three"]) { element in
+    Text(element)
+}
+```
+
+### TagViewForScrollView
+A view that creates views based on an array of elements from left to right, adding rows when needed. Each row height will be determined by the tallest element.
+
+A maximum width must be provided but `WidthReader` can be used to get the value.
+
+```swift
+WidthReader { width in
+    TagView(maxWidth: width, elements: ["One", "Two", "Three"]) { element in
+        Text(element)
+    }
+}
+```
+
+## Widget bugfixes
+
+### WidgetRelativeShape
+*\*iOS only*
+
+A re-scaled version of `ContainerRelativeShape` used to fix a bug with the corner radius on iPads running iOS 15 and earlier. It acts exactly the same as ContainerRelativeShape for iOS 16 and up.
+
+Example:
+This widget view has a blue background with a 1 point inset. On an iPad running iOS 15 or earlier, the red background will show on the corners as the corner radius does not match.
+```swift
+Text("Example widget")
+    .background(.blue)
+    .clipShape(WidgetRelativeShape(.systemSmall))
+    .background(
+        ContainerRelativeShape()
+            .fill(.red)
+    )
+    .padding(1)
+```
+
+
+
+
+
+
+
 

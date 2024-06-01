@@ -8,11 +8,11 @@
 import SwiftUI
 
 /**
- A FrameUp layout that arranges views in a column, adding columns when needed.
+ A FrameUp `FULayout` that arranges views in vertical columns flowing from one to the next with adjustable horizontal and vertical spacing and support for horiztonal and vertical alignment including a justified alignment that will space elements in completed columns evenly.
 
- Each column width will be determined by the widest element. The overall frame size will fit to the size of the laid out content.
+ Each column width will be determined by the widest element.
 
- A maximum height must be provided but `HeightReader` can be used to get the value (especially helpful when inside a `ScrollView`).
+ A maximum height must be provided. `HeightReader` can be used to get the value and is especially helpful when inside a `ScrollView`.
 
  A FrameUp layout is not a view but it works like a view by using `callAsFunction`. There is also an alternative view function `.forEach()` that works like `ForEach`
 

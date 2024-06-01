@@ -1,6 +1,6 @@
 //
-//  SwiftUIView.swift
-//  
+//  VFlowLayout.swift
+//  FrameUp
 //
 //  Created by Ryan Lintott on 2023-05-12.
 //
@@ -8,9 +8,9 @@
 import SwiftUI
 
 /**
- A layout that arranges views in a column, adding columns when needed.
-
- Each column width will be determined by the widest element. The overall frame size will fit to the size of the laid out content.
+ A `Layout` that arranges views in vertical columns flowing from one to the next with adjustable horizontal and vertical spacing and support for horiztonal and vertical alignment including a justified alignment that will space elements in completed columns evenly.
+ 
+ Each column width will be determined by the widest view in that column.
 
  Example:
  ```swift
@@ -27,7 +27,7 @@ public struct VFlowLayout: LayoutFromFULayout {
     public let horizontalSpacing: CGFloat?
     public let verticalSpacing: CGFloat?
     
-    /// Creates a layout that arranges views in a column, adding columns when needed.
+    /// Creates a `Layout` that arranges views in vertical columns flowing from one to the next
     /// - Parameters:
     ///   - alignment: Used to align views horizontally in their columns and align columns vertically relative to each other. Default is top leading.
     ///   - horizontalSpacing: Minimum horizontal spacing between columns.

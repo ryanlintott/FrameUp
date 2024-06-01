@@ -1,13 +1,13 @@
 //
-//  SwiftUIView.swift
-//  
+//  LayoutFromFULayout.swift
+//  FrameUp
 //
 //  Created by Ryan Lintott on 2023-05-12.
 //
 
 import SwiftUI
 
-/// A type of SwiftUI `Layout` that is based on a FrameUp `FULayout`
+/// A SwiftUI `Layout` that is based on a FrameUp `FULayout`
 ///
 /// `sizeThatFits()` and `placeSubviews()` are generated automatically based on an associated `FULayout`
 @available(iOS 16, macOS 13, watchOS 9, tvOS 16, *)

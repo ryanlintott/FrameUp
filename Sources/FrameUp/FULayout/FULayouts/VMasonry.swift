@@ -8,9 +8,9 @@
 import SwiftUI
 
 /**
- A FrameUp layout that arranges views into columns, adding views to the shortest column.
+ A FrameUp `FULayout` that arranges views into a set number of rows by adding each view to the shortest row.
  
- A maximum width must be provided but `WidthReader` can be used to get the value (especially helpful when inside a `ScrollView`).
+ A maximum width must be provided. `WidthReader` can be used to get the value and is especially helpful when inside a `ScrollView`.
  
  A FrameUp layout is not a view but it works like a view by using `callAsFunction`. There is also an alternative view function `.forEach()` that works like `ForEach`
  

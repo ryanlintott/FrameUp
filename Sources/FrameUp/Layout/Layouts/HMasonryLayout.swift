@@ -1,6 +1,6 @@
 //
-//  SwiftUIView.swift
-//
+//  HMasonryLayout.swift
+//  FrameUp
 //
 //  Created by Ryan Lintott on 2023-05-12.
 //
@@ -8,14 +8,14 @@
 import SwiftUI
 
 /**
- A layout that arranges views into rows, adding views to the shortest row.
+ A `Layout` that arranges views into a set number of rows by adding each view to the shortest row.
  
  Example:
  ```swift
  HMasonryLayout(rows: 3) {
-    ForEach(["Hello", "World", "More Text"], id: \.self) { item in
-        Text(item.value)
-    }
+     ForEach(["Hello", "World", "More Text"], id: \.self) { item in
+         Text(item.value)
+     }
  }
  ```
  */
@@ -26,7 +26,7 @@ public struct HMasonryLayout: LayoutFromFULayout {
     public let horizontalSpacing: CGFloat?
     public let verticalSpacing: CGFloat?
     
-    /// Creates a layout that arranges views into rows, adding views to the shortest row.
+    /// Creates a `Layout` that arranges views into a set number of rows by adding each view to the shortest row.
     /// - Parameters:
     ///   - alignment: Used to align rows horizontally relative to each other. Default is leading.
     ///   - rows: Number of rows to place views in.
