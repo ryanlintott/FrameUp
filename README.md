@@ -9,7 +9,7 @@
 [![Twitter](https://img.shields.io/badge/twitter-@ryanlintott-blue.svg?style=flat)](http://twitter.com/ryanlintott)
 
 # Overview
-A collection of SwiftUI framing views and tools to help with layout.
+A collection of SwiftUI tools to help with layout.
 
 - SwiftUI [`Layouts`](#layouts) like [`HFlowLayout`](#hflowlayout), [`VFlowLayout`](#vflowlayout), [`VMasonryLayout`](#vmasonrylayout), [`HMasonryLayout`](#hmasonrylayout), and [`LayoutThatFits`](#layoutthatfits)
 - [`AutoRotatingView`](#autorotatingview) to set allowable orientations for a view.
@@ -18,58 +18,55 @@ A collection of SwiftUI framing views and tools to help with layout.
 - [`TwoSidedView`](#twosidedview) and [`FlippingView`](#flippingview) for making flippable views with a different view on the back side.
 - [`TabMenu`](#tabmenu), a customizable iOS tab menu with `onReselect` and `onDoubleTap` functions.
 
-Some tools for widgets
+Some widget-related tools
 
 - [`AccessoryInlineImage`](#accessoryinlineimage) to use any image inside an `accessoryInline` widget
 - [`WidgetSize`](#widgetsize) - Similar to WidgetFamily but returns widget frame sizes by device and doesn't require `WidgetKit`
 - [`WidgetDemoFrame`](#widgetdemoframe) creates accurately sized widget frames you can use in an iOS or macOS app.
 
-Additional features for iOS 14 and 15 
+Additional SwiftUI tools for iOS 14+15, macOS 11+12, watchOS 7+8, and tvOS 14+15
 
 - [`FULayout`](#fulayout) for building custom layouts (similar to SwiftUI `Layout`).
 - FULayouts: [`HFlow`](#hflow), [`VFlow`](#vflow), [`HMasonry`](#hmasonry), [`VMasonry`](#vmasonry), [`FULayoutThatFits`](#fulayoutthatfits), and [`FUViewThatFits`](#fuviewthatfits)
 - [`AnyFULayout`](#anyfulayout) to wrap multiple layouts and switch between with animation.
-- Make your own [`Custom FULayout`](#customfulayout) and add a SwiftUI `Layout` version using [`LayoutFromFULayout`](#layoutfromfulayout)
+- Make your own [`Custom FULayout`](#custom-fulayout) and add a SwiftUI `Layout` version using [`LayoutFromFULayout`](#layoutfromfulayout)
 - [`TagView`](#tagview) for a simple flow view based on an array of elements.
 - [`WidgetRelativeShape`](#widgetrelativeshape) fixes a `ContainerRelativeShape` bug on iPad.
 
 
-# FrameUpExample
-Check out the [example app](https://github.com/ryanlintott/FrameUpExample) to see how you can use this package in your iOS, macOS, tvOS, or visionOS app.
+# Demo App
+Check out [FrameUpExample](https://github.com/ryanlintott/FrameUpExample) to see how to use this package in your app.
 
-# Installation
+# Installation and Usage
+This package is compatible with iOS 14+, macOS 11+, watchOS 7+, tvOS 14+, and visionOS.
+
 1. In Xcode go to `File -> Add Packages`
 2. Paste in the repo's url: `https://github.com/ryanlintott/FrameUp` and select by version.
+3. Import the package using `import FrameUp`
 
-# Usage
-Import the package using `import FrameUp`
-
-# Platforms
-This package is compatible with iOS 14+, macOS 11+, watchOS 7+, tvOS 14+, and visionOS (beta).
-
-# Is this Production-Ready?
+## Is it Production-Ready?
 Really it's up to you. I currently use this package in my own [Old English Wordhord app](https://oldenglishwordhord.com/app).
 
 Additionally, if you find a bug or want a new feature add an issue and I will get back to you about it.
 
-# Support
-If you like this package, buy me a coffee to say thanks!
+# Support This Project
+FrameUp is open source and free but if you like using it, please consider supporting my work.
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/X7X04PU6T)
 
 - - -
 # Features
 
-## Layout
+## Layouts
 *\*iOS 16+, macOS 13+, watchOS 9+, tvOS 16+*
-Check out the nearly equivalent ['FULayout'](#fulayout) if you target older OSs.
+
+Use [`FULayout`](#fulayout) equivalents if your target OS is older and doesn't support SwiftUI `Layout`.
 
 ### HFlowLayout
 A `Layout` that arranges views in horizontal rows flowing from one to the next with adjustable horizontal and vertical spacing and support for horiztonal and vertical alignment including a justified alignment that will space elements in completed rows evenly.
 
 Each row height will be determined by the tallest element. The overall frame size will fit to the size of the laid out content.
 
-Example:
 ```swift
 HFlowLayout {
     ForEach(["Hello", "World", "More Text"], id: \.self) { item in
@@ -83,7 +80,6 @@ A `Layout` that arranges views in vertical columns flowing from one to the next 
 
 Each column width will be determined by the widest element. The overall frame size will fit to the size of the laid out content.
 
-Example:
 ```swift
 VFlowLayout {
     ForEach(["Hello", "World", "More Text"], id: \.self) { item in
@@ -95,7 +91,6 @@ VFlowLayout {
 ### VMasonryLayout
 A `Layout` that arranges views into a set number of columns by adding each view to the shortest column.
 
-Example:
 ```swift
 VMasonryLayout(columns: 3) {
     ForEach(["Hello", "World", "More Text"], id: \.self) { item in
@@ -107,7 +102,6 @@ VMasonryLayout(columns: 3) {
 ### HMasonryLayout
 A `Layout` that arranges views into a set number of rows by adding each view to the shortest row.
 
-Example:
 ```swift
 HMasonryLayout(rows: 3) {
     ForEach(["Hello", "World", "More Text"], id: \.self) { item in
@@ -146,7 +140,6 @@ A view that takes the available width and provides this measurement to its conte
 
 Useful inside vertical scroll views where you want to measure the width without specifying a frame height.
 
-Example:
 ```swift
 ScrollView {
     WidthReader { width in
@@ -171,7 +164,6 @@ A view that takes the available height and provides this measurement to its cont
 
 Useful inside horizontal scroll views where you want to measure the height without specifying a frame width.
 
-Example:
 ```swift
 ScrollView(.horizontal) {
     HeightReader { height in
@@ -299,7 +291,6 @@ A ScrollView with extra features.
 - Shrink to Fit - When active, the view will only take as much vertical and horizontal space as is required to fit the content. Enabled by default.
 - Edge Insets - An onScroll function runs when the edge insets update. This occurs on scroll, on first load and on any size change to the scroll view or the content. Insets are negative when content edges are beyond the scroll view edges. Values may not be exactly 0 but will be less than 1 when content edges match scroll view edges.
 
-Example:
 ```swift
 SmartScrollView(.vertical, showsIndicators: true, optionalScrolling: true, shrinkToFit: true) {
     // Content here
@@ -350,7 +341,6 @@ Features:
 - onDoubleTap closure that returns a NamedAction that triggers when the active tab is double-tapped.
 - accessibility actions are automatically added for onReselect and onDoubleTap if they are added.
 
-Example:
 ```swift
 let items = [
     TabMenuItem(icon: AnyView(Circle().stroke().overlay(Text("i"))), name: "Info", tab: 0),
@@ -417,7 +407,6 @@ Corner radius size defaults to 20 and may not be the same as the actual widget c
 
 For iPad, widget views use a design size and are scaled to a smaller Home Screen size using `ScaledView`. This demo frame uses the same scaling to properly preview the widget. All sizes will work on all devices and all versions of iOS (even extraLarge on iPhone with iOS 14.0).
 
-iOS Example:
 ```swift
 WidgetDemoFrame(.medium, cornerRadius: 20) { size, cornerRadius in
     Text("Demo Widget")
@@ -476,7 +465,6 @@ A FrameUp `FULayout` that arranges views in horizontal rows flowing from one to 
 
 Each row height will be determined by the tallest view in that row.
 
-Example:
 ```swift
 WidthReader { width in
     HFlow(maxWidth: width) {
@@ -494,7 +482,6 @@ A FrameUp `FULayout` that arranges views in vertical columns flowing from one to
 
 Each column width will be determined by the widest element.
 
-Example:
 ```swift
 WidthReader { width in
     VFlow(maxWidth: width) {
@@ -509,8 +496,7 @@ WidthReader { width in
 The [`FULayout`](#fulayout) equivalent of [`HMasonryLayout`](#hmasonrylayout).
 
 A FrameUp `FULayout` that arranges views into a set number of rows by adding each view to the shortest row.
- 
-Example:
+
 ```swift
 HeightReader { height in
     HMasonry(columns: 3, maxHeight: height) {
@@ -526,8 +512,7 @@ HeightReader { height in
 The [`FULayout`](#fulayout) equivalent of [`VMasonryLayout`](#vmasonrylayout).
 
 A FrameUp `FULayout` that arranges views into a set number of rows by adding each view to the shortest row.
- 
-Example:
+
 ```swift
 WidthReader { width in
     VMasonry(columns: 3, maxWidth: width) {
@@ -564,8 +549,7 @@ The [`FULayout`](#fulayout) equivalent of SwiftUI `ViewThatFits`.
 An `FULayout` that presents the first view that fits the provided maxWidth, maxHeight, or both depending on which parameters are used.
 
 As this view cannot measure the available space the maxWidth and/or maxHeight parameters need to be passed in using a `GeometryReader`, `WidthReader`, or `HeightReader`.
- 
-Example:
+
 ```swift
 WidthReader { width in
     FUViewThatFits(maxWidth: width) {
@@ -582,7 +566,7 @@ WidthReader { width in
 (`.fixedSize` needs to be used in this example or the first view will automatically fit by truncating the text)
 
 ### FULayout Stacks
-Alternative stack layouts that can be wrapped in `AnyFULayout` and then toggled between with animation. Useful when you want to toggle between VStack and HStack based on available space.
+Alternative stack layouts that can be wrapped in [`AnyFULayout`](#anyfulayout) and then toggled between with animation. Useful when you want to toggle between VStack and HStack based on available space.
 
 #### HStackFULayout
 Similar to `HStack` but `Spacer()` cannot be used and content will always use a fixed size on the horizontal axis.
@@ -690,8 +674,8 @@ WidthReader { width in
 
 A re-scaled version of `ContainerRelativeShape` used to fix a bug with the corner radius on iPads running iOS 15 and earlier. It acts exactly the same as ContainerRelativeShape for iOS 16 and up.
 
-Example:
-This widget view has a blue background with a 1 point inset. On an iPad running iOS 15 or earlier, the red background will show on the corners as the corner radius does not match.
+This example has a blue background with a 1 point inset. On an iPad running iOS 15 or earlier, the red background will show on the corners as the corner radius does not match.
+
 ```swift
 Text("Example widget")
     .background(.blue)
