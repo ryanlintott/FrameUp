@@ -60,7 +60,7 @@ FrameUp is open source and free but if you like using it, please consider suppor
 ## Layouts
 *\*iOS 16+, macOS 13+, watchOS 9+, tvOS 16+*
 
-Use [`FULayout`](#fulayout) equivalents if your target OS is older and doesn't support SwiftUI `Layout`.
+If your target OS is older and doesn't support SwiftUI `Layout`, use [`FULayout`](#fulayout) equivalents.
 
 ### HFlowLayout
 A `Layout` that arranges views in horizontal rows flowing from one to the next with adjustable horizontal and vertical spacing and support for horiztonal and vertical alignment including a justified alignment that will space elements in completed rows evenly.
