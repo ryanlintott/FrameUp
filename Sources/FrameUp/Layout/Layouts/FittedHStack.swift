@@ -69,22 +69,19 @@ struct FittedHStack: Layout {
     }
 }
 
+@available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
 #Preview {
-    Group {
-        if #available(iOS 16, macOS 13, tvOS 16, watchOS 9, *) {
-//            ScrollView {
-                FittedHStack(alignment: .center) {
-                    GeometryReader { proxy in
-                        Color.red.overlay(Text("\(proxy.size.width)"))
-                        
-                    }
-                    
-                    Color.red
-                        .frame(height: 400)
-                }
-                .background(Color.blue)
-                .padding()
-//            }
+//    ScrollView {
+        FittedHStack(alignment: .center) {
+            GeometryReader { proxy in
+                Color.red.overlay(Text("\(proxy.size.width)"))
+                
+            }
+            
+            Color.red
+                .frame(height: 400)
         }
-    }
+        .background(Color.blue)
+        .padding()
+//    }
 }

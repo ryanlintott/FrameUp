@@ -69,22 +69,19 @@ struct FittedVStack: Layout {
     }
 }
 
+@available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
 #Preview {
-    Group {
-        if #available(iOS 16, macOS 13, tvOS 16, watchOS 9, *) {
-//            ScrollView {
-                FittedVStack(alignment: .center) {
-                    GeometryReader { proxy in
-                        Color.red.overlay(Text("\(proxy.size.width)"))
-                        
-                    }
-                    
-                    Color.red
-                        .frame(width: 400)
-                }
-                .background(Color.blue)
-                .padding()
-//            }
+//    ScrollView {
+        FittedVStack(alignment: .center) {
+            GeometryReader { proxy in
+                Color.red.overlay(Text("\(proxy.size.width)"))
+                
+            }
+            
+            Color.red
+                .frame(width: 400)
         }
-    }
+        .background(Color.blue)
+        .padding()
+//    }
 }
