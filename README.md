@@ -202,6 +202,55 @@ struct OnSizeChangeExample: View {
 }
 ```
 
+### equalWidthPreferred
+Views with `.equalWidthPreferred()` inside a view with `.equalWidthContainer()` will have widths equal to the largest view. If space is limited views will shrink equally, each to a minimum size that fits the content. It works in `HStack`, `VStack` and even custom layouts like `HFlow`
+
+This works especially well in macOS when you want all buttons on a window to have the same width while still allowing some shrinking.
+
+```swift
+HStack {
+    Button { } label: {
+        Text("More Information")
+            .equalWidthPreferred()
+    }
+    Spacer()
+    
+    Button { } label: {
+        Text("Cancel")
+            .equalWidthPreferred()
+    }
+    
+    Spacer()
+    
+    Button { } label: {
+        Text("OK")
+            .equalWidthPreferred()
+    }
+}
+.equalWidthContainer()
+.frame(maxWidth: 400)
+.padding()
+```
+
+### equalHeightPreferred
+Views with `.equalHeightPreferred()` inside a view with `.equalHeightContainer()` will have heights equal to the largest view. If space is limited views will shrink equally, each to a minimum size that fits the content. It works in `HStack`, `VStack` and even custom layouts like `VFlow`
+
+```swift
+HStack {
+    Group {
+        Text("Here's something with some text")
+        
+        Text("And more")
+    }
+    .foregroundColor(.white)
+    .padding()
+    .equalHeightPreferred()
+    .background(Color.blue.cornerRadius(10))
+}
+.equalHeightContainer()
+.frame(maxWidth: 200)
+```
+
 ### keyboardHeight
 An environment variable that will update with animation as the iOS keyboard appears and disappears. It will always be zero for non-iOS platforms. 
 

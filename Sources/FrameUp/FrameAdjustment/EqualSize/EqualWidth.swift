@@ -60,13 +60,12 @@ private struct EqualWidthContainerViewModifier: ViewModifier {
 }
 
 public extension View {
-    /// Adds an action to perform when parent view size value changes.
-    /// - Parameter action: The action to perform when the size changes. The action closure passes the new value as its parameter.
-    /// - Returns: A view with an invisible background `GeometryReader` that detects and triggers an action when the size changes.
+    /// This view will have a width equal to the largest view with this modifier inside a view with `.equalWidthContainer()`. If space is limited views will shrink equally, each to a minimum fixed size that fits the content.
     func equalWidthPreferred() -> some View {
         modifier(EqualWidthViewModifier())
     }
     
+    /// Views inside this view using `.equalWidthPreferred()` will have a width equal to the largest view with that modifier. If space is limited these views will shrink equally, each to a minimum fixed size that fits the content.
     func equalWidthContainer() -> some View {
         modifier(EqualWidthContainerViewModifier())
     }
@@ -78,6 +77,7 @@ public extension View {
             Text("More Information")
                 .equalWidthPreferred()
         }
+        
         Spacer()
         
         Button { } label: {
