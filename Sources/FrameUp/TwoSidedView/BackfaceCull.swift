@@ -12,17 +12,27 @@ struct BackfaceCull: Shape {
     /// Degrees of rotation. Any additional 360 degree rotaitons will be removed before evaluating.
     var degrees: CGFloat
     
-    var animatableData: CGFloat {
-        get { degrees }
-        set { degrees = newValue }
+    nonisolated var animatableData: CGFloat {
+        get {
+            MainActor.assumeIsolated {
+                degrees
+            }
+        }
+        set {
+            MainActor.assumeIsolated {
+                degrees = newValue
+            }
+        }
     }
     
     func path(in rect: CGRect) -> Path {
-        var path = Path()
-        switch abs(degrees).truncatingRemainder(dividingBy: 360) {
-        case 90...270: break
-        default: path.addRect(rect)
+        MainActor.assumeIsolated {
+            var path = Path()
+            switch abs(degrees).truncatingRemainder(dividingBy: 360) {
+            case 90...270: break
+            default: path.addRect(rect)
+            }
+            return path
         }
-        return path
     }
 }
