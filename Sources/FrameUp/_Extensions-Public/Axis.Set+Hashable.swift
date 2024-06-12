@@ -7,4 +7,4 @@
 
 import SwiftUI
 
-extension Axis.Set: Hashable { }
+extension Axis.Set: @retroactive Hashable { }

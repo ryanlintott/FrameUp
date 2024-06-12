@@ -26,7 +26,7 @@ import SwiftUI
  */
 public struct FULayoutThatFits: FULayout {
     public let layouts: [AnyFULayout]
-    public var maxItemWidth: CGFloat?
+    public let maxItemWidth: CGFloat?
     public let maxItemHeight: CGFloat?
     public let fixedSize: Axis.Set
     

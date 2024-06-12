@@ -29,7 +29,7 @@ import SwiftUI
  (`.fixedSize` needs to be used in this example or the first view will automatically fit by truncating the text)
  */
 public struct FUViewThatFits: FULayout {
-    public var maxItemWidth: CGFloat?
+    public let maxItemWidth: CGFloat?
     public let maxItemHeight: CGFloat?
     public let fixedSize: Axis.Set
     

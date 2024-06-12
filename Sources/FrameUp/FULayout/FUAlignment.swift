@@ -8,7 +8,7 @@
 import SwiftUI
 
 /// A alignment type used for FULayout that has a limited number of cases
-public enum FUAlignment: String, CaseIterable, Identifiable, Equatable, Hashable {
+public enum FUAlignment: String, CaseIterable, Identifiable, Equatable, Hashable, Sendable {
     case topLeading
     case top
     case topTrailing
@@ -104,7 +104,7 @@ public enum FUAlignment: String, CaseIterable, Identifiable, Equatable, Hashable
     }
 }
 
-public enum FUHorizontalAlignment: String, CaseIterable, Identifiable, Equatable, Hashable {
+public enum FUHorizontalAlignment: String, CaseIterable, Identifiable, Equatable, Hashable, Sendable {
     case leading
     case center
     case trailing
@@ -140,7 +140,7 @@ public enum FUHorizontalAlignment: String, CaseIterable, Identifiable, Equatable
     }
 }
 
-public enum FUVerticalAlignment: String, CaseIterable, Identifiable, Equatable, Hashable {
+public enum FUVerticalAlignment: String, CaseIterable, Identifiable, Equatable, Hashable, Sendable {
     case top
     case center
     case bottom

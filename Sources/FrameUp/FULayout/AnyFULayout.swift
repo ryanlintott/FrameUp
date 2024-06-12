@@ -20,7 +20,7 @@ public struct AnyFULayout: FULayout {
     public let maxItemWidth: CGFloat?
     public let maxItemHeight: CGFloat?
     /// A closure that holds the layout function for the wrapped layout.
-    private let contentOffsets: ([Int : CGSize]) -> [Int : CGPoint]
+    private let contentOffsets: @Sendable ([Int : CGSize]) -> [Int : CGPoint]
     
     /// Creates a type-erased FrameUp layout.
     /// - Parameter layout: FrameUp layout that will be type-erased.

@@ -8,7 +8,7 @@
 import SwiftUI
 
 #if os(iOS)
-struct InfoDictionary {
+enum InfoDictionary {
     static let supportedInterfaceOrientations: [InterfaceOrientation] = {
         if let orientations = Bundle.main.infoDictionary?["UISupportedInterfaceOrientations"] as? [String] {
             return orientations.compactMap { InterfaceOrientation(key: $0) }

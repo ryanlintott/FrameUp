@@ -39,7 +39,7 @@ import SwiftUI
  }
  ```
  */
-public protocol FULayout: Equatable, Hashable {
+public protocol FULayout: Equatable, Hashable, Sendable {
     /// Axes that will have a fixed size.
     var fixedSize: Axis.Set { get }
     /// Max width for a subview.
@@ -52,6 +52,7 @@ public protocol FULayout: Equatable, Hashable {
     /// These offsets are used to re-position each subview
     /// - Parameter sizes: Sizes of each subview keyed to an integer id.
     /// - Returns: A dictionary of offsets for each subview keyed to an integer id based on a corresponding dictionary of sizes of those subviews.
+    @Sendable
     func contentOffsets(sizes: [Int: CGSize]) -> [Int: CGPoint]
 }
 
