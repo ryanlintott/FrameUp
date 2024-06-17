@@ -20,7 +20,7 @@ public struct SizeKey: PreferenceKey {
 }
 
 public extension View {
-    /// Adds an action to perform when parent view size value changes.
+    /// Adds an action to perform when parent view size value changes. This action will also run when the view first appears to send the initial size.
     /// - Parameter action: The action to perform when the size changes. The action closure passes the new value as its parameter.
     /// - Returns: A view with an invisible background `GeometryReader` that detects and triggers an action when the size changes.
     func onSizeChange(perform action: @escaping (CGSize) -> Void) -> some View {
