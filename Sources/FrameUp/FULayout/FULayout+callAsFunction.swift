@@ -41,30 +41,30 @@ fileprivate struct _FULayoutView<Content: View, L: FULayout>: View {
 /// Old simpler version that worked before Swift 6
 /// FB13869223
 /// body(childen:) on _VariadicView_MultiViewRoot is nonisolated. If it were isolated to the main actor this would work
+#if compiler(<6)
+fileprivate struct _VariadicFULayoutRoot<L: FULayout>: _VariadicView_MultiViewRoot {
+    let layout: L
+    let contentOffsets: [Int: CGPoint]
+    
+    init(_ layout: L, contentOffsets: [Int : CGPoint]) {
+        self.layout = layout
+        self.contentOffsets = contentOffsets
+    }
+    
+    var defaultOffset: CGPoint {
+        contentOffsets.first?.value ?? .zero
+    }
+    
+    @ViewBuilder
+    func body(children: _VariadicView.Children) -> some View {
+        ForEach(Array(zip(children, children.indices)), id: \.0.id) { (child, index) in
+            FULayoutChildView(layout: layout, index: index, contentOffset: contentOffsets[index], defaultOffset: defaultOffset, content: child)
+        }
+    }
+}
 
-//fileprivate struct _VariadicFULayoutRoot<L: FULayout>: _VariadicView_MultiViewRoot {
-//    let layout: L
-//    let contentOffsets: [Int: CGPoint]
-//    
-//    init(_ layout: L, contentOffsets: [Int : CGPoint]) {
-//        self.layout = layout
-//        self.contentOffsets = contentOffsets
-//    }
-//    
-//    var defaultOffset: CGPoint {
-//        contentOffsets.first?.value ?? .zero
-//    }
-//    
-//    @ViewBuilder
-//    func body(children: _VariadicView.Children) -> some View {
-//        ForEach(Array(zip(children, children.indices)), id: \.0.id) { (child, index) in
-//            FULayoutChildView(layout: layout, index: index, contentOffset: contentOffsets[index], defaultOffset: defaultOffset, content: child)
-//        }
-//    }
-//}
-
+#else
 /// Workaround
-///
 @MainActor
 fileprivate struct _VariadicFULayoutRoot<L: FULayout, Body: View>: _VariadicView_MultiViewRoot {
     @ViewBuilder
@@ -103,5 +103,6 @@ extension _VariadicFULayoutRoot where Body == _VariadicFULayoutRootContent<L> {
         self.init { _VariadicFULayoutRootContent(layout: layout, contentOffsets: contentOffsets, children: $0) }
     }
 }
+#endif
 
 
