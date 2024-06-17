@@ -11,12 +11,12 @@ import SwiftUI
 /// A view that rotates and resizes the content frame to match device orientation.
 public struct AutoRotatingView<Content: View>: View {
     /// The current orientation of the content relative to the device.
-    @State private var contentOrientation: InterfaceOrientation? = nil
+    @State private var contentOrientation: FUInterfaceOrientation? = nil
     /// The current orientation of the device.
-    @State private var interfaceOrientation: InterfaceOrientation? = nil
+    @State private var interfaceOrientation: FUInterfaceOrientation? = nil
     
     /// Allowed orientations for the content.
-    let allowedOrientations: [InterfaceOrientation]
+    let allowedOrientations: [FUInterfaceOrientation]
     /// Toggle to turn this modifier on or off.
     let isOn: Bool
     /// Animation to use for the orientation change.
@@ -32,14 +32,14 @@ public struct AutoRotatingView<Content: View>: View {
     ///   - isOn: Toggles ability to rotate views.
     ///   - animation: Animation to use when altering the view orientation.
     /// - Returns: A view rotated to match a device orientations from an allowed orientation set.
-    public init(_ allowedOrientations: [InterfaceOrientation] = InterfaceOrientation.allCases, isOn: Bool = true, animation: Animation? = .default, @ViewBuilder content: () -> Content) {
+    public init(_ allowedOrientations: [FUInterfaceOrientation] = FUInterfaceOrientation.allCases, isOn: Bool = true, animation: Animation? = .default, @ViewBuilder content: () -> Content) {
         self.allowedOrientations = allowedOrientations
         self.isOn = isOn
         self.animation = animation
         self.content = content()
     }
     
-    func newInterfaceOrientation(deviceOrientation: InterfaceOrientation?) -> InterfaceOrientation? {
+    func newInterfaceOrientation(deviceOrientation: FUInterfaceOrientation?) -> FUInterfaceOrientation? {
         if let newSupportedOrientation = InfoDictionary.supportedInterfaceOrientations.first(where: { $0 == deviceOrientation }), newSupportedOrientation != interfaceOrientation {
             return newSupportedOrientation
         } else if interfaceOrientation == nil {
@@ -49,7 +49,7 @@ public struct AutoRotatingView<Content: View>: View {
         }
     }
     
-    func newContentOrientation(deviceOrientation: InterfaceOrientation?, interfaceOrientation: InterfaceOrientation?, allowedOrientations: [InterfaceOrientation]) -> InterfaceOrientation? {
+    func newContentOrientation(deviceOrientation: FUInterfaceOrientation?, interfaceOrientation: FUInterfaceOrientation?, allowedOrientations: [FUInterfaceOrientation]) -> FUInterfaceOrientation? {
         if let newOrientation = deviceOrientation, allowedOrientations.contains(newOrientation), newOrientation != contentOrientation {
             return newOrientation
         } else if contentOrientation == nil {
@@ -60,7 +60,7 @@ public struct AutoRotatingView<Content: View>: View {
     }
     
     @MainActor
-    func changeOrientations(allowedOrientations: [InterfaceOrientation]? = nil) {
+    func changeOrientations(allowedOrientations: [FUInterfaceOrientation]? = nil) {
         if isOn {
             let allowedOrientations = allowedOrientations ?? self.allowedOrientations
             /// if the new device orientation is a valid interface orientation it will not be nil

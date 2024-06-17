@@ -114,7 +114,7 @@ public struct SmartScrollView<Content: View>: View {
     @State private var state: SmartScrollViewState? = nil
     
     /// Last orientation is saved
-    @State private var lastOrientation: InterfaceOrientation? = UIDevice.current.orientation.interfaceOrientation
+    @State private var lastOrientation: FUInterfaceOrientation? = UIDevice.current.orientation.interfaceOrientation
     
     /// Axes that will be used on ScrollView
     var scrollViewAxes: Axis.Set {

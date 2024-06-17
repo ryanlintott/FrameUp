@@ -5,9 +5,9 @@
 //  Created by Ryan Lintott on 2020-12-31.
 //
 
+#if os(iOS)
 import SwiftUI
 
-#if os(iOS)
 extension View {
     /// Rotates a view and alters it's frame to match device orientations from an allowed orientation set.
     ///
@@ -18,8 +18,8 @@ extension View {
     ///   - animation: Animation to use when altering the view orientation.
     /// - Returns: A view rotated to match a device orientations from an allowed orientation set.
     @available(*, deprecated, message: "Use AutoRotatingView view instead of this modifier.")
-    public func rotationMatchingOrientation(_ allowedOrientations: [InterfaceOrientation]? = nil, isOn: Bool = true, withAnimation animation: Animation? = nil) -> some View {
-        AutoRotatingView(allowedOrientations ?? InterfaceOrientation.allCases, isOn: isOn, animation: animation) {
+    public func rotationMatchingOrientation(_ allowedOrientations: [FUInterfaceOrientation]? = nil, isOn: Bool = true, withAnimation animation: Animation? = nil) -> some View {
+        AutoRotatingView(allowedOrientations ?? FUInterfaceOrientation.allCases, isOn: isOn, animation: animation) {
             self
         }
     }
