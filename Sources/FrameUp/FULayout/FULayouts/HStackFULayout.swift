@@ -8,7 +8,7 @@
 import SwiftUI
 
 /// A FrameUp layout version of `HStackLayout`. Useful when you want to toggle between different FrameUp layouts.
-public struct HStackFULayout: FULayout {
+public struct HStackFULayout: FULayout, Sendable {
     typealias Row = FULayoutRow
     
     public let alignment: FUVerticalAlignment

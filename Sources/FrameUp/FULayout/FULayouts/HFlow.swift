@@ -27,7 +27,7 @@ import SwiftUI
  }
  ```
  */
-public struct HFlow: FULayout {
+public struct HFlow: FULayout, Sendable {
     typealias Row = FULayoutRow
     
     public let alignment: FUAlignment

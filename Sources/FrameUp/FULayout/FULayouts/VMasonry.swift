@@ -25,7 +25,7 @@ import SwiftUI
  }
  ```
  */
-public struct VMasonry: FULayout {
+public struct VMasonry: FULayout, Sendable {
     typealias Column = FULayoutColumn
     
     public let alignment: FUAlignment

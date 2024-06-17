@@ -8,7 +8,7 @@
 import SwiftUI
 
 /// A FrameUp layout version of `ZStackLayout`. Useful when you want to toggle between different FrameUp layouts.
-public struct ZStackFULayout: FULayout {
+public struct ZStackFULayout: FULayout, Sendable {
     public let alignment: FUAlignment
     public let maxWidth: CGFloat
     public let maxHeight: CGFloat

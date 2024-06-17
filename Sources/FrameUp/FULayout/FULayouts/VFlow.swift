@@ -27,7 +27,7 @@ import SwiftUI
  }
  ```
  */
-public struct VFlow: FULayout {
+public struct VFlow: FULayout, Sendable {
     typealias Column = FULayoutColumn
     
     public let alignment: FUAlignment

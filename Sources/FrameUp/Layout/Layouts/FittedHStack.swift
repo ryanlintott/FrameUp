@@ -20,7 +20,7 @@ import SwiftUI
  ```
  */
 @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
-struct FittedHStack: Layout {
+struct FittedHStack: Layout, Sendable {
     let alignment: FUVerticalAlignment
     let spacing: CGFloat
     

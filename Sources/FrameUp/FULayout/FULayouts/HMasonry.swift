@@ -25,7 +25,7 @@ import SwiftUI
  }
  ```
  */
-public struct HMasonry: FULayout {
+public struct HMasonry: FULayout, Sendable {
     typealias Row = FULayoutRow
     
     public let alignment: FUAlignment
