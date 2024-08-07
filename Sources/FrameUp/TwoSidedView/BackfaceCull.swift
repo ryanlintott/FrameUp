@@ -14,25 +14,19 @@ struct BackfaceCull: Shape {
     
     nonisolated var animatableData: CGFloat {
         get {
-            MainActor.assumeIsolated {
-                degrees
-            }
+            degrees
         }
         set {
-            MainActor.assumeIsolated {
-                degrees = newValue
-            }
+            degrees = newValue
         }
     }
     
     func path(in rect: CGRect) -> Path {
-        MainActor.assumeIsolated {
-            var path = Path()
-            switch abs(degrees).truncatingRemainder(dividingBy: 360) {
-            case 90...270: break
-            default: path.addRect(rect)
-            }
-            return path
+        var path = Path()
+        switch abs(degrees).truncatingRemainder(dividingBy: 360) {
+        case 90...270: break
+        default: path.addRect(rect)
         }
+        return path
     }
 }

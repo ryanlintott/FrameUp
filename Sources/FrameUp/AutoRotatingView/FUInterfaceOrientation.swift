@@ -16,7 +16,7 @@ public enum FUInterfaceOrientation: CaseIterable, Sendable {
 }
 
 internal extension FUInterfaceOrientation {
-    nonisolated init?(key: String) {
+    init?(key: String) {
         switch key {
         case "UIInterfaceOrientationPortrait":
             self = .portrait
