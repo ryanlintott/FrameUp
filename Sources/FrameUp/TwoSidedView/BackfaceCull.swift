@@ -12,7 +12,7 @@ struct BackfaceCull: Shape {
     /// Degrees of rotation. Any additional 360 degree rotaitons will be removed before evaluating.
     var degrees: CGFloat
     
-    nonisolated var animatableData: CGFloat {
+    var animatableData: CGFloat {
         get {
             degrees
         }
