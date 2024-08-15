@@ -12,7 +12,7 @@ struct BackfaceCull: Shape {
     /// Degrees of rotation. Any additional 360 degree rotaitons will be removed before evaluating.
     var degrees: CGFloat
     
-    var animatableData: CGFloat {
+    nonisolated var animatableData: CGFloat {
         get {
             degrees
         }
@@ -28,5 +28,15 @@ struct BackfaceCull: Shape {
         default: path.addRect(rect)
         }
         return path
+    }
+}
+
+#Preview {
+    VStack {
+        BackfaceCull(degrees: .zero)
+            .fill(.blue)
+        
+        BackfaceCull(degrees: 180)
+            .fill(.red)
     }
 }
