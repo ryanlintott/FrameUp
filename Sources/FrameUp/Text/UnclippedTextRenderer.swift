@@ -24,7 +24,7 @@ struct UnclippedTextRenderer: TextRenderer {
 public extension View {
     /// Adds a simple text renderer that draws the text without any changes. Using a text renderer will remove the clipping frame normally applied when rendering text. This modifier is unnecessary if another text renderer is already used.
     /// - Returns: A view where the Text clipping frame removed.
-    nonisolated internal func unclippedTextRenderer() -> some View {
+    nonisolated func unclippedTextRenderer() -> some View {
         textRenderer(UnclippedTextRenderer())
     }
 }
