@@ -90,7 +90,6 @@ public extension WidgetDemoFrame {
     ///   - widgetSize: Size of widget (all sizes are supported regardless of iOS version)
     ///   - cornerRadius: Size of the corner radius relative to homeScreenSize
     ///   - content: view with parameters for the designCanvasSize and designCornerRadius
-    @MainActor
     init?(_ widgetSize: WidgetSize, cornerRadius: CGFloat? = nil, content: @escaping SizeAndCornerRadius) {
         guard
             let designCanvasSize = widgetSize.sizeForCurrentDevice(iPadTarget: .designCanvas),

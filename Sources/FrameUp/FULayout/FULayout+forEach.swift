@@ -13,7 +13,7 @@ public extension FULayout {
     ///   - data: Data used to generate views.
     ///   - content: Closure that takes one item from data and generates a view for that item.
     /// - Returns: A  views on demand from an underlying collection of identified data.
-    @MainActor
+    @preconcurrency @MainActor
     func forEach<Data: RandomAccessCollection, Content: View>(_ data: Data, content: @escaping (Data.Element) -> Content) -> some View where Data.Element: Identifiable, Data.Index == Int {
         FULayoutEach(data, layout: self, content: content)
     }

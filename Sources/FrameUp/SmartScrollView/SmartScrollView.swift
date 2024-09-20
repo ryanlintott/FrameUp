@@ -73,7 +73,6 @@ public struct SmartScrollViewState: Equatable, Sendable {
  - If placed directly inside a NavigationView with a resizing header, this view may behave strangely when scrolling. To avoid this add 1 point of padding to the top of this view.
  - If the available space for this view grows for any reason other than screen rotation, this view will not grow to fill the space. If you know the value that causes this change, add an `.id(value)` modifier below this view to trigger the view to recalculate. This will cause it to scroll to the top.
 */
-@MainActor
 public struct SmartScrollView<Content: View>: View {
     /// The scroll view’s scrollable axis. The default axis is the vertical axis.
     let axes: Axis.Set

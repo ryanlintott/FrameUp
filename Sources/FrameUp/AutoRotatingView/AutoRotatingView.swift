@@ -59,7 +59,6 @@ public struct AutoRotatingView<Content: View>: View {
         }
     }
     
-    @MainActor
     func changeOrientations(allowedOrientations: [FUInterfaceOrientation]? = nil) {
         if isOn {
             let allowedOrientations = allowedOrientations ?? self.allowedOrientations

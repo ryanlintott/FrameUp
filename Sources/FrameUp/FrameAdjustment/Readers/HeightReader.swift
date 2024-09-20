@@ -23,7 +23,6 @@ public struct HeightKey: PreferenceKey {
 /// A view that takes the available height and provides this measurement to its content. Unlike 'GeometryReader' this view will not take up all the available width and will instead fit the width of the content.
 ///
 /// Useful inside horizontal scroll views where you want to measure the height without specifying a frame width.
-@MainActor
 public struct HeightReader<Content: View>: View {
     let alignment: VerticalAlignment
     @ViewBuilder let content: (CGFloat) -> Content
@@ -39,7 +38,6 @@ public struct HeightReader<Content: View>: View {
         self.content = content
     }
     
-    @MainActor
     @ViewBuilder
     public var elements: some View {
         Color.clear.overlay(
@@ -51,11 +49,7 @@ public struct HeightReader<Content: View>: View {
         .frame(width: 0)
         .onPreferenceChange(HeightKey.self) { newHeight in
             if height == newHeight { return }
-            /// Using a task will break animation on height changes but it prevents crashes (especially on macOS when the height changes frequently.
-            Task { @MainActor in
-                if height == newHeight { return }
-                height = newHeight
-            }
+            height = newHeight
         }
         
         /// Only show the content if the height has been set (is not zero)

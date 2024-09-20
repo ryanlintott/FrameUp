@@ -26,7 +26,6 @@ public struct AccessoryInlineImage: View {
     
     /// Creates an image that will be scaled and have the rendering mode adjusted to work inside an `accessoryInline` widget.
     /// - Parameter uiImage: Base image to use.
-    @MainActor
     public init?(_ uiImage: UIImage) {
         if uiImage.isSymbolImage {
             self.uiImage = uiImage.withRenderingMode(.alwaysTemplate)
@@ -51,7 +50,6 @@ public extension AccessoryInlineImage {
     /// Creates an image that will be scaled and have the rendering mode adjusted to work inside an `accessoryInline` widget.
     /// - Parameter name: The name of the image asset or file.
     /// - Parameter bundle: The bundle containing the image file or asset catalog. Specify nil to search the app’s main bundle.
-    @MainActor
     init?(_ name: String, bundle: Bundle? = nil) {
         guard let uiImage = UIImage(named: name, in: bundle, with: nil) else { return nil }
         self.init(uiImage)

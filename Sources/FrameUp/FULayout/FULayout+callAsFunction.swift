@@ -11,7 +11,7 @@ public extension FULayout {
     /// Creates a view that arranges its children based on the parent FrameUp layout.
     /// - Parameter content: A closure view containing child views.
     /// - Returns: A view that arranges its children based on the parent FrameUp layout.
-    @MainActor
+    @preconcurrency @MainActor
     func callAsFunction<Content: View>(@ViewBuilder content: () -> Content) -> some View {
         _FULayoutView(self, content: content)
     }

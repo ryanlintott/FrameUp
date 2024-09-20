@@ -45,7 +45,7 @@ public extension ScaledShape where Content == ScaledContainerRelativeShape {
     ///
     /// This is a bug probably caused by setting the corner radius relative to the Home Screen widget size, then using it on the design canvas size (or vice versa). Hopefully be fixed in a future update but when it is, this shape will no longer have the correct corner radius.
     /// - Parameter widgetFamily: Pass this in from `@Environment(\.widgetFamily) var widgetFamily`
-    @MainActor
+    @preconcurrency @MainActor
     init(_ widgetFamily: WidgetFamily) {
         let scaleFactor: CGFloat
         if #available(iOSApplicationExtension 16, *) {
