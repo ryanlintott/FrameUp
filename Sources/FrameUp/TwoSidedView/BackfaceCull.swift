@@ -12,13 +12,9 @@ struct BackfaceCull: Shape {
     /// Degrees of rotation. Any additional 360 degree rotaitons will be removed before evaluating.
     var degrees: CGFloat
     
-    nonisolated var animatableData: CGFloat {
-        get {
-            degrees
-        }
-        set {
-            degrees = newValue
-        }
+    var animatableData: CGFloat {
+        get { degrees }
+        set { degrees = newValue }
     }
     
     func path(in rect: CGRect) -> Path {
