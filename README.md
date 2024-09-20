@@ -14,6 +14,7 @@ A collection of SwiftUI tools to help with layout.
 - SwiftUI [`Layouts`](#layouts) like [`HFlowLayout`](#hflowlayout), [`VFlowLayout`](#vflowlayout), [`VMasonryLayout`](#vmasonrylayout), [`HMasonryLayout`](#hmasonrylayout), and [`LayoutThatFits`](#layoutthatfits)
 - [`AutoRotatingView`](#autorotatingview) to set allowable orientations for a view.
 - [Frame Adjustment](#frame-adjustment) tools like [`WidthReader`](#widthreader), [`HeightReader`](#heightreader), [`onSizeChange(perform:)`](#onsizechangeperform), [`keyboardHeight`](#keyboardHeight), [`.relativePadding`](#relativepaddingedges-lengthfactor), [`ScaledView`](#scaledview) and [`OverlappingImage`](#overlappingimage).
+- [unclippedTextRenderer](#unclippedtextrenderer) for fixing clipped `Text`. 
 - [`SmartScrollView`](#smartscrollview) with optional scrolling, a content-fitable frame, and live edge inset values.
 - [`TwoSidedView`](#twosidedview) and [`FlippingView`](#flippingview) for making flippable views with a different view on the back side.
 - [`TabMenu`](#tabmenu), a customizable iOS tab menu with `onReselect` and `onDoubleTap` functions.
@@ -330,6 +331,20 @@ VStack(spacing: 0) {
     Text("The image above will overlap content above and below.")
         .padding(20)
 }
+```
+
+## Text
+### unclippedTextRenderer
+*\*iOS 18+, macOS 15+, watchOS 11+, tvOS 18+, visionOS 2+*
+
+SwiftUI `Text` has a clipping frame that cannot be adjusted and will occasionally clip the rendered text. This modifier applies an `UnclippedTextRenderer` that removes this clipping frame.
+
+This modifier is unnecessary if another text renderer is used as all text renderers will remove the clipping frame.
+
+```swift
+Text("f")
+    .font(.custom("zapfino", size: 30))
+    .unclippedTextRenderer()
 ```
 
 ## SmartScrollView
