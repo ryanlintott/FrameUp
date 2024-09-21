@@ -21,8 +21,8 @@ public struct ZStackFULayout: FULayout, Sendable {
     /// Creates a FrameUp layout version of `ZStackLayout`.
     /// - Parameters:
     ///   - alignment: Alignment for elements.
-    ///   - maxHeight: Maximum height (can be obtained through a `HeightReader`).
-    ///   - maxItemWidth: Maximum width for each child view. Default is infinity.
+    ///   - maxWidth: Maximum width.
+    ///   - maxHeight: Maximum height.
     public init(
         alignment: FUAlignment? = nil,
         maxWidth: CGFloat,

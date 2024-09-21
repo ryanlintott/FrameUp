@@ -163,7 +163,7 @@ public extension WidgetSize {
     }
     
     /// Size for this widget on an iPhone with the specified screen size.
-    /// - Parameter screenSize: Apple Watch size in mm.
+    /// - Parameter watchSize: Apple Watch size in mm.
     /// - Returns: Size for this widget. Nil if widget size is not available.
     func sizeForWatch(watchSize: CGFloat) -> CGSize? {
         Self.sizesForWatch(watchSize: watchSize)[self]

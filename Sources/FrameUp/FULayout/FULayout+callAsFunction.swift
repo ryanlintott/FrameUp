@@ -11,12 +11,22 @@ public extension FULayout {
     /// Creates a view that arranges its children based on the parent FrameUp layout.
     /// - Parameter content: A closure view containing child views.
     /// - Returns: A view that arranges its children based on the parent FrameUp layout.
+    @available(iOS, introduced: 14, deprecated: 16, message: "FULayout can be replaced with SwiftUI Layout equivalent. For example: HFlow -> HFlowLayout")
+    @available(macOS, introduced: 11, deprecated: 13, message: "FULayout can be replaced with SwiftUI Layout equivalent. For example: HFlow -> HFlowLayout")
+    @available(watchOS, introduced: 7, deprecated: 9, message: "FULayout can be replaced with SwiftUI Layout equivalent. For example: HFlow -> HFlowLayout")
+    @available(tvOS, introduced: 14, deprecated: 16, message: "FULayout can be replaced with SwiftUI Layout equivalent. For example: HFlow -> HFlowLayout")
+    @available(visionOS, introduced: 1, deprecated: 1, message: "FULayout can be replaced with SwiftUI Layout equivalent. For example: HFlow -> HFlowLayout")
     @preconcurrency @MainActor
     func callAsFunction<Content: View>(@ViewBuilder content: () -> Content) -> some View {
         _FULayoutView(self, content: content)
     }
 }
 
+@available(iOS, introduced: 14, deprecated: 16)
+@available(macOS, introduced: 11, deprecated: 13)
+@available(watchOS, introduced: 7, deprecated: 9)
+@available(tvOS, introduced: 14, deprecated: 16)
+@available(visionOS, introduced: 1, deprecated: 1)
 fileprivate struct _FULayoutView<Content: View, L: FULayout>: View {
     let layout: L
     let content: Content
@@ -38,6 +48,11 @@ fileprivate struct _FULayoutView<Content: View, L: FULayout>: View {
     }
 }
 
+@available(iOS, introduced: 14, deprecated: 16)
+@available(macOS, introduced: 11, deprecated: 13)
+@available(watchOS, introduced: 7, deprecated: 9)
+@available(tvOS, introduced: 14, deprecated: 16)
+@available(visionOS, introduced: 1, deprecated: 1)
 fileprivate struct _VariadicFULayoutRoot<L: FULayout>: _VariadicView_MultiViewRoot {
     let layout: L
     let contentOffsets: [Int: CGPoint]

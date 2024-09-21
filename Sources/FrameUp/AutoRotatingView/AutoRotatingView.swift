@@ -31,7 +31,7 @@ public struct AutoRotatingView<Content: View>: View {
     ///   - allowedOrientations: Set of allowed orientations for this view. Default is all.
     ///   - isOn: Toggles ability to rotate views.
     ///   - animation: Animation to use when altering the view orientation.
-    /// - Returns: A view rotated to match a device orientations from an allowed orientation set.
+    ///   - content: Content to be rotated to match a device orientations from an allowed orientation set.
     public init(_ allowedOrientations: [FUInterfaceOrientation] = FUInterfaceOrientation.allCases, isOn: Bool = true, animation: Animation? = .default, @ViewBuilder content: () -> Content) {
         self.allowedOrientations = allowedOrientations
         self.isOn = isOn

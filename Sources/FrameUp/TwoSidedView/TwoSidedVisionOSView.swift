@@ -52,8 +52,7 @@ extension View {
     ///   - angle: The angle at which to rotate the view.
     ///   - axis: The x, y and z elements that specify the axis of rotation.
     ///   - anchor: The location with a default of center that defines a point in 3D space about which the rotation is anchored.
-    ///   - anchorZ: The location with a default of 0 that defines a point in 3D space about which the rotation is anchored.
-    ///   - perspective: The relative vanishing point with a default of 1 for this rotation.
+    ///   - thickness: The distance between the front and back views.
     ///   - back: View to show on the back.
     /// - Returns: A rotated view with another view showing on the back.
     public func rotation3DEffect<Back: View>(
