@@ -7,7 +7,8 @@
 
 import SwiftUI
 
-@available(visionOS, deprecated, renamed: "TwoSidedVisionOSViewModifier")
+@available(visionOS, deprecated: 1, renamed: "TwoSidedVisionOSViewModifier")
+@available(iOS 14, macOS 11, tvOS 14, watchOS 7, *)
 struct TwoSidedViewModifier<Back: View>: ViewModifier {
     let angle: Angle
     let axis: (x: CGFloat, y: CGFloat, z: CGFloat)
@@ -70,7 +71,8 @@ extension View {
     ///   - perspective: The relative vanishing point with a default of 1 for this rotation.
     ///   - back: View to show on the back.
     /// - Returns: A rotated view with another view showing on the back.
-    @available(visionOS, deprecated, message: "Use rotation3DEffect without perspective")
+    @available(visionOS, deprecated: 1, renamed: "rotaion3DEffect(_:axis:anchor:thickness:back:)")
+    @available(iOS 14, macOS 11, tvOS 14, watchOS 7, *)
     public func rotation3DEffect<Back: View>(
         _ angle: Angle,
         axis: (x: CGFloat, y: CGFloat, z: CGFloat),
@@ -83,7 +85,8 @@ extension View {
     }
 }
 
-@available(visionOS, deprecated, message: "Use rotation3DEffect without perspective")
+@available(visionOS, deprecated: 1)
+@available(iOS 14, macOS 11, tvOS 14, watchOS 7, *)
 struct TwoSidedView_Previews: PreviewProvider {
     struct PreviewData: View {
         @State private var angle: Angle = .zero
