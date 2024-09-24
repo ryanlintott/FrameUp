@@ -368,8 +368,9 @@ SmartScrollView(.vertical, showsIndicators: true, optionalScrolling: true, shrin
 - If the available space for this view grows for any reason other than screen rotation, this view might not grow to fill the space.
 
 ## TwoSidedView
-### rotation3DEffect(angle:, axis:, anchor:, anchorZ, perspective:, back:)
-An alternative to rotation3DEffect that provides a closure for views that will be seen on the back side of this view.
+### rotation3DEffect(angle:axis:anchor:anchorZ:perspective:backsideFlip:back:)
+*\*deprecated in visionOS*
+Renders a view’s content as if it’s rotated in three dimensions around the specified axis with a closure containing a different view to show on the back.
 
 The example below is a view with two sides. One blue side that says "Front" and a red side on the back that says "Back". Changing the angle will show each side as it becomes visible.
 
@@ -379,6 +380,28 @@ Color.blue.overlay(Text("Front"))
         Color.red.overlay(Text("Back"))
     }
 ```
+
+### perspectiveRotationEffect(angle:axis:anchor:anchorZ:perspective:backsideFlip:back:)
+*\*visionOS*
+Renders a view’s content as if it’s rotated in three dimensions around the specified axis with a closure containing a different view to show on the back. The view is not actually rotated in 3d space.
+
+```swift
+Color.blue.overlay(Text("Front"))
+    .rotation3DEffect(angle) {
+        Color.red.overlay(Text("Back"))
+    }
+```
+
+### rotation3DEffect(angle:axis:anchor:backsideFlip:back:)
+*\*visionOS*
+Rotates this view’s rendered output in three dimensions around the given axis of rotation with a closure containing a different view on the back. A minimum thickness that offsets the two views is required to ensure the side facing the user renders on top.
+```swift
+Color.blue.overlay(Text("Front"))
+    .rotation3DEffect(angle) {
+        Color.red.overlay(Text("Back"))
+    }
+```
+
 
 ### FlippingView
 A two-sided view that can be flipped by tapping or swiping.
