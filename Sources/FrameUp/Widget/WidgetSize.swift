@@ -35,12 +35,13 @@ public extension WidgetSize {
     typealias Size = (CGFloat, CGFloat)
     
     /// Widget sizes for iPhone
+    ///
+    /// All sizes are sourced from [Apple Human Interface Guidelines: widget specifications](https://developer.apple.com/design/human-interface-guidelines/widgets#Specifications)
     /// - Parameter screenSize: iPhone screen size ignoring orientation.
     /// - Returns: A dictionary of sizes based on widget size.
     static func sizesForiPhone(screenSize: CGSize) -> [WidgetSize: CGSize] {
         let widgetSizes: (Size, Size, Size, Size, Size, Size)
         
-        /// source: https://developer.apple.com/design/human-interface-guidelines/widgets#Specifications
         switch (screenSize.width, screenSize.height) {
         case (430..., _): widgetSizes = ((170, 170), (364, 170), (364, 382), (76, 76), (172, 76), (257, 26))
         case (428..., _): widgetSizes = ((170, 170), (364, 170), (364, 382), (76, 76), (172, 76), (257, 26))
@@ -65,13 +66,14 @@ public extension WidgetSize {
     }
 
     /// Widget sizes for iPad
+    ///
+    /// All sizes are sourced from [Apple Human Interface Guidelines: widget specifications](https://developer.apple.com/design/human-interface-guidelines/widgets#Specifications)
     /// - Parameter screenSize: iPad screen size ignoring orientation.
     /// - Parameter target: Widget frame target. iPad widgets have a design canvas frame used for laying out the content, and a smaller Home Screen frame that the content is scaled to fit.
     /// - Returns: A dictionary of sizes based on widget size.
     static func sizesForiPad(screenSize: CGSize, target: WidgetTarget) -> [WidgetSize: CGSize] {
         let widgetSizes: ((CGFloat, CGFloat), (CGFloat, CGFloat), (CGFloat, CGFloat), (CGFloat, CGFloat))
         
-        /// source: https://developer.apple.com/design/human-interface-guidelines/widgets#Specifications
         switch (screenSize.width, screenSize.height, target) {
         case (1192..., _, .designCanvas): widgetSizes = ((188, 188), (412, 188), (412, 412), (860, 412))
         case (1192..., _, .homeScreen): widgetSizes = ((188, 188), (412, 188), (412, 412), (860, 412))
@@ -104,12 +106,13 @@ public extension WidgetSize {
     }
     
     /// Widget sizes for Apple Watch.
+    ///
+    /// All sizes are sourced from [Apple Human Interface Guidelines: widget specifications](https://developer.apple.com/design/human-interface-guidelines/widgets#Specifications)
     /// - Parameter watchSize: Apple Watch size in mm.
     /// - Returns: A dictionary of sizes based on widget size.
     static func sizesForWatch(watchSize: CGFloat) -> [WidgetSize: CGSize] {
         let size: (CGFloat, CGFloat)
         
-        /// source: https://developer.apple.com/design/human-interface-guidelines/widgets#Specifications
         switch watchSize {
         case 49...: size = (382, 163)
         case 45...: size = (368, 161)

@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-/// A alignment type used for FULayout that has a limited number of cases
+/// A alignment type used for ``FULayout`` that has a limited number of cases
 public enum FUAlignment: String, CaseIterable, Identifiable, Equatable, Hashable, Sendable {
     case topLeading
     case top
@@ -87,7 +87,7 @@ public enum FUAlignment: String, CaseIterable, Identifiable, Equatable, Hashable
         .init(horizontal: self.horizontal.replacingJustification(with: alternateAlignment), vertical: self.vertical)
     }
     
-    /// Creates `FUAlignment` from `Alignment` for cases `.topLeading`, `.top`,  `.topTrailing`,  `.leading`,  `.center`,  `.trailing`,  `.bottomLeading`,  `.bottom`,  and `.bottomTrailing` and returns nil for all other cases.
+    /// Creates ``FUAlignment`` from `Alignment` for cases `.topLeading`, `.top`,  `.topTrailing`,  `.leading`,  `.center`,  `.trailing`,  `.bottomLeading`,  `.bottom`,  and `.bottomTrailing` and returns nil for all other cases.
     public init?(from alignment: Alignment) {
         switch alignment {
         case .topLeading: self = .topLeading
@@ -129,7 +129,7 @@ public enum FUHorizontalAlignment: String, CaseIterable, Identifiable, Equatable
         }
     }
     
-    /// Creates `FUHorizontalAlignment` from `HoriztonalAlignment` for cases `.leading`, `.center`, and `.trailing` and returns nil for all other cases.
+    /// Creates ``FUHorizontalAlignment`` from `HoriztonalAlignment` for cases `.leading`, `.center`, and `.trailing` and returns nil for all other cases.
     public init?(_ horizontalAlignment: HorizontalAlignment) {
         switch horizontalAlignment {
         case .leading: self = .leading
@@ -165,7 +165,7 @@ public enum FUVerticalAlignment: String, CaseIterable, Identifiable, Equatable, 
         }
     }
     
-    /// Creates `FUVerticalAlignment` from `VerticalAlignment` for cases `.top`, `.center`, and `.bottom` and returns nil for all other cases.
+    /// Creates ``FUVerticalAlignment`` from `VerticalAlignment` for cases `.top`, `.center`, and `.bottom` and returns nil for all other cases.
     public init?(_ verticalAlignment: VerticalAlignment) {
         switch verticalAlignment {
         case .top: self = .top

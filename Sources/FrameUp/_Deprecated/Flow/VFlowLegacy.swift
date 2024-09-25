@@ -1,5 +1,5 @@
 //
-//  LegacyVFlow.swift
+//  VFlowLegacy.swift
 //  FrameUp
 //
 //  Created by Ryan Lintott on 2021-06-11.
@@ -11,7 +11,7 @@ import SwiftUI
 ///
 /// Each column width will be determined by the widest element. The overall frame size will fit to the size of the laid out content.
 ///
-/// A maximum height must be provided but `HeightReader` can be used to get the value (especially helpful when inside a `ScrollView`).
+/// A maximum height must be provided but ``HeightReader`` can be used to get the value (especially helpful when inside a `ScrollView`).
 ///
 /// Example:
 ///

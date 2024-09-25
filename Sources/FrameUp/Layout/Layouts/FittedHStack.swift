@@ -8,7 +8,7 @@
 import SwiftUI
 
 /**
- A `Layout` that arranges views like an `HStack` but it ensures the overall height is never larger than the proposed height. This is only used inside `HeightReader`.
+ A `Layout` that arranges views like an `HStack` but it ensures the overall height is never larger than the proposed height. This is only used inside ``HeightReader``.
 
  Example:
  ```swift

@@ -9,7 +9,7 @@ import SwiftUI
 
 /// Preference key used to pass child view sizes up the hierarchy.
 ///
-/// Used by `LegacyHFlow` and `LegacyVFlow`.
+/// Used by ``HFlowLegacy`` and ``VFlowLegacy``.
 @available(*, deprecated, renamed: "FULayoutSizeKey")
 public struct FlowContentSizeKey: PreferenceKey {
     public typealias Value = [Int: CGSize]

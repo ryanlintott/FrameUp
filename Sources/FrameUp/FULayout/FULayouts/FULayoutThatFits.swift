@@ -8,7 +8,7 @@
 import SwiftUI
 
 /**
- An `FULayout` that picks the first provided layout that will fit the content in the provided maxWidth, maxHeight, or both. This is most helpful when switching between `HStackFULayout` and `VStackFULayout` as the content only needs to be provided once and will even animate when the stack changes.
+ An ``FULayout`` that picks the first provided layout that will fit the content in the provided maxWidth, maxHeight, or both. This is most helpful when switching between ``HStackFULayout`` and ``VStackFULayout`` as the content only needs to be provided once and will even animate when the stack changes.
 
  ```swift
  FULayoutThatFits(
@@ -24,6 +24,11 @@ import SwiftUI
  }
  ```
  */
+@available(iOS, introduced: 14, deprecated: 16, renamed: "LayoutThatFits", message: "FULayoutThatFits can be replaced with SwiftUI Layout equivalent LayoutThatFits")
+@available(macOS, introduced: 11, deprecated: 13, renamed: "LayoutThatFits", message: "FULayoutThatFits can be replaced with SwiftUI Layout equivalent LayoutThatFits")
+@available(watchOS, introduced: 7, deprecated: 9, renamed: "LayoutThatFits", message: "FULayoutThatFits can be replaced with SwiftUI Layout equivalent LayoutThatFits")
+@available(tvOS, introduced: 14, deprecated: 16, renamed: "LayoutThatFits", message: "FULayoutThatFits can be replaced with SwiftUI Layout equivalent LayoutThatFits")
+@available(visionOS, introduced: 1, deprecated: 1, renamed: "LayoutThatFits", message: "FULayoutThatFits can be replaced with SwiftUI Layout equivalent LayoutThatFits")
 public struct FULayoutThatFits: FULayout {
     public let layouts: [AnyFULayout]
     public let maxItemWidth: CGFloat?

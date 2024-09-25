@@ -22,7 +22,7 @@ struct UnclippedTextRenderer: TextRenderer {
 
 @available(iOS 18, macOS 15, watchOS 11, tvOS 18, visionOS 2, *)
 public extension View {
-    /// SwiftUI `Text` has a clipping frame that cannot be adjusted and will occasionally clip the rendered text. This modifier applies an `UnclippedTextRenderer` that removes this clipping frame.
+    /// SwiftUI `Text` has a clipping frame that cannot be adjusted and will occasionally clip the rendered text. This modifier applies a text renderer that changes nothing except removing the clipping frame.
     ///
     /// This modifier is unnecessary if another text renderer is used as all text renderers will remove the clipping frame.
     /// - Returns: A view where the Text clipping frame removed.

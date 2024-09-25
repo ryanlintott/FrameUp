@@ -9,7 +9,7 @@ import SwiftUI
 
 /// A view that creates views based on an array of elments from left to right, adding rows when needed. Each row height will be determined by the tallest element.
 ///
-/// *Warning: Does not work in ScrollView.*
+/// > Warning: Does not work in ScrollView.
 ///
 ///     TagView(elements: ["One", "Two", "Three"]) { element in
 ///         Text(element)

@@ -60,12 +60,12 @@ struct EqualHeightContainerViewModifier: ViewModifier {
 }
 
 public extension View {
-    /// This view will have a height equal to the largest view with this modifier inside a view with `.equalHeightContainer()`. If space is limited views will shrink equally, each to a minimum fixed size that fits the content.
+    /// This view will have a height equal to the largest view with this modifier inside a view with ``SwiftUICore/View/equalHeightContainer()``. If space is limited views will shrink equally, each to a minimum fixed size that fits the content.
     func equalHeightPreferred() -> some View {
         modifier(EqualHeightViewModifier())
     }
     
-    /// Views inside this view using `.equalHeightPreferred()` will have a height equal to the largest view with that modifier. If space is limited these views will shrink equally, each to a minimum fixed size that fits the content.
+    /// Views inside this view using ``SwiftUICore/View/equalHeightPreferred()`` will have a height equal to the largest view with that modifier. If space is limited these views will shrink equally, each to a minimum fixed size that fits the content.
     func equalHeightContainer() -> some View {
         modifier(EqualHeightContainerViewModifier())
     }

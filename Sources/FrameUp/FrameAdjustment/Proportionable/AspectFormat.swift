@@ -9,7 +9,7 @@ import SwiftUI
 
 /// An enumeration to indicate the aspect format of a frame.
 ///
-/// Used in `Proportionable` protocol
+/// Used in ``Proportionable`` protocol
 public enum AspectFormat: CaseIterable, Sendable {
     case portrait, square, landscape
     

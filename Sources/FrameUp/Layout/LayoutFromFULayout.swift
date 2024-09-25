@@ -7,16 +7,16 @@
 
 import SwiftUI
 
-/// A SwiftUI `Layout` that is based on a FrameUp `FULayout`
+/// A SwiftUI `Layout` that is based on a FrameUp ``FULayout``
 ///
-/// `sizeThatFits()` and `placeSubviews()` are generated automatically based on an associated `FULayout`
+/// `sizeThatFits()` and `placeSubviews()` are generated automatically based on an associated ``FULayout``
 @available(iOS 16, macOS 13, watchOS 9, tvOS 16, *)
 public protocol LayoutFromFULayout: Layout {
     associatedtype AssociatedFULayout: FULayout
     
-    /// The function that generates the associated FULayout
+    /// The function that generates the associated ``FULayout``
     ///
-    /// `sizeThatFits()` and `placeSubviews()` are generated automatically based on this `FULayout`
+    /// `sizeThatFits()` and `placeSubviews()` are generated automatically based on this ``FULayout``
     /// - Parameter maxSize: The maximum size available for the layout.
     /// - Returns: The associated FULayout initialized with the provied max size.
     func fuLayout(maxSize: CGSize) -> AssociatedFULayout

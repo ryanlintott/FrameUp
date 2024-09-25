@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-/// The root view used in `_FULayoutView` and `FULayoutEach`.
+/// The root view used in ``_FULayoutView`` and  ``FULayoutEach``.
 @available(iOS, introduced: 14, deprecated: 16)
 @available(macOS, introduced: 11, deprecated: 13)
 @available(watchOS, introduced: 7, deprecated: 9)
@@ -58,7 +58,7 @@ internal struct FULayoutRootView<Content: View, L: FULayout>: View {
     }
 }
 
-/// The child view used in `_FULayoutView` and `FULayoutEach`.
+/// The child view used in ``_FULayoutView`` and  ``FULayoutEach``.
 @available(iOS, introduced: 14, deprecated: 16)
 @available(macOS, introduced: 11, deprecated: 13)
 @available(watchOS, introduced: 7, deprecated: 9)

@@ -10,7 +10,7 @@ import SwiftUI
 /**
  A type that can create a FrameUp view layout.
  
- You can use FULayout to make your own layouts. For example a view that arranges views on left and right sides of a central line.
+ You can use `FULayout` to make your own layouts. For example a view that arranges views on left and right sides of a central line.
 
  ```swift
  struct CustomFULayout: FULayout {

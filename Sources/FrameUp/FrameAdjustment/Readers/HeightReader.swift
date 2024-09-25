@@ -9,7 +9,7 @@ import SwiftUI
 
 /// Preference key used to pass the height of a child view up the hierarchy.
 ///
-/// Used by `HeightReader`.
+/// Used by ``HeightReader``.
 ///
 /// Only one key is necessary and works even in nested situations because the value is captured and used inside reader view. Nested views will replace the value before reading it so the correct value should always be sent through.
 public struct HeightKey: PreferenceKey {
@@ -20,7 +20,7 @@ public struct HeightKey: PreferenceKey {
     }
 }
 
-/// A view that takes the available height and provides this measurement to its content. Unlike 'GeometryReader' this view will not take up all the available width and will instead fit the width of the content.
+/// A view that takes the available height and provides this measurement to its content. Unlike `GeometryReader` this view will not take up all the available width and will instead fit the width of the content.
 ///
 /// Useful inside horizontal scroll views where you want to measure the height without specifying a frame width.
 public struct HeightReader<Content: View>: View {

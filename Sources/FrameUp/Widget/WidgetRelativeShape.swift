@@ -10,7 +10,7 @@ import SwiftUI
 import WidgetKit
 
 @available(iOS, unavailable)
-@available(iOSApplicationExtension 14.0, *)
+@available(iOSApplicationExtension, introduced: 14.0, deprecated: 16.0, message: "Use ContainerRelativeShape instead")
 /// A scalable version of ContainerRelativeShape.
 ///
 /// This shape should not be used directly. Instead, use `WidgetRelativeShape(_ widgetFamily:)`.
@@ -33,7 +33,7 @@ public struct ScaledContainerRelativeShape: Shape {
 }
 
 @available(iOS, unavailable)
-@available(iOSApplicationExtension 14.0, *)
+@available(iOSApplicationExtension, introduced: 14.0, deprecated: 16.0, message: "Use ContainerRelativeShape instead")
 /// A re-scaled version of `ContainerRelativeShape` used to fix a bug with the corner radius on iPads in iOS 15 and earlier.
 public typealias WidgetRelativeShape = ScaledShape<ScaledContainerRelativeShape>
 

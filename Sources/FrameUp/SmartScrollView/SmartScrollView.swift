@@ -8,7 +8,7 @@
 import SwiftUI
 
 #if os(iOS)
-/// Settings used in `SmartScrollView`
+/// Settings used in ``SmartScrollView``
 public struct SmartScrollViewMeasurements: Equatable, Sendable {
     /// State of scroll view dimensions
     public let state: SmartScrollViewState
@@ -33,7 +33,7 @@ extension SmartScrollViewMeasurements {
     }
 }
 
-/// A PreferenceKey used to pass SmartScrollViewSettings up the view hierarchy
+/// A PreferenceKey used to pass ``SmartScrollViewMeasurements`` up the view hierarchy
 public struct SmartScrollViewKey: PreferenceKey {
     public typealias Value = SmartScrollViewMeasurements?
     public static let defaultValue: SmartScrollViewMeasurements? = nil

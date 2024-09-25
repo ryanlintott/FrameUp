@@ -70,7 +70,7 @@ internal extension FUInterfaceOrientation {
     }
 }
 
-@available(iOS 15, macOS 12, watchOS 8, tvOS 15, visionOS 1, * )
+@available(iOS 15, * )
 internal extension FUInterfaceOrientation {
     init?(_ interfaceOrientation: InterfaceOrientation) {
         switch interfaceOrientation {
