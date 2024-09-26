@@ -5,13 +5,13 @@
 //  Created by Ryan Lintott on 2021-05-11.
 //
 
+#if os(iOS)
 import SwiftUI
 
-#if os(iOS)
-struct InfoDictionary {
-    static let supportedInterfaceOrientations: [InterfaceOrientation] = {
+enum InfoDictionary {
+    static let supportedInterfaceOrientations: [FUInterfaceOrientation] = {
         if let orientations = Bundle.main.infoDictionary?["UISupportedInterfaceOrientations"] as? [String] {
-            return orientations.compactMap { InterfaceOrientation(key: $0) }
+            return orientations.compactMap { FUInterfaceOrientation(key: $0) }
         } else {
             return []
         }

@@ -7,7 +7,12 @@
 
 import SwiftUI
 
-/// The root view used in `_FULayoutView` and `FULayoutEach`.
+/// The root view used in ``_FULayoutView`` and  ``FULayoutEach``.
+@available(iOS, introduced: 14, deprecated: 16)
+@available(macOS, introduced: 11, deprecated: 13)
+@available(watchOS, introduced: 7, deprecated: 9)
+@available(tvOS, introduced: 14, deprecated: 16)
+@available(visionOS, introduced: 1, deprecated: 1)
 internal struct FULayoutRootView<Content: View, L: FULayout>: View {
     let layout: L
     @Binding var contentOffsets: [Int: CGPoint]
@@ -53,7 +58,12 @@ internal struct FULayoutRootView<Content: View, L: FULayout>: View {
     }
 }
 
-/// The child view used in `_FULayoutView` and `FULayoutEach`.
+/// The child view used in ``_FULayoutView`` and  ``FULayoutEach``.
+@available(iOS, introduced: 14, deprecated: 16)
+@available(macOS, introduced: 11, deprecated: 13)
+@available(watchOS, introduced: 7, deprecated: 9)
+@available(tvOS, introduced: 14, deprecated: 16)
+@available(visionOS, introduced: 1, deprecated: 1)
 internal struct FULayoutChildView<Content: View, L: FULayout>: View {
     let layout: L
     let index: Int

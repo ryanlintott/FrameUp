@@ -48,7 +48,7 @@ extension StringProtocol {
     
     /// Returns an array of lines that fit the maximum width split at the last separator that fits.
     ///
-    /// If a single word is larger than the maximum width, `splitMultilineByCharacter()` is used on that line.
+    /// If a single word is larger than the maximum width, ``Swift/StringProtocol/splitMultilineByCharacter(font:maxWidth:)`` is used on that line.
     /// - Parameters:
     ///   - separator: Character that can be substituted for a line break.
     ///   - font: Font used when measuring size.

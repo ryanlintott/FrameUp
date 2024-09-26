@@ -23,7 +23,6 @@ public struct WidthKey: PreferenceKey {
 /// A view that takes the available width and provides this measurement to its content. Unlike `GeometryReader` this view will not take up all the available height and will instead fit the height of the content.
 ///
 /// Useful inside vertical scroll views where you want to measure the width without specifying a frame height.
-@MainActor
 public struct WidthReader<Content: View>: View {
     let alignment: HorizontalAlignment
     @ViewBuilder let content: (CGFloat) -> Content
@@ -38,8 +37,7 @@ public struct WidthReader<Content: View>: View {
         self.alignment = alignment
         self.content = content
     }
-    
-    @MainActor    
+       
     @ViewBuilder
     public var elements: some View {
         Color.clear.overlay(
@@ -51,11 +49,7 @@ public struct WidthReader<Content: View>: View {
         .frame(height: 0)
         .onPreferenceChange(WidthKey.self) { newWidth in
             if width == newWidth { return }
-            /// Using a task will break animation on width changes but it prevents crashes (especially on macOS when the width changes frequently.
-            Task { @MainActor in
-                if width == newWidth { return }
-                width = newWidth
-            }
+            width = newWidth
         }
         
         /// Only show the content if the width has been set (is not zero)

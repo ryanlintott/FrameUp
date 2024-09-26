@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-/// A preference key used for managing view sizes in a FrameUp layout view.
+/// A preference key used for managing view sizes in an ``FULayout`` view.
 public struct FULayoutSizeKey: PreferenceKey {
     public typealias Value = [Int: CGSize]
     public static let defaultValue: [Int: CGSize] = [:]

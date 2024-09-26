@@ -11,22 +11,12 @@ import SwiftUI
 
 public extension WidgetSize {
     /// The screen size ignoring orientation.
-    @MainActor
-    private static var currentScreenSize: CGSize {
+    @preconcurrency @MainActor
+    private static let currentScreenSize =
         UIScreen.main.fixedCoordinateSpace.bounds.size
-    }
-    
-    /// Maybe a replacement for UIScreen.main
-//    @MainActor
-//    private static var currentScreenSize2: CGSize? {
-//        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else {
-//            return nil
-//        }
-//        return windowScene.screen.fixedCoordinateSpace.bounds.size
-//    }
     
     /// The current device.
-    @MainActor
+    @preconcurrency @MainActor
     private static let currentDevice = UIDevice.current.userInterfaceIdiom
     
     /// Find the supported sizes for a specified device
@@ -52,7 +42,7 @@ public extension WidgetSize {
     }
     
     /// Supported widget sizes for the current device.
-    @MainActor
+    @preconcurrency @MainActor
     static var supportedSizesForCurrentDevice: [WidgetSize] {
         supportedSizes(for: currentDevice)
     }
@@ -60,7 +50,7 @@ public extension WidgetSize {
     /// Size for this widget on the current device.
     /// - Parameter iPadTarget: Widget frame target. iPad widgets have a design canvas frame used for laying out the content, and a smaller Home Screen frame that the content is scaled to fit.
     /// - Returns: Size for this widget for the current device. Zero if device does not have widgets or if no size is available.
-    @MainActor
+    @preconcurrency @MainActor
     func sizeForCurrentDevice(iPadTarget: WidgetTarget) -> CGSize? {
         switch Self.currentDevice {
         case .pad:
@@ -75,7 +65,7 @@ public extension WidgetSize {
     /// How much the widget is scaled down to fit on the Home Screen.
     ///
     /// Home Screen width divided by design canvas width. iPhone value will always be 1.
-    @MainActor
+    @preconcurrency @MainActor
     var scaleFactorForCurrentDevice: CGFloat? {
         switch Self.currentDevice {
         case .pad:

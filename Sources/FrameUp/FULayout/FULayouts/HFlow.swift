@@ -8,13 +8,13 @@
 import SwiftUI
 
 /**
- A FrameUp `FULayout` that arranges views in horizontal rows flowing from one to the next with adjustable horizontal and vertical spacing and support for horiztonal and vertical alignment including a justified alignment that will space elements in completed rows evenly.
+ A FrameUp ``FULayout`` that arranges views in horizontal rows flowing from one to the next with adjustable horizontal and vertical spacing and support for horiztonal and vertical alignment including a justified alignment that will space elements in completed rows evenly.
  
  Each row height will be determined by the tallest view in that row.
  
- A maximum width must be provided. `WidthReader` can be used to get the value and is especially helpful when inside a `ScrollView`.
+ A maximum width must be provided. ``WidthReader`` can be used to get the value and is especially helpful when inside a `ScrollView`.
  
- A FrameUp layout is not a view but it works like a view by using `callAsFunction`. There is also an alternative view function `.forEach()` that works like `ForEach`
+ A FrameUp layout is not a view but it works like a view by using ``callAsFunction(content:)``. There is also an alternative view function ``forEach(_:content:)`` that works like SwiftUI `ForEach`
  
  Example:
  ```swift
@@ -27,7 +27,7 @@ import SwiftUI
  }
  ```
  */
-public struct HFlow: FULayout {
+public struct HFlow: FULayout, Sendable {
     typealias Row = FULayoutRow
     
     public let alignment: FUAlignment

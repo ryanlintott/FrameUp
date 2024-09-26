@@ -7,34 +7,64 @@
 
 import SwiftUI
 
-@available(visionOS, deprecated, renamed: "TwoSidedVisionOSViewModifier")
+public enum BacksideFlip: Equatable, Identifiable {
+    /// The backside will be upright when flipped horizontally or vertically and in-between it will choose the option that is the most upright of the two.
+    case automatic
+    /// The backside will appear upright when flipped horizontally.
+    case horizontal
+    /// The backside will appear upright when flipped horizontally.
+    case vertical
+    /// The backside will not be flipped so it will appear mirrored when flipped. This can be useful when flipping non-symmetrical shapes.
+    case none
+    
+    public var id: Self { self }
+    
+    func axis(rotationAxis: (x: CGFloat, y: CGFloat, z: CGFloat)) -> (x: CGFloat, y: CGFloat, z: CGFloat) {
+        switch self {
+        case .automatic: abs(rotationAxis.x) >= abs(rotationAxis.y) ? (1, 0, 0) : (0, 1, 0)
+        case .horizontal: (0, 1, 0)
+        case .vertical: (1, 0, 0)
+        case .none: (0, 0, 0)
+        }
+    }
+}
+
 struct TwoSidedViewModifier<Back: View>: ViewModifier {
     let angle: Angle
     let axis: (x: CGFloat, y: CGFloat, z: CGFloat)
     let anchor: UnitPoint
     let anchorZ: CGFloat
     let perspective: CGFloat
+    let backsideFlip: BacksideFlip
     let back: Back
     
-    init(_ angle: Angle, axis: (x: CGFloat, y: CGFloat, z: CGFloat), anchor: UnitPoint, anchorZ: CGFloat, perspective: CGFloat, back: Back) {
+    init(
+        _ angle: Angle,
+        axis: (x: CGFloat,
+        y: CGFloat,
+        z: CGFloat),
+        anchor: UnitPoint,
+        anchorZ: CGFloat,
+        perspective: CGFloat,
+        backsideFlip: BacksideFlip = .automatic,
+        back: () -> Back
+    ) {
         self.angle = angle
         self.axis = axis
         self.anchor = anchor
         self.anchorZ = anchorZ
         self.perspective = perspective
-        self.back = back
-    }
-    
-    init(_ angle: Angle, axis: (x: CGFloat, y: CGFloat, z: CGFloat), anchor: UnitPoint, anchorZ: CGFloat, perspective: CGFloat, back: () -> Back) {
-        self.angle = angle
-        self.axis = axis
-        self.anchor = anchor
-        self.anchorZ = anchorZ
-        self.perspective = perspective
+        self.backsideFlip = backsideFlip
         self.back = back()
     }
     
-    var backAngle: Angle { angle + .degrees(180) }
+    var backAngle: Angle {
+        angle + .degrees(180)
+    }
+    
+    var backsideFlipAxis: (x: CGFloat, y: CGFloat, z: CGFloat) {
+        backsideFlip.axis(rotationAxis: axis)
+    }
     
     var isFaceUp: Bool {
         switch abs(angle.degrees).truncatingRemainder(dividingBy: 360) {
@@ -43,96 +73,107 @@ struct TwoSidedViewModifier<Back: View>: ViewModifier {
         }
     }
     
+    var backFlipped: some View {
+        back
+            .clipShape(BackfaceCull(degrees: backAngle.degrees))
+            .accessibilityElement(children: isFaceUp ? .ignore : .contain)
+            .accessibilityHidden(!isFaceUp)
+            #if os(visionOS)
+            .perspectiveRotationEffect(.degrees(180), axis: backsideFlipAxis)
+            #else
+            .rotation3DEffect(.degrees(180), axis: backsideFlipAxis)
+            #endif
+    }
+    
     func body(content: Content) -> some View {
-        ZStack {
-            back
-                .clipShape(BackfaceCull(degrees: backAngle.degrees))
-                .rotation3DEffect(backAngle, axis: axis, anchor: anchor, anchorZ: anchorZ, perspective: perspective)
-                .accessibilityElement(children: isFaceUp ? .ignore : .contain)
-                .accessibilityHidden(!isFaceUp)
-            
-            content
-                .clipShape(BackfaceCull(degrees: angle.degrees))
-                .rotation3DEffect(angle, axis: axis, anchor: anchor, anchorZ: anchorZ, perspective: perspective)
-                .accessibilityElement(children: isFaceUp ? .contain : .ignore)
-                .accessibilityHidden(isFaceUp)
-        }
+        content
+            .clipShape(BackfaceCull(degrees: angle.degrees))
+            .accessibilityElement(children: isFaceUp ? .contain : .ignore)
+            .accessibilityHidden(isFaceUp)
+            .background(backFlipped)
+            #if os(visionOS)
+            .perspectiveRotationEffect(angle, axis: axis, anchor: anchor, anchorZ: anchorZ, perspective: perspective)
+            #else
+            .rotation3DEffect(angle, axis: axis, anchor: anchor, anchorZ: anchorZ, perspective: perspective)
+            #endif
     }
 }
 
 extension View {
-    /// Rotates this view’s rendered output in three dimensions around the given axis of rotation with a closure containing a different view on the back.
+    /// Renders a view’s content as if it’s rotated in three dimensions around the specified axis with a closure containing a different view to show on the back.
+    ///
+    /// > Important: In visionOS, create this effect with ``SwiftUICore/View/perspectiveRotationEffect(_:axis:anchor:anchorZ:perspective:backsideFlip:back:)`` instead.
+    /// To truly rotate a view in three dimensions, use a 3D rotation modifier without a perspective input like ``SwiftUICore/View/rotation3DEffect(_:axis:anchor:backsideFlip:thickness:back:)``.
     /// - Parameters:
-    ///   - angle: The angle at which to rotate the view.
-    ///   - axis: The x, y and z elements that specify the axis of rotation.
-    ///   - anchor: The location with a default of center that defines a point in 3D space about which the rotation is anchored.
-    ///   - anchorZ: The location with a default of 0 that defines a point in 3D space about which the rotation is anchored.
-    ///   - perspective: The relative vanishing point with a default of 1 for this rotation.
+    ///   - angle: The angle by which to rotate the view’s content.
+    ///   - axis: The axis of rotation, specified as a tuple with named elements for each of the three spatial dimensions.
+    ///   - anchor: A two dimensional unit point within the view about which to perform the rotation. The default value is center.
+    ///   - anchorZ: The location on the z-axis around which to rotate the content. The default is 0.
+    ///   - perspective: The relative vanishing point for the rotation. The default is 1.
+    ///   - backsideFlip: The direction to flip the backside view so that it appear upright when flipped. The default is automatic.
     ///   - back: View to show on the back.
     /// - Returns: A rotated view with another view showing on the back.
-    @available(visionOS, deprecated, message: "Use rotation3DEffect without perspective")
+    @available(visionOS, deprecated, renamed: "rotation3DEffect(_:axis:anchor:backsideFlip:thickness:back:)", message: "Use perpectiveRotationEffect() for a perspective rotation effect or rotation3DEffect() without perspective for a true 3d rotation")
+    @available(iOS 14, macOS 11, tvOS 14, watchOS 7, *)
     public func rotation3DEffect<Back: View>(
         _ angle: Angle,
         axis: (x: CGFloat, y: CGFloat, z: CGFloat),
         anchor: UnitPoint = .center,
         anchorZ: CGFloat = .zero,
         perspective: CGFloat = 1,
+        backsideFlip: BacksideFlip = .automatic,
         back: @escaping () -> Back
     ) -> some View {
-        modifier(TwoSidedViewModifier(angle, axis: axis, anchor: anchor, anchorZ: anchorZ, perspective: perspective, back: back))
-    }
-}
-
-@available(visionOS, deprecated, message: "Use rotation3DEffect without perspective")
-struct TwoSidedView_Previews: PreviewProvider {
-    struct PreviewData: View {
-        @State private var angle: Angle = .zero
-        @State private var axis: Axis = .horizontal
-        
-        var body: some View {
-            VStack {
-                RoundedRectangle(cornerRadius: 20)
-                    .fill(.blue)
-                    .overlay(Text("Up"))
-                    .rotation3DEffect(angle, axis: axis == .horizontal ? (0,1,0) : (1,0,0), perspective: 0.5) {
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(.red)
-                            .overlay(Text("Down"))
-                    }
-                    .padding()
-                
-                Picker("Axis", selection: $axis) {
-                    ForEach(Axis.allCases, id: \.self) { axis in
-                        Text("\(axis.description)")
-                    }
-                }
-                .pickerStyle(pickerStyle)
-                
-                Text("Change Rotation")
-                HStack {
-                    ForEach([-360,-180,-120,-45,45,120,180,360], id: \.self) { i in
-                        Button("\(i > 0 ? "+" : "")\(i)") {
-                            withAnimation(.spring().speed(0.4)) {
-                                angle += .degrees(Double(i))
-                            }
-                        }
-                        .padding(1)
-                    }
-                }
-                .padding()
-            }
-        }
-        
-        var pickerStyle: some PickerStyle {
-            #if os(watchOS)
-            .automatic
-            #else
-            .segmented
-            #endif
-        }
+        modifier(TwoSidedViewModifier(angle, axis: axis, anchor: anchor, anchorZ: anchorZ, perspective: perspective, backsideFlip: backsideFlip, back: back))
     }
     
-    static var previews: some View {
-        PreviewData()
+    #if os(visionOS)
+    /// Renders a view’s content as if it’s rotated in three dimensions around the specified axis with a closure containing a different view to show on the back.
+    ///
+    /// > Important: To truly rotate a view in three dimensions, use a 3D rotation modifier without a perspective input like ``SwiftUICore/View/rotation3DEffect(_:axis:anchor:backsideFlip:thickness:back:)``.
+    /// - Parameters:
+    ///   - angle: The angle by which to rotate the view’s content.
+    ///   - axis: The axis of rotation, specified as a tuple with named elements for each of the three spatial dimensions.
+    ///   - anchor: A two dimensional unit point within the view about which to perform the rotation. The default value is center.
+    ///   - anchorZ: The location on the z-axis around which to rotate the content. The default is 0.
+    ///   - perspective: The relative vanishing point for the rotation. The default is 1.
+    ///   - backsideFlip: The direction to flip the backside view so that it may appear upright when flipped. The default is automatic.
+    ///   - back: View to show on the back.
+    /// - Returns: A rotated view with another view showing on the back.
+    @available(visionOS 1.0, *)
+    @available(iOS, unavailable)
+    @available(macOS, unavailable)
+    @available(watchOS, unavailable)
+    @available(tvOS, unavailable)
+    public func perspectiveRotationEffect<Back: View>(
+        _ angle: Angle,
+        axis: (x: CGFloat, y: CGFloat, z: CGFloat),
+        anchor: UnitPoint = .center,
+        anchorZ: CGFloat = .zero,
+        perspective: CGFloat = 1,
+        backsideFlip: BacksideFlip = .automatic,
+        back: @escaping () -> Back
+    ) -> some View {
+        modifier(TwoSidedViewModifier(angle, axis: axis, anchor: anchor, anchorZ: anchorZ, perspective: perspective, backsideFlip: backsideFlip, back: back))
     }
+    #endif
+}
+
+#Preview {
+    RoundedRectangle(cornerRadius: 20)
+        .fill(.blue)
+        .overlay(Text("Up"))
+        #if os(visionOS)
+        .perspectiveRotationEffect(.degrees(180), axis: (0.5, 1, 0), perspective: 0.5, backsideFlip: .automatic) {
+            RoundedRectangle(cornerRadius: 20)
+                .fill(.red)
+                .overlay(Text("Down"))
+        }
+        #else
+        .rotation3DEffect(.degrees(180), axis: (0.5, 1, 0), perspective: 0.5, backsideFlip: .automatic) {
+            RoundedRectangle(cornerRadius: 20)
+                .fill(.red)
+                .overlay(Text("Down"))
+        }
+        #endif
 }

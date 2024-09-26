@@ -10,7 +10,7 @@ import SwiftUI
 import WidgetKit
 
 @available(iOS, unavailable)
-@available(iOSApplicationExtension 14.0, *)
+@available(iOSApplicationExtension, introduced: 14.0, deprecated: 16.0, message: "Use ContainerRelativeShape instead")
 /// A scalable version of ContainerRelativeShape.
 ///
 /// This shape should not be used directly. Instead, use `WidgetRelativeShape(_ widgetFamily:)`.
@@ -33,7 +33,7 @@ public struct ScaledContainerRelativeShape: Shape {
 }
 
 @available(iOS, unavailable)
-@available(iOSApplicationExtension 14.0, *)
+@available(iOSApplicationExtension, introduced: 14.0, deprecated: 16.0, message: "Use ContainerRelativeShape instead")
 /// A re-scaled version of `ContainerRelativeShape` used to fix a bug with the corner radius on iPads in iOS 15 and earlier.
 public typealias WidgetRelativeShape = ScaledShape<ScaledContainerRelativeShape>
 
@@ -45,7 +45,7 @@ public extension ScaledShape where Content == ScaledContainerRelativeShape {
     ///
     /// This is a bug probably caused by setting the corner radius relative to the Home Screen widget size, then using it on the design canvas size (or vice versa). Hopefully be fixed in a future update but when it is, this shape will no longer have the correct corner radius.
     /// - Parameter widgetFamily: Pass this in from `@Environment(\.widgetFamily) var widgetFamily`
-    @MainActor
+    @preconcurrency @MainActor
     init(_ widgetFamily: WidgetFamily) {
         let scaleFactor: CGFloat
         if #available(iOSApplicationExtension 16, *) {

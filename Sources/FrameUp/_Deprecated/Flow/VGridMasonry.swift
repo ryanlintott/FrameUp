@@ -1,5 +1,5 @@
 //
-//  LegacyVGridMasonry.swift
+//  VGridMasonry.swift
 //  FrameUp
 //
 //  Created by Ryan Lintott on 2022-04-21.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-@available(*, deprecated, message: "Use VMasonry().forEach instead")
+@available(*, deprecated, renamed: "VMasonry", message: "Use VMasonry().forEach instead")
 public struct VGridMasonry<Data: RandomAccessCollection, Content: View>: View where Data.Element: Identifiable, Data.Index == Int {
     
     let data: Array<(Data.Element, Int)>

@@ -129,7 +129,9 @@ public extension Array<FULayoutRow> {
     }
     
     /// Sets the justified width for all rows except the last one.
-    /// - Parameter width: Optional width to use for justification. If none provided, the largest minWidth of the provided rows will be used.
+    /// - Parameters:
+    ///   - width: Optional width to use for justification. If none provided, the largest minWidth of the provided rows will be used.
+    ///   - skipLast: Skips justifying the last row if true. (Default: false)
     mutating func justifyIfNecessary(width: CGFloat? = nil, skipLast: Bool = false) {
         let width = width ?? maxMinRowWidth
         

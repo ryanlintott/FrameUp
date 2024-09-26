@@ -26,3 +26,13 @@ struct BackfaceCull: Shape {
         return path
     }
 }
+
+#Preview {
+    VStack {
+        BackfaceCull(degrees: .zero)
+            .fill(.blue)
+        
+        BackfaceCull(degrees: 180)
+            .fill(.red)
+    }
+}

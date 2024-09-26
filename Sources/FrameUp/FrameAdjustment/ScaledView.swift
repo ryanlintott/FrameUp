@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-/// Used by `ScaledView`
+/// Used by ``ScaledView``
 public enum ScaleMode: String, CaseIterable {
     case shrink, grow, both
 }
@@ -15,7 +15,7 @@ public enum ScaleMode: String, CaseIterable {
 /// A view modifier that scales a view using `scaleEffect` to match a frame size.
 ///
 /// View must have an intrinsic content size or be provided a specific frame size. Final frame size may be different depending on modes chosen.
-/// Used in `scaleToFrame`
+/// Used in  ``SwiftUICore/View/scaledToFrame(_:contentMode:scaleMode:)``
 public struct ScaledView: ViewModifier {
     let frameSize: CGSize
     let contentMode: ContentMode?
@@ -23,7 +23,7 @@ public struct ScaledView: ViewModifier {
     
     /// Creates a view modifier that scales a view using `scaleEffect` to match a desired frame size
     ///
-    /// Used in `WidgetDemoFrame`
+    /// Used in ``WidgetDemoFrame``
     /// - Parameters:
     ///   - frameSize: A preferred frame size for the final view. Actual frame size may be different depending on modes chosen.
     ///   - contentMode: A flag that indicates whether this view fits, fills, or stretches to fit the parent context.

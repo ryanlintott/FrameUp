@@ -8,9 +8,9 @@
 import SwiftUI
 
 /**
- An `FULayout` that presents the first view that fits the provided maxWidth, maxHeight, or both depending on which parameters are used.
+ An ``FULayout`` that presents the first view that fits the provided maxWidth, maxHeight, or both depending on which parameters are used.
  
- As this view cannot measure the available space the maxWidth and/or maxHeight parameters need to be passed in using a `GeometryReader`, `WidthReader`, or `HeightReader`.
+ As this view cannot measure the available space the maxWidth and/or maxHeight parameters need to be passed in using a `GeometryReader`, ``WidthReader``, or ``HeightReader``.
  
  Example:
  ```swift
@@ -28,8 +28,13 @@ import SwiftUI
  
  (`.fixedSize` needs to be used in this example or the first view will automatically fit by truncating the text)
  */
-public struct FUViewThatFits: FULayout {
-    public var maxItemWidth: CGFloat?
+@available(iOS, introduced: 14, deprecated: 16, message: "FUViewThatFits can be replaced with SwiftUI ViewThatFits")
+@available(macOS, introduced: 11, deprecated: 13, message: "FUViewThatFits can be replaced with SwiftUI ViewThatFits")
+@available(watchOS, introduced: 7, deprecated: 9, message: "FUViewThatFits can be replaced with SwiftUI ViewThatFits")
+@available(tvOS, introduced: 14, deprecated: 16, message: "FUViewThatFits can be replaced with SwiftUI ViewThatFits")
+@available(visionOS, introduced: 1, deprecated: 1, message: "FUViewThatFits can be replaced with SwiftUI ViewThatFits")
+public struct FUViewThatFits: FULayout, Sendable {
+    public let maxItemWidth: CGFloat?
     public let maxItemHeight: CGFloat?
     public let fixedSize: Axis.Set
     

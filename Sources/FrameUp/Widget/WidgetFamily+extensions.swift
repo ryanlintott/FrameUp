@@ -13,7 +13,7 @@ import WidgetKit
 public extension WidgetFamily {
     #if os(iOS)
     /// Supported families for the current device.
-    @MainActor
+    @preconcurrency @MainActor
     static var supportedFamiliesForCurrentDevice: [WidgetFamily] {
         WidgetSize.supportedSizesForCurrentDevice.compactMap { $0.widgetFamily }
     }

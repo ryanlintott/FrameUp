@@ -8,11 +8,11 @@
 import SwiftUI
 
 /**
- A FrameUp `FULayout` that arranges views into a set number of rows by adding each view to the shortest row.
+ A FrameUp ``FULayout`` that arranges views into a set number of rows by adding each view to the shortest row.
  
- A maximum height must be provided. `HeightReader` can be used to get the value and is especially helpful when inside a `ScrollView`.
+ A maximum height must be provided. ``HeightReader`` can be used to get the value and is especially helpful when inside a `ScrollView`.
  
- A FrameUp layout is not a view but it works like a view by using `callAsFunction`. There is also an alternative view function `.forEach()` that works like `ForEach`
+ A FrameUp layout is not a view but it works like a view by using ``callAsFunction(content:)``. There is also an alternative view function ``forEach(_:content:)`` that works like SwiftUI `ForEach`
  
  Example:
  ```swift
@@ -25,7 +25,7 @@ import SwiftUI
  }
  ```
  */
-public struct HMasonry: FULayout {
+public struct HMasonry: FULayout, Sendable {
     typealias Row = FULayoutRow
     
     public let alignment: FUAlignment

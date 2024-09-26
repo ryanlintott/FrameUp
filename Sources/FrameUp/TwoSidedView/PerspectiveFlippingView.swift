@@ -1,25 +1,23 @@
 //
-//  FlippingView.swift
+//  PerspectiveFlippingView.swift
 //  FrameUp
 //
-//  Created by Ryan Lintott on 2022-07-12.
+//  Created by Ryan Lintott on 2024-09-25.
 //
 
+#if os(visionOS)
 import SwiftUI
 
-/// A view that can be rotated in three dimensions around the specified axis via drag gestures and taps. A closure contains another view that is shown on the back.
-public struct FlippingView<Front: View, Back: View>: View {
+/// A view that simulates a 3d rotation with a back side.
+///
+/// > Important: To truly rotate a view in three dimensions, use ``FlippingView``.
+public struct PerspectiveFlippingView<Front: View, Back: View>: View {
     let axis: Axis
     @Binding var flips: Int
     let flipDistance: CGFloat
-    #if os(visionOS)
-    let anchor: UnitPoint3D
-    let thickness: CGFloat?
-    #else
     let anchor: UnitPoint
     let anchorZ: CGFloat
     let perspective: CGFloat
-    #endif
     let backsideFlip: BacksideFlip
     let animation: Animation
     let tapToFlip: Bool
@@ -27,49 +25,9 @@ public struct FlippingView<Front: View, Back: View>: View {
     let front: () -> Front
     let back: () -> Back
     
-    #if os(visionOS)
-    /// A view that can be rotated in three dimensions around the specified axis via drag gestures and taps. A closure contains another view that is shown on the back.
+    /// A view that simulates a rotation in three dimensions with a perspective effect. The rotation occurs around a specified axis via drag gestures and taps. A closure contains another view that is shown on the back.
     ///
-    /// > Important: If you want a simulated rotation that renders flat, use ``PerspectiveFlippingView``.
-    /// - Parameters:
-    ///   - axis: Axis of rotation.
-    ///   - flips: Number of flips. Even values are face up. Add or remove from this value to flip in either direction.
-    ///   - flipDistance: Drag distance required for a complete flip.
-    ///   - anchor: The location with a default of center that defines a point in 3D space about which the rotation is anchored.
-    ///   - backsideFlip: The direction to flip the backside view so that it appear upright when flipped. The default is automatic.
-    ///   - thickness: The distance between the front and back views. The default value is 2.
-    ///   - animation: Animation to use to complete the flip. Default is .spring()
-    ///   - tapToFlip: Tap to flip enabled if true. Default is true.
-    ///   - dragToFlip: Drag to flip enabled if true. Default is true.
-    ///   - front: Front view.
-    ///   - back: Back view
-    public init(
-        _ axis: Axis = .horizontal,
-        flips: Binding<Int>,
-        flipDistance: CGFloat = 200,
-        anchor: UnitPoint3D = .center,
-        backsideFlip: BacksideFlip = .automatic,
-        thickness: CGFloat? = nil,
-        animation: Animation = .spring(),
-        tapToFlip: Bool = true,
-        dragToFlip: Bool = true,
-        front: @escaping () -> Front,
-        back: @escaping () -> Back
-    ) {
-        self.axis = axis
-        self._flips = flips
-        self.flipDistance = flipDistance
-        self.anchor = anchor
-        self.backsideFlip = backsideFlip
-        self.thickness = thickness
-        self.animation = animation
-        self.tapToFlip = tapToFlip
-        self.dragToFlip = dragToFlip
-        self.front = front
-        self.back = back
-    }
-    #else
-    /// A view that can be rotated in three dimensions around the specified axis via drag gestures and taps. A closure contains another view that is shown on the back.
+    /// > Important: To truly rotate a view in three dimensions, use ``FlippingView``.
     /// - Parameters:
     ///   - axis: Axis of rotation.
     ///   - flips: Number of flips. Even values are face up. Add or remove from this value to flip in either direction.
@@ -110,7 +68,6 @@ public struct FlippingView<Front: View, Back: View>: View {
         self.front = front
         self.back = back
     }
-    #endif
     
     var isFaceUp: Bool { (flips % 2) == 0 }
     var angle: Angle { .radians(CGFloat(flips) * .pi) }
@@ -118,9 +75,6 @@ public struct FlippingView<Front: View, Back: View>: View {
         axis == .horizontal ? (0,1,0) : (-1,0,0)
     }
     
-    #if os(tvOS)
-    var dragAngle: Angle { angle }
-    #else
     @State private var dragOffset: CGFloat = .zero
     @State private var predictedDragOffset: CGFloat = .zero
     @GestureState private var isDragging: Bool = false
@@ -128,22 +82,11 @@ public struct FlippingView<Front: View, Back: View>: View {
     var dragAngle: Angle {
         angle + .degrees(CGFloat(180) * min(max(-1, dragOffset / flipDistance), 1))
     }
-    #endif
     
     public var body: some View {
         VStack {
             front()
-                #if os(visionOS)
-                .rotation3DEffect(
-                    dragAngle,
-                    axis: rotationAxis,
-                    anchor: anchor,
-                    backsideFlip: backsideFlip,
-                    thickness: thickness,
-                    back: back
-                )
-                #else
-                .rotation3DEffect(
+                .perspectiveRotationEffect(
                     dragAngle,
                     axis: rotationAxis,
                     anchor: anchor,
@@ -152,16 +95,12 @@ public struct FlippingView<Front: View, Back: View>: View {
                     backsideFlip: backsideFlip,
                     back: back
                 )
-                #endif
                 .animation(animation, value: flips)
-                #if !os(tvOS)
                 .animation(animation, value: dragOffset)
                 .overlay(gestureOverlay)
-                #endif
         }
     }
     
-    #if !os(tvOS)
     var gestureOverlay: some View {
         ZStack {
             Color.clear
@@ -181,15 +120,9 @@ public struct FlippingView<Front: View, Back: View>: View {
             }
         }
         .gesture(dragToFlip ? drag : nil)
-        #if os(visionOS)
         .onChange(of: isDragging) { _, newValue in
             if !newValue { onDragEnded() }
         }
-        #else
-        .onChange(of: isDragging) { isDragging in
-            if !isDragging { onDragEnded() }
-        }
-        #endif
         .accessibilityAction {
             flips += 1
         }
@@ -232,5 +165,5 @@ public struct FlippingView<Front: View, Back: View>: View {
         flips += min(max(-1, Int((predictedDragOffset / flipDistance).rounded())), 1)
         dragOffset = .zero
     }
-    #endif
 }
+#endif

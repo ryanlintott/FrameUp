@@ -5,20 +5,18 @@
 //  Created by Ryan Lintott on 2022-05-23.
 //
 
+#if os(iOS)
 import SwiftUI
 
-#if os(iOS)
-@available(iOS, deprecated: 15.0, message: "This extension is no longer necessary as it's built into the API")
-public enum InterfaceOrientation: CaseIterable, Sendable {
+public enum FUInterfaceOrientation: CaseIterable, Sendable {
     case portrait
     case landscapeRight
     case landscapeLeft
     case portraitUpsideDown
 }
 
-//@available(iOS 15.0, *)
-internal extension InterfaceOrientation {
-    nonisolated init?(key: String) {
+internal extension FUInterfaceOrientation {
+    init?(key: String) {
         switch key {
         case "UIInterfaceOrientationPortrait":
             self = .portrait
@@ -68,6 +66,19 @@ internal extension InterfaceOrientation {
             return "landscapeRight"
         case .portraitUpsideDown:
             return "portraitUpsideDown"
+        }
+    }
+}
+
+@available(iOS 15, * )
+internal extension FUInterfaceOrientation {
+    init?(_ interfaceOrientation: InterfaceOrientation) {
+        switch interfaceOrientation {
+        case .landscapeLeft: self = .landscapeLeft
+        case .landscapeRight: self = .landscapeRight
+        case .portrait: self = .portrait
+        case .portraitUpsideDown: self = .portraitUpsideDown
+        default: return nil
         }
     }
 }

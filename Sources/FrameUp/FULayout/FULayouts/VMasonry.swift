@@ -8,11 +8,11 @@
 import SwiftUI
 
 /**
- A FrameUp `FULayout` that arranges views into a set number of rows by adding each view to the shortest row.
+ A FrameUp ``FULayout`` that arranges views into a set number of rows by adding each view to the shortest row.
  
- A maximum width must be provided. `WidthReader` can be used to get the value and is especially helpful when inside a `ScrollView`.
+ A maximum width must be provided. ``WidthReader`` can be used to get the value and is especially helpful when inside a `ScrollView`.
  
- A FrameUp layout is not a view but it works like a view by using `callAsFunction`. There is also an alternative view function `.forEach()` that works like `ForEach`
+ A FrameUp layout is not a view but it works like a view by using ``callAsFunction(content:)``. There is also an alternative view function ``forEach(_:content:)`` that works like SwiftUI `ForEach`
  
  Example:
  ```swift
@@ -25,7 +25,7 @@ import SwiftUI
  }
  ```
  */
-public struct VMasonry: FULayout {
+public struct VMasonry: FULayout, Sendable {
     typealias Column = FULayoutColumn
     
     public let alignment: FUAlignment
@@ -42,7 +42,7 @@ public struct VMasonry: FULayout {
     /// - Parameters:
     ///   - alignment: Used to align columns vertically relative to each other. Default is top.
     ///   - columns: Number of columns to place views in.
-    ///   - maxWidth: Maximum width containing all columns (can be obtained through a `WidthReader`).
+    ///   - maxWidth: Maximum width containing all columns (can be obtained through a ``WidthReader``).
     ///   - horizontalSpacing: Minimum horizontal spacing between columns.
     ///   - verticalSpacing: Vertical spacing between views in a column
     public init(

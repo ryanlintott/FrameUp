@@ -8,7 +8,7 @@
 import SwiftUI
 
 #if os(iOS)
-/// Settings used in `SmartScrollView`
+/// Settings used in ``SmartScrollView``
 public struct SmartScrollViewMeasurements: Equatable, Sendable {
     /// State of scroll view dimensions
     public let state: SmartScrollViewState
@@ -33,7 +33,7 @@ extension SmartScrollViewMeasurements {
     }
 }
 
-/// A PreferenceKey used to pass SmartScrollViewSettings up the view hierarchy
+/// A PreferenceKey used to pass ``SmartScrollViewMeasurements`` up the view hierarchy
 public struct SmartScrollViewKey: PreferenceKey {
     public typealias Value = SmartScrollViewMeasurements?
     public static let defaultValue: SmartScrollViewMeasurements? = nil
@@ -73,7 +73,6 @@ public struct SmartScrollViewState: Equatable, Sendable {
  - If placed directly inside a NavigationView with a resizing header, this view may behave strangely when scrolling. To avoid this add 1 point of padding to the top of this view.
  - If the available space for this view grows for any reason other than screen rotation, this view will not grow to fill the space. If you know the value that causes this change, add an `.id(value)` modifier below this view to trigger the view to recalculate. This will cause it to scroll to the top.
 */
-@MainActor
 public struct SmartScrollView<Content: View>: View {
     /// The scroll view’s scrollable axis. The default axis is the vertical axis.
     let axes: Axis.Set
@@ -114,7 +113,7 @@ public struct SmartScrollView<Content: View>: View {
     @State private var state: SmartScrollViewState? = nil
     
     /// Last orientation is saved
-    @State private var lastOrientation: InterfaceOrientation? = UIDevice.current.orientation.interfaceOrientation
+    @State private var lastOrientation: FUInterfaceOrientation? = UIDevice.current.orientation.interfaceOrientation
     
     /// Axes that will be used on ScrollView
     var scrollViewAxes: Axis.Set {

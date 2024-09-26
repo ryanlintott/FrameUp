@@ -8,7 +8,7 @@ import SwiftUI
 
 /// A view that creates views based on an array of elments from left to right, adding rows when needed. Each row height will be determined by the tallest element.
 ///
-/// Each row height will be determined by the tallest element. A maximum width must be provided but `WidthReader` can be used to get the value (especially helpful when  inside a `ScrollView`).
+/// Each row height will be determined by the tallest element. A maximum width must be provided but ``WidthReader`` can be used to get the value (especially helpful when inside a `ScrollView`).
 ///
 ///     WidthReader { width in
 ///         TagViewForScrollView(maxWidth: width, elements: ["One", "Two", "Three"]) { element in

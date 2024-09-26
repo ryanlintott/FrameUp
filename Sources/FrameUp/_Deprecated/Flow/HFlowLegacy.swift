@@ -1,5 +1,5 @@
 //
-//  LegacyHFlow.swift
+//  HFlowLegacy.swift
 //  FrameUp
 //
 //  Created by Ryan Lintott on 2021-06-11.
@@ -11,12 +11,12 @@ import SwiftUI
 ///
 /// Each row height will be determined by the tallest element. The overall frame size will fit to the size of the laid out content.
 ///
-/// A maximum width must be provided but `WidthReader` can be used to get the value (especially helpful when inside a `ScrollView`).
+/// A maximum width must be provided but ``WidthReader`` can be used to get the value (especially helpful when inside a `ScrollView`).
 ///
 /// Example:
 ///
 ///     WidthReader { width in
-///         HFlow(["Hello", "World", "More Text"], maxWidth: width) { item in
+///         HFlowLegacy(["Hello", "World", "More Text"], maxWidth: width) { item in
 ///             Text(item.value)
 ///                 .padding(12)
 ///                 .foregroundColor(.white)
@@ -26,7 +26,7 @@ import SwiftUI
 ///     }
 ///
 /// Adding or removing elements may not animate as intended as element ids are based on their index.
-@available(*, deprecated, message: "Use HFlow().forEach instead")
+@available(*, deprecated, renamed: "HFlow", message: "Use HFlow().forEach instead")
 public struct HFlowLegacy<Data: RandomAccessCollection, Content: View>: View where Data.Element: Identifiable, Data.Index == Int {
     let data: Array<(Data.Element, Int)>
     let maxWidth: CGFloat
