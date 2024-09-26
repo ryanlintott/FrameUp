@@ -8,6 +8,11 @@
 import SwiftUI
 
 /// A FrameUp layout version of `HStackLayout`. Useful when you want to toggle between different FrameUp layouts.
+@available(iOS, introduced: 14, deprecated: 16, message: "HStackFULayout can be replaced with SwiftUI HStackLayout")
+@available(macOS, introduced: 11, deprecated: 13, message: "HStackFULayout can be replaced with SwiftUI HStackLayout")
+@available(watchOS, introduced: 7, deprecated: 9, message: "HStackFULayout can be replaced with SwiftUI HStackLayout")
+@available(tvOS, introduced: 14, deprecated: 16, message: "HStackFULayout can be replaced with SwiftUI HStackLayout")
+@available(visionOS, introduced: 1, deprecated: 1, message: "HStackFULayout can be replaced with SwiftUI HStackLayout")
 public struct HStackFULayout: FULayout, Sendable {
     typealias Row = FULayoutRow
     

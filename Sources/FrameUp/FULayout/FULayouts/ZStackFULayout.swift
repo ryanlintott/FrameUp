@@ -8,6 +8,11 @@
 import SwiftUI
 
 /// A FrameUp layout version of `ZStackLayout`. Useful when you want to toggle between different FrameUp layouts.
+@available(iOS, introduced: 14, deprecated: 16, message: "ZStackFULayout can be replaced with SwiftUI ZStackLayout")
+@available(macOS, introduced: 11, deprecated: 13, message: "ZStackFULayout can be replaced with SwiftUI ZStackLayout")
+@available(watchOS, introduced: 7, deprecated: 9, message: "ZStackFULayout can be replaced with SwiftUI ZStackLayout")
+@available(tvOS, introduced: 14, deprecated: 16, message: "ZStackFULayout can be replaced with SwiftUI ZStackLayout")
+@available(visionOS, introduced: 1, deprecated: 1, message: "ZStackFULayout can be replaced with SwiftUI ZStackLayout")
 public struct ZStackFULayout: FULayout, Sendable {
     public let alignment: FUAlignment
     public let maxWidth: CGFloat

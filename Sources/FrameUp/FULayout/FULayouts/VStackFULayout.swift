@@ -8,6 +8,11 @@
 import SwiftUI
 
 /// A FrameUp layout version of `VStackLayout`. Useful when you want to toggle between different FrameUp layouts.
+@available(iOS, introduced: 14, deprecated: 16, message: "VStackFULayout can be replaced with SwiftUI VStackLayout")
+@available(macOS, introduced: 11, deprecated: 13, message: "VStackFULayout can be replaced with SwiftUI VStackLayout")
+@available(watchOS, introduced: 7, deprecated: 9, message: "VStackFULayout can be replaced with SwiftUI VStackLayout")
+@available(tvOS, introduced: 14, deprecated: 16, message: "VStackFULayout can be replaced with SwiftUI VStackLayout")
+@available(visionOS, introduced: 1, deprecated: 1, message: "VStackFULayout can be replaced with SwiftUI VStackLayout")
 public struct VStackFULayout: FULayout, Sendable {
     typealias Column = FULayoutColumn
     
