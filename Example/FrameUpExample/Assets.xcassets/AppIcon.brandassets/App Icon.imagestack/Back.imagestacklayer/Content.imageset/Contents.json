@@ -1,0 +1,18 @@
+{
+  "images" : [
+    {
+      "filename" : "FrameUp-icon-tvOS-back400.png",
+      "idiom" : "tv",
+      "scale" : "1x"
+    },
+    {
+      "filename" : "FrameUp-icon-tvOS-back800.png",
+      "idiom" : "tv",
+      "scale" : "2x"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

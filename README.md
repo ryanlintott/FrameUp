@@ -36,7 +36,7 @@ Additional SwiftUI tools for iOS 14+15, macOS 11+12, watchOS 7+8, and tvOS 14+15
 
 
 # Demo App
-Check out [FrameUpExample](https://github.com/ryanlintott/FrameUpExample) to see how to use this package in your app.
+The `Example` folder has an app that demonstrates the features of this package.
 
 # Installation and Usage
 This package is compatible with iOS 14+, macOS 11+, watchOS 7+, tvOS 14+, and visionOS.

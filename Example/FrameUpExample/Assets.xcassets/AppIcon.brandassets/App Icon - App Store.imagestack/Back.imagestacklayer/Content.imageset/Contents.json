@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "FrameUp-icon-tvOS-back.png",
+      "idiom" : "tv"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
