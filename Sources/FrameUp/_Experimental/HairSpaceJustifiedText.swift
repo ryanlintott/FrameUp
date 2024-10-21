@@ -156,26 +156,24 @@ struct HairSpaceJustifiedText: View {
     }
 }
 
-struct HairSpaceJustifiedText_Previews: PreviewProvider {
-    static var previews: some View {
-        HairSpaceJustifiedText(
-"""
-This is a bunch of text justified by hair spaces. SwiftUI doesn't have a way of justifying text so this view swaps out all spaces with varying numbers of hair spaces to adjust each line and make it appear justified.
-The last line of a paragraph is not justified by default but it can be by parameter.
-Line breaks continue to work as expected.
+#Preview {
+    HairSpaceJustifiedText(
+        """
+        This is a bunch of text justified by hair spaces. SwiftUI doesn't have a way of justifying text so this view swaps out all spaces with varying numbers of hair spaces to adjust each line and make it appear justified.
+        The last line of a paragraph is not justified by default but it can be by parameter.
+        Line breaks continue to work as expected.
 
-Multiple line breaks remain but       multiple spaces are condensed into a single space or line break.
+        Multiple line breaks remain but       multiple spaces are condensed into a single space or line break.
 
-If you have a veryLongWordThatWillNotFitOnASingleLineItWillBeBrokenAtTheLastCharacterThatFits
+        If you have a veryLongWordThatWillNotFitOnASingleLineItWillBeBrokenAtTheLastCharacterThatFits
 
-Words are not hyphenated.
+        Words are not hyphenated.
 
-UIFont must be used as that is how the text width is calculated.
-""",
-            font: .boldSystemFont(ofSize: 16),
-            justifyLastLine: false
-        )
-        .padding()
-    }
+        UIFont must be used as that is how the text width is calculated.
+        """,
+        font: .boldSystemFont(ofSize: 16),
+        justifyLastLine: false
+    )
+    .padding()
 }
 #endif

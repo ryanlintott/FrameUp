@@ -67,10 +67,10 @@ public struct VGridMasonry<Data: RandomAccessCollection, Content: View>: View wh
                     )
                     .frame(width: columnWidth)
                     .fixedSize()
-                    .alignmentGuide(.leading) { d in
+                    .alignmentGuide(.leading) { @Sendable [contentPositions] d in
                         -(contentPositions[index]?.x ?? .zero)
                     }
-                    .alignmentGuide(.top) { d in
+                    .alignmentGuide(.top) { @Sendable [contentPositions] d in
                         -(contentPositions[index]?.y ?? .zero)
                     }
             }

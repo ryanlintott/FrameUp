@@ -68,10 +68,10 @@ public struct OverlappingImage: View {
             .overlay(
                 image
                     .resizable()
-                    .alignmentGuide(.top) { d in
+                    .alignmentGuide(.top) { @Sendable [axis, shift] d in
                         axis == .vertical ? shift * d.height : d[.top]
                     }
-                    .alignmentGuide(.leading) { d in
+                    .alignmentGuide(.leading) { @Sendable [axis, shift] d in
                         axis == .horizontal ? shift * d.width : d[.leading]
                     }
                     .scaledToFill()

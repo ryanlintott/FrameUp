@@ -87,10 +87,10 @@ public struct VFlowLegacy<Data: RandomAccessCollection, Content: View>: View whe
                     )
                     .frame(maxWidth: maxColumnWidth, maxHeight: maxHeight, alignment: .topLeading)
                     .fixedSize()
-                    .alignmentGuide(.leading) { d in
+                    .alignmentGuide(.leading) { @Sendable [contentPositions] d in
                         -(contentPositions[index]?.x ?? .zero)
                     }
-                    .alignmentGuide(.top) { d in
+                    .alignmentGuide(.top) { @Sendable [contentPositions] d in
                         -(contentPositions[index]?.y ?? .zero)
                     }
             }

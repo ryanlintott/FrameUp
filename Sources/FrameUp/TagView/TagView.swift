@@ -15,6 +15,7 @@ import SwiftUI
 ///         Text(element)
 ///     }
 ///
+@available(swift, deprecated: 6.0, message: "This view may crash with Swift 6 strict concurrency due to unsafe thread jumping. Use HFlowLayout instead.")
 public struct TagView<Element: Hashable, Content: View>: View {
     let elements: [Element]
     let content: (Element) -> Content
@@ -27,9 +28,9 @@ public struct TagView<Element: Hashable, Content: View>: View {
         self.elements = elements
         self.content = content
     }
-
+    
     public var body: some View {
-        /// Using variables inside the view body is not recommended by Apple but it works.
+        /// Using variables inside the view body is not recommended by Apple but it mostly works. Mutating these main actor variables from a nonisolated closure (like alignmentGuide) may cause unexpected behaviour in Swift 5 mode (but it appears to work) and will likely cause crashes in Swift 6.
         var maxWidth = CGFloat.zero
         var x = CGFloat.zero
         var y = CGFloat.zero

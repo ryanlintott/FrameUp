@@ -10,6 +10,7 @@ import SwiftUI
 struct TagViewExamples: View {
     var body: some View {
         Section {
+            #if swift(<6)
             NavigationLink(destination: TagViewExample()) {
                 Label("TagView", systemImage: "tag")
             }
@@ -17,6 +18,9 @@ struct TagViewExamples: View {
             NavigationLink(destination: TagViewForScrollViewExample()) {
                 Label("TagViewForScrollView", systemImage: "tag.square")
             }
+            #else
+            Label("Deprecated in Swift 6", systemImage: "x.circle")
+            #endif
         } header: {
             Text("TagView")
         }

@@ -91,10 +91,10 @@ internal struct FULayoutChildView<Content: View, L: FULayout>: View {
                 maxHeight: layout.maxItemHeight,
                 alignment: .topLeading
             )
-            .alignmentGuide(.leading) { d in
+            .alignmentGuide(.leading) { @Sendable [contentOffset, defaultOffset] d in
                 -(contentOffset ?? defaultOffset).x
             }
-            .alignmentGuide(.top) { d in
+            .alignmentGuide(.top) { @Sendable [contentOffset, defaultOffset] d in
                 -(contentOffset ?? defaultOffset).y
             }
             /// These modifiers are used to ensure initial content sizing uses an invisible view that won't effect the overall frame. Once the offset is known it will appear with the correct placement.
