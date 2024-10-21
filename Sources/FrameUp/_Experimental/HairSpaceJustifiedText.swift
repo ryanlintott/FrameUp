@@ -131,7 +131,7 @@ extension StringProtocol {
             }
         
         return (justifiedLines + (justifyLastLine ? [] : [last]))
-            .joined(separator: "\n")
+            .joined(separator: " ")
     }
 }
 
@@ -157,6 +157,18 @@ struct HairSpaceJustifiedText: View {
 }
 
 #Preview {
+    /// Example of Text with mixed LTR and RTL text.
+    Text("This ثم كلا ارتكبها إستيلاء البولندي, احداث نتيجة بالرّدأسر بـ.ثموصل جديدة  aslkasjdf والكساد. ان مكثّفة العالم الهادي أضف, مما مع انذار")
+        .font(.system(size: 16).bold())
+    
+    /// Example of HairSpaceJustified with the same mixed LTR and RTL text.
+    HairSpaceJustifiedText(
+        // Arabic for "Hello, World"
+        "This ثم كلا ارتكبها إستيلاء البولندي, احداث نتيجة بالرّدأسر بـ.ثموصل جديدة  aslkasjdf والكساد. ان مكثّفة العالم الهادي أضف, مما مع انذار",
+        font: .boldSystemFont(ofSize: 16),
+        justifyLastLine: false
+    )
+
     HairSpaceJustifiedText(
         """
         This is a bunch of text justified by hair spaces. SwiftUI doesn't have a way of justifying text so this view swaps out all spaces with varying numbers of hair spaces to adjust each line and make it appear justified.
