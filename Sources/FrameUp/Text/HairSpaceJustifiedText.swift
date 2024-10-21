@@ -4,6 +4,7 @@
 //
 //  Created by Ryan Lintott on 2022-11-15.
 //
+
 import SwiftUI
 
 #if os(iOS)
@@ -136,18 +137,18 @@ extension StringProtocol {
 }
 
 /// A SwiftUI-only method for efficiently presenting justifying text. This is particularly useful in a widget or other SwiftUI-only setting.
-struct HairSpaceJustifiedText: View {
+public struct HairSpaceJustifiedText: View {
     let text: String
     let font: UIFont
     let justifyLastLine: Bool
     
-    init(_ text: String, font: UIFont, justifyLastLine: Bool = false) {
+    public init(_ text: String, font: UIFont, justifyLastLine: Bool = false) {
         self.font = font
         self.text = text
         self.justifyLastLine = justifyLastLine
     }
     
-    var body: some View {
+    public var body: some View {
         WidthReader { width in
             Text(text.justifiedByHairSpaces(font: font, maxWidth: width, justifyLastLine: justifyLastLine))
                 .font(Font(font))

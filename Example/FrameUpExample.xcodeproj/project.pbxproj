@@ -29,6 +29,7 @@
 		CF19BC182AA7BC730096876A /* View+IfAvailable.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF19BC172AA7BC730096876A /* View+IfAvailable.swift */; };
 		CF19BC192AA7BC780096876A /* View+IfAvailable.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF19BC172AA7BC730096876A /* View+IfAvailable.swift */; };
 		CF1AB2B22CB5BF530049E553 /* FrameUp in Frameworks */ = {isa = PBXBuildFile; productRef = CF1AB2B12CB5BF530049E553 /* FrameUp */; };
+		CF1C336B2CC6C1170003069B /* HairSpaceJustifiedTextExample.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF1C336A2CC6C1170003069B /* HairSpaceJustifiedTextExample.swift */; };
 		CF1EEF30274D4C4C00987595 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CF1EEF2F274D4C4C00987595 /* WidgetKit.framework */; };
 		CF1EEF32274D4C4C00987595 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CF1EEF31274D4C4C00987595 /* SwiftUI.framework */; };
 		CF1EEF35274D4C4C00987595 /* WidgetFrameWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF1EEF34274D4C4C00987595 /* WidgetFrameWidget.swift */; };
@@ -173,6 +174,7 @@
 		CF19BC082AA67CA70096876A /* SharedAssets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = SharedAssets.xcassets; sourceTree = "<group>"; };
 		CF19BC0B2AA67F6E0096876A /* InlineImageExample.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InlineImageExample.swift; sourceTree = "<group>"; };
 		CF19BC172AA7BC730096876A /* View+IfAvailable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "View+IfAvailable.swift"; sourceTree = "<group>"; };
+		CF1C336A2CC6C1170003069B /* HairSpaceJustifiedTextExample.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HairSpaceJustifiedTextExample.swift; sourceTree = "<group>"; };
 		CF1EEF2D274D4C4C00987595 /* WidgetFrameWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = WidgetFrameWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		CF1EEF2F274D4C4C00987595 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		CF1EEF31274D4C4C00987595 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
@@ -509,6 +511,7 @@
 			children = (
 				CFE981F72C9DF0F90094A1A8 /* TextExamples.swift */,
 				CFE981F42C9DF06B0094A1A8 /* UnclippedTextExample.swift */,
+				CF1C336A2CC6C1170003069B /* HairSpaceJustifiedTextExample.swift */,
 			);
 			path = TextExamples;
 			sourceTree = "<group>";
@@ -741,6 +744,7 @@
 				CF2D066C292201BD007D1142 /* DoubleScrollTabView.swift in Sources */,
 				CFC476572A0C9FC2003B51CF /* HMasonryAspectRatioExample.swift in Sources */,
 				CFAC14A02885BC99003D4539 /* HFlowExample.swift in Sources */,
+				CF1C336B2CC6C1170003069B /* HairSpaceJustifiedTextExample.swift in Sources */,
 				CF48CC9F26F131C200406F4E /* FrameUpExampleApp.swift in Sources */,
 				CFF9E74F2A0F304900451A65 /* HFlowLayoutExample.swift in Sources */,
 				CF25F6532901D91C0041FBAF /* HFlowSmartScrollViewExample.swift in Sources */,
