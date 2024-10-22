@@ -14,7 +14,7 @@ A collection of SwiftUI tools to help with layout.
 - SwiftUI [`Layouts`](#layouts) like [`HFlowLayout`](#hflowlayout), [`VFlowLayout`](#vflowlayout), [`VMasonryLayout`](#vmasonrylayout), [`HMasonryLayout`](#hmasonrylayout), and [`LayoutThatFits`](#layoutthatfits)
 - [`AutoRotatingView`](#autorotatingview) to set allowable orientations for a view.
 - [Frame Adjustment](#frame-adjustment) tools like [`WidthReader`](#widthreader), [`HeightReader`](#heightreader), [`onSizeChange(perform:)`](#onsizechangeperform), [`keyboardHeight`](#keyboardHeight), [`.relativePadding`](#relativepaddingedges-lengthfactor), [`ScaledView`](#scaledview) and [`OverlappingImage`](#overlappingimage).
-- [unclippedTextRenderer](#unclippedtextrenderer) for fixing clipped `Text`. 
+- [`unclippedTextRenderer`](#unclippedtextrenderer) for fixing clipped `Text`. 
 - [`SmartScrollView`](#smartscrollview) with optional scrolling, a content-fitable frame, and live edge inset values.
 - [`FlippingView`](#flippingview) and [`rotation3DEffect(back:)`](#rotation3deffectback) for making flippable views with a different view on the back side.
 - [`TabMenu`](#tabmenu), a customizable iOS tab menu with `onReselect` and `onDoubleTap` functions.
