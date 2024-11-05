@@ -5,6 +5,7 @@
 //  Created by Ryan Lintott on 2024-10-21.
 //
 
+#if canImport(UIKit)
 import FrameUp
 import SwiftUI
 
@@ -48,3 +49,4 @@ struct HairSpaceJustifiedTextExample: View {
 #Preview {
     HairSpaceJustifiedTextExample()
 }
+#endif

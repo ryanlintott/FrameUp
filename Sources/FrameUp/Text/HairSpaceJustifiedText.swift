@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-#if os(iOS)
+#if canImport(UIKit)
 extension StringProtocol {
     /// Returns the size of this string when printed in a single line in the specified font.
     /// - Parameter font: Font used when measuring size.

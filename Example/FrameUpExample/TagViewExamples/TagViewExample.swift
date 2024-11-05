@@ -8,7 +8,7 @@
 import FrameUp
 import SwiftUI
 
-@available(swift, deprecated: 6.0, message: "This view may crash with Swift 6 strict concurrency due to unsafe thread jumping. Use HFlowLayout instead.")
+@available(swift, deprecated: 6)
 struct TagViewExample: View {
     let elements = ["Thing", "Another", "Test", "Short", "Long Text is Long", "More", "Cool Tag"]
     
@@ -27,7 +27,7 @@ struct TagViewExample: View {
     }
 }
 
-@available(swift, deprecated: 6.0, message: "This view may crash with Swift 6 strict concurrency due to unsafe thread jumping. Use HFlowLayout instead.")
+@available(swift, deprecated: 6)
 struct TagViewExample_Previews: PreviewProvider {
     static var previews: some View {
         TagViewExample()

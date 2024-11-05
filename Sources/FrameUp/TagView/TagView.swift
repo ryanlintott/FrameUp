@@ -15,7 +15,12 @@ import SwiftUI
 ///         Text(element)
 ///     }
 ///
-@available(swift, deprecated: 6.0, message: "This view may crash with Swift 6 strict concurrency due to unsafe thread jumping. Use HFlowLayout instead.")
+@available(swift, deprecated: 6, message: "Replace with HFlowLayout and ForEach.")
+@available(iOS, introduced: 14, deprecated: 16, message: "Replace with HFlowLayout and ForEach.")
+@available(macOS, introduced: 11, deprecated: 13, message: "Replace with HFlowLayout and ForEach.")
+@available(watchOS, introduced: 7, deprecated: 9, message: "Replace with HFlowLayout and ForEach.")
+@available(tvOS, introduced: 14, deprecated: 16, message: "Replace with HFlowLayout and ForEach.")
+@available(visionOS, introduced: 1, deprecated: 1, message: "Replace with HFlowLayout and ForEach.")
 public struct TagView<Element: Hashable, Content: View>: View {
     let elements: [Element]
     let content: (Element) -> Content
@@ -29,6 +34,26 @@ public struct TagView<Element: Hashable, Content: View>: View {
         self.content = content
     }
     
+    #if swift(>=6)
+    public var body: some View {
+        if #available(iOS 16, macOS 13, watchOS 9, tvOS 16, *) {
+            HFlowLayout(alignment: .topLeading, spacing: 0) {
+                ForEach(elements, id: \.self) { element in
+                    content(element)
+                }
+            }
+        } else {
+            // Fallback on earlier versions
+            WidthReader { width in
+                HFlow(alignment: .topLeading, maxWidth: width, horizontalSpacing: 0, verticalSpacing: 0) {
+                    ForEach(elements, id: \.self) { element in
+                        content(element)
+                    }
+                }
+            }
+        }
+    }
+    #else
     public var body: some View {
         /// Using variables inside the view body is not recommended by Apple but it mostly works. Mutating these main actor variables from a nonisolated closure (like alignmentGuide) may cause unexpected behaviour in Swift 5 mode (but it appears to work) and will likely cause crashes in Swift 6.
         var maxWidth = CGFloat.zero
@@ -73,4 +98,5 @@ public struct TagView<Element: Hashable, Content: View>: View {
             }
         }
     }
+    #endif
 }

@@ -10,9 +10,13 @@ import SwiftUI
 struct TextExamples: View {
     var body: some View {
         Section {
+            #if canImport(UIKit)
             NavigationLink(destination: HairSpaceJustifiedTextExample()) {
                 Label("HairSpaceJustifiedText", systemImage: "character.textbox")
             }
+            #else
+            UnavailableView()
+            #endif
             
             /// This check ensures this code only builds in Xcode 16+
             #if compiler(>=6)
