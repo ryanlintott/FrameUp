@@ -195,7 +195,7 @@ public struct SmartScrollView<Content: View>: View {
         /// A frame that's able to shrink the scroll view is applied only when the state is known.
         .frame(maxWidth: state?.scrollView.width, maxHeight: state?.scrollView.height)
         /// When measurements change, update values.
-        .onPreferenceChange(SmartScrollViewKey.self, perform: updateValues)
+        .onPreferenceChangeMainActor(SmartScrollViewKey.self, perform: updateValues)
         /// If any parameters change, reset the state.
         .onChange(of: axes) { newValue in
             if newValue != axes {

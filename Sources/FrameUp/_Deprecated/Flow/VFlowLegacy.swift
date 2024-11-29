@@ -95,7 +95,7 @@ public struct VFlowLegacy<Data: RandomAccessCollection, Content: View>: View whe
                     }
             }
         }
-        .onPreferenceChange(FlowContentSizeKey.self) {
+        .onPreferenceChangeMainActor(FlowContentSizeKey.self) {
             self.sizes = $0
         }
     }

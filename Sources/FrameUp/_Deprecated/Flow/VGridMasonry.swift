@@ -75,7 +75,7 @@ public struct VGridMasonry<Data: RandomAccessCollection, Content: View>: View wh
                     }
             }
         }
-        .onPreferenceChange(FlowContentSizeKey.self) {
+        .onPreferenceChangeMainActor(FlowContentSizeKey.self) {
             self.sizes = $0
         }
     }

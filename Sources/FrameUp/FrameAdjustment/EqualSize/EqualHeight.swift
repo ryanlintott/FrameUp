@@ -42,7 +42,7 @@ struct EqualHeightViewModifier: ViewModifier {
                     Color.clear
                         .preference(key: EqualHeightKey.self, value: proxy.size.height)
                 }
-                    .onPreferenceChange(EqualHeightKey.self) {
+                    .onPreferenceChangeMainActor(EqualHeightKey.self) {
                         equalHeight = $0
                     }
             )

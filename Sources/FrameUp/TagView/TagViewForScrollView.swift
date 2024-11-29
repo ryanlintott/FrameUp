@@ -37,32 +37,43 @@ public struct TagViewForScrollView<Element: Hashable, Content: View>: View {
         self.elements = elements
         self.content = content
     }
-
-    #if swift(>=6)
+    
     public var body: some View {
         if #available(iOS 16, macOS 13, watchOS 9, tvOS 16, *) {
-            HFlowLayout(alignment: .topLeading, spacing: 0) {
-                ForEach(elements, id: \.self) { element in
-                    content(element)
-                }
-            }
+            hFlowLayoutBody
         } else {
-            HFlow(alignment: .topLeading, maxWidth: maxWidth, maxItemWidth: nil, horizontalSpacing: 0, verticalSpacing: 0) {
-                ForEach(elements, id: \.self) { element in
-                    content(element)
-                }
+            hFlowBody
+        }
+    }
+    
+    @available(iOS 16, macOS 13, watchOS 9, tvOS 16, *)
+    @ViewBuilder
+    public var hFlowLayoutBody: some View {
+        HFlowLayout(alignment: .topLeading, spacing: 0) {
+            ForEach(elements, id: \.self) { element in
+                content(element)
             }
         }
     }
-    #else
-    public var body: some View {
+    
+    public var hFlowBody: some View {
+        HFlow(alignment: .topLeading, maxWidth: maxWidth, maxItemWidth: nil, horizontalSpacing: 0, verticalSpacing: 0) {
+            ForEach(elements, id: \.self) { element in
+                content(element)
+            }
+        }
+    }
+    
+    #if swift(<6)
+    @available(*, deprecated, message: "This code did not layout elements correctly when adding or removing tags. I'm just keeping it around because it's weird and it kinda works.")
+    public var legacyBody: some View {
         /// Using variables inside the view body is not recommended by Apple but it mostly works. Mutating these main actor variables from a nonisolated closure (like alignmentGuide) may cause unexpected behaviour in Swift 5 mode (but it appears to work) and will likely cause crashes in Swift 6.
         var x = CGFloat.zero
         var y = CGFloat.zero
         var rowHeight = CGFloat.zero
 
         return ZStack(alignment: .topLeading) {
-            ForEach(elements, id: \.self) { element in
+            ForEach(elements, id: \.self) { [elements] element in
                 content(element)
                     .alignmentGuide(.leading) { d in
                         let result: CGFloat
@@ -88,7 +99,6 @@ public struct TagViewForScrollView<Element: Hashable, Content: View>: View {
                         }
                         return -y
                     }
-                    
             }
         }
     }

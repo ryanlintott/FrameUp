@@ -10,26 +10,52 @@ import SwiftUI
 
 @available(swift, deprecated: 6)
 struct TagViewForScrollViewExample: View {
-    let elements = ["Thing", "Another", "Test", "Short", "Long Text is Long", "More", "Cool Tag"]
+    static let exampleItems = ["Thing", "Another", "Test", "Short", "Long Text is Long", "More", "Cool Tag"]
+    @State private var items = Self.exampleItems
+    @State private var layoutDirection: LayoutDirection = .leftToRight
     
     var body: some View {
-        ScrollView {
-            WidthReader { width in
-                Text("Some text")
-                
-                TagViewForScrollView(maxWidth: width, elements: elements) { element in
-                    Text(element)
-                        .foregroundColor(.white)
-                        .padding(10)
-                        .background(Color.blue)
-                        .clipShape(Capsule())
+        VStack {
+            Color.clear.overlay(
+                ScrollView {
+                    WidthReader { width in
+                        Text("Some text")
+                        
+                        TagViewForScrollView(maxWidth: width, elements: items) { element in
+                            Text(element)
+                                .foregroundColor(.white)
+                                .padding(10)
+                                .background(Color.blue)
+                                .clipShape(Capsule())
+                                .padding(2)
+                        }
                         .padding(2)
+                        .background(Color.gray)
+                        
+                        Text("Some more text")
+                    }
                 }
-                .padding(2)
-                .background(Color.gray)
+                .animation(.default, value: items)
+                .animation(.default, value: layoutDirection)
+            )
+            .environment(\.layoutDirection, layoutDirection)
+            
+            VStack {
+                HStack {
+                    Button("Remove Item") { if !items.isEmpty { items.removeLast() } }
+                        .padding()
+                    Button("Add Item") { items.append("\(items.randomElement() ?? Self.exampleItems.randomElement()!)\(Int.random(in: 1...100))") }
+                        .padding()
+                }
                 
-                Text("Some more text")
+                Picker("Layout Direction", selection: $layoutDirection) {
+                    ForEach(LayoutDirection.allCases, id: \.self) { direction in
+                        Text(direction == .leftToRight ? "Left to Right" : "Right to Left")
+                    }
+                }
+                .pickerStyle(.segmented)
             }
+            .padding()
         }
         .navigationTitle("TagViewForScroll")
     }

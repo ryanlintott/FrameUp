@@ -36,7 +36,7 @@ internal struct FULayoutRootView<Content: View, L: FULayout>: View {
         }
         .frame(frameSize, alignment: .topLeading)
         .fixedSize()
-        .onPreferenceChange(FULayoutSizeKey.self) {
+        .onPreferenceChangeMainActor(FULayoutSizeKey.self) {
             sizes = $0
         }
         /// These modifiers are used to ensure initial content sizing uses an invisible view that won't effect the overall frame. Once the offset is known it will appear with the correct placement.

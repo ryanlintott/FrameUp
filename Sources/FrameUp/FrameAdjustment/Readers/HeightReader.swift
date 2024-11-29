@@ -47,7 +47,7 @@ public struct HeightReader<Content: View>: View {
             }
         )
         .frame(width: 0)
-        .onPreferenceChange(HeightKey.self) { newHeight in
+        .onPreferenceChangeMainActor(HeightKey.self) { newHeight in
             if height == newHeight { return }
             height = newHeight
         }

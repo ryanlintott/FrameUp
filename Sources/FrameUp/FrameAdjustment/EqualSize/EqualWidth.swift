@@ -42,7 +42,7 @@ private struct EqualWidthViewModifier: ViewModifier {
                     Color.clear
                         .preference(key: EqualWidthKey.self, value: proxy.size.width)
                 }
-                    .onPreferenceChange(EqualWidthKey.self) {
+                    .onPreferenceChangeMainActor(EqualWidthKey.self) {
                         equalWidth = $0
                     }
             )

@@ -47,7 +47,7 @@ public struct WidthReader<Content: View>: View {
             }
         )
         .frame(height: 0)
-        .onPreferenceChange(WidthKey.self) { newWidth in
+        .onPreferenceChangeMainActor(WidthKey.self) { newWidth in
             if width == newWidth { return }
             width = newWidth
         }
