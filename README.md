@@ -504,7 +504,7 @@ WidgetDemoFrame(.medium, cornerRadius: 20) { size, cornerRadius in
 
 ## Additional Tools
 ### Proportionable
-A protocol that adds helpful parameters like `aspectFormat`, `aspectRatio`, `minDimension`, and `maxDimension`.
+A protocol that adds helpful parameters like `aspectFormat`, `aspectRatio`, `minDimension`, `maxDimension`, `init(width:,aspectRatio:)`, `init(height:,aspectRatio:)`, `square(:)`, `scaledToFit(:)`, and `scaledToFill(:)`.
 
 Used on types that have `width` and `height` properties like `CGSize`.
 

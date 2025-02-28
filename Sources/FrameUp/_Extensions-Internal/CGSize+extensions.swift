@@ -44,21 +44,23 @@ internal extension CGSize {
         proportionableSize.maxDimension
     }
     
+    init(width: CGFloat, aspectRatio: CGFloat) {
+        self = ProportionableSize(width: width, aspectRatio: aspectRatio).size
+    }
+    
+    init(height: CGFloat, aspectRatio: CGFloat) {
+        self = ProportionableSize(height: height, aspectRatio: aspectRatio).size
+    }
+    
+    static func square(_ width: CGFloat) -> Self {
+        ProportionableSize.square(width).size
+    }
+    
     func scaledToFit(_ frame: CGSize) -> CGSize {
-        if self == .zero { return .zero }
-        switch aspectRatio - frame.aspectRatio {
-        case 0: return frame
-        case ..<0: return .init(width: frame.height * aspectRatio, height: frame.height)
-        default: return .init(width: frame.width, height: frame.height / aspectRatio)
-        }
+        proportionableSize.scaledToFit(frame.proportionableSize).size
     }
     
     func scaledToFill(_ frame: CGSize) -> CGSize {
-        if self == .zero { return .zero }
-        switch aspectRatio - frame.aspectRatio {
-        case 0: return frame
-        case ..<0: return .init(width: frame.width, height: frame.height / aspectRatio)
-        default: return .init(width: frame.height * aspectRatio, height: frame.height)
-        }
+        proportionableSize.scaledToFill(frame.proportionableSize).size
     }
 }
