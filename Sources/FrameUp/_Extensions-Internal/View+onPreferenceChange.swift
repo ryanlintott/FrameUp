@@ -7,36 +7,18 @@
 
 import SwiftUI
 
-struct OnPreferenceChangeUpdatingBinding<K>: ViewModifier where K : PreferenceKey, K.Value : Equatable & Sendable {
-    let key: K.Type
-    @Binding var value: K.Value
-    var predicate: @Sendable (_ currentValue: K.Value, _ newValue: K.Value) -> Bool
-    
-    func body(content: Content) -> some View {
-        content
-            .onPreferenceChange(key) { [$value] newValue in
-                if predicate($value.wrappedValue, newValue) {
-                    $value.wrappedValue = newValue
-                }
-            }
-    }
-}
-
 internal extension View {
-    /// Updating a binding based on a predicate.
-    @preconcurrency nonisolated func onPreferenceChange<K>(_ key: K.Type = K.self, update value: Binding<K.Value>, where predicate: @escaping @Sendable (_ oldValue: K.Value, _ newValue: K.Value) -> Bool) -> some View where K : PreferenceKey, K.Value : Equatable & Sendable {
-        modifier(OnPreferenceChangeUpdatingBinding(key: key, value: value, predicate: predicate))
-        
-    }
-    
-    /// Updating a binding on every change.
-    @preconcurrency @inlinable nonisolated func onPreferenceChange<K>(_ key: K.Type = K.self, update value: Binding<K.Value>) -> some View where K : PreferenceKey, K.Value : Equatable & Sendable {
-        onPreferenceChange(key) { newValue in
-            value.wrappedValue = newValue
-        }
-    }
-    
-    /// Wrap the action in a MainActor Task.
+    #if compiler(>=6.0) && compiler(<6.1)
+    /// Adds an action to perform when the specified preference key's value
+    /// changes. This action is wrapped in a MainActor Task for Swift compiler 6.0 to 6.0.3 due to the Sendable requirement for those versions.
+    ///
+    /// - Parameters:
+    ///   - key: The key to monitor for value changes.
+    ///   - action: The action to perform when the value for `key` changes. The
+    ///     `action` closure passes the new value as its parameter.
+    ///
+    /// - Returns: A view that triggers `action` when the value for `key`
+    ///   changes.
     @preconcurrency @inlinable nonisolated func onPreferenceChangeMainActor<K>(_ key: K.Type = K.self, perform action: @escaping @MainActor (K.Value) -> Void) -> some View where K : PreferenceKey, K.Value : Equatable & Sendable {
         onPreferenceChange(key) { newValue in
             Task { @MainActor in
@@ -44,4 +26,19 @@ internal extension View {
             }
         }
     }
+    #else
+    /// Adds an action to perform when the specified preference key's value
+    /// changes. This action is wrapped in a MainActor Task for Swift compiler 6.0 to 6.0.3 due to the Sendable requirement for those versions.
+    ///
+    /// - Parameters:
+    ///   - key: The key to monitor for value changes.
+    ///   - action: The action to perform when the value for `key` changes. The
+    ///     `action` closure passes the new value as its parameter.
+    ///
+    /// - Returns: A view that triggers `action` when the value for `key`
+    ///   changes.
+    @inlinable nonisolated func onPreferenceChangeMainActor<K>(_ key: K.Type = K.self, perform action: @escaping (K.Value) -> Void) -> some View where K : PreferenceKey, K.Value : Equatable {
+        onPreferenceChange(key, perform: action)
+    }
+    #endif
 }
