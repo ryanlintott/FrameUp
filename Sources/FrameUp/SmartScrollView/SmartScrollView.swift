@@ -187,8 +187,6 @@ public struct SmartScrollView<Content: View>: View {
             .ifAvailable {
                 if #available(iOS 17, *) {
                     $0.scrollBounceBehavior(optionalScrolling ? .basedOnSize : .always)
-                } else {
-                    $0
                 }
             }
         }
