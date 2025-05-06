@@ -114,11 +114,11 @@ public extension WidgetSize {
         let size: (CGFloat, CGFloat)
         
         switch watchSize {
-        case 49...: size = (382, 163)
-        case 45...: size = (368, 161)
-        case 44...: size = (346, 153)
-        case 41...: size = (330, 145)
-        default: size = (304, 139)
+        case 49...: size = (191, 81.5)
+        case 45...: size = (184, 80.5)
+        case 44...: size = (173, 76.5)
+        case 41...: size = (165, 72.5)
+        default: size = (152, 69.5)
         }
         
         return [.medium: .init(width: size.0, height: size.1)]
