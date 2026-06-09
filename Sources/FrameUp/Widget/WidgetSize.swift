@@ -15,6 +15,7 @@ public enum WidgetSize: String, Identifiable, CaseIterable {
     case medium
     case large
     case extraLarge
+    case extraLargePortrait
     case accessoryCircular
     case accessoryRectangular
     case accessoryInline
@@ -104,6 +105,20 @@ public extension WidgetSize {
             .extraLarge: CGSize(width: widgetSizes.3.0, height: widgetSizes.3.1)
         ]
     }
+
+    /// Widget sizes for visionOS.
+    ///
+    /// All sizes are sourced from [Apple Human Interface Guidelines: widget specifications](https://developer.apple.com/design/human-interface-guidelines/widgets#Specifications)
+    /// - Returns: A dictionary of sizes based on widget size.
+    static func sizesForVisionOS() -> [WidgetSize: CGSize] {
+        [
+            .small: CGSize(width: 158, height: 158),
+            .medium: CGSize(width: 338, height: 158),
+            .large: CGSize(width: 338, height: 354),
+            .extraLarge: CGSize(width: 450, height: 338),
+            .extraLargePortrait: CGSize(width: 338, height: 450)
+        ]
+    }
     
     /// Widget sizes for Apple Watch.
     ///
@@ -131,6 +146,7 @@ public extension WidgetSize {
         case .medium: return CGSize(width: 292, height: 141)
         case .large: return CGSize(width: 292, height: 311)
         case .extraLarge: return CGSize(width: 540, height: 260)
+        case .extraLargePortrait: return CGSize(width: 338, height: 450)
         case .accessoryCircular: return CGSize(width: 68, height: 68)
         case .accessoryRectangular: return CGSize(width: 153, height: 68)
         case .accessoryInline: return CGSize(width: 234, height: 26)
@@ -144,6 +160,7 @@ public extension WidgetSize {
         case .medium: return CGSize(width: 412, height: 188)
         case .large: return CGSize(width: 412, height: 412)
         case .extraLarge: return CGSize(width: 860, height: 412)
+        case .extraLargePortrait: return CGSize(width: 338, height: 450)
         case .accessoryCircular: return CGSize(width: 76, height: 76)
         case .accessoryRectangular: return CGSize(width: 172, height: 76)
         case .accessoryInline: return CGSize(width: 257, height: 26)
@@ -163,6 +180,12 @@ public extension WidgetSize {
     /// - Returns: Size for this widget. Nil if widget size is not available.
     func sizeForiPad(screenSize: CGSize, target: WidgetTarget) -> CGSize? {
         Self.sizesForiPad(screenSize: screenSize, target: target)[self]
+    }
+
+    /// Size for this widget on visionOS.
+    /// - Returns: Size for this widget. Nil if widget size is not available.
+    func sizeForVisionOS() -> CGSize? {
+        Self.sizesForVisionOS()[self]
     }
     
     /// Size for this widget on an iPhone with the specified screen size.
@@ -184,4 +207,3 @@ public extension WidgetSize {
         return homeScreen.width / designCanvas.width
     }
 }
-

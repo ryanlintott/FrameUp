@@ -9,70 +9,55 @@
 import Foundation
 import WidgetKit
 
-@available(watchOS 9, *)
+@available(watchOS 9, visionOS 26.0, *)
 public extension WidgetSize {
     /// Equivalent widget family. Optional as extraLarge will return nil unless running iOS 15.0 or later.
     var widgetFamily: WidgetFamily? {
         switch self {
         case .small:
-            #if os(watchOS)
-            return nil
-            #else
+            #if os(iOS) || os(macOS) || os(visionOS)
             return .systemSmall
             #endif
         case .medium:
-            #if os(watchOS)
-            return nil
-            #else
+            #if os(iOS) || os(macOS) || os(visionOS)
             return .systemMedium
             #endif
         case .large:
-            #if os(watchOS)
-            return nil
-            #else
+            #if os(iOS) || os(macOS) || os(visionOS)
             return .systemLarge
             #endif
         case .extraLarge:
-            if #available(iOS 15.0, *) {
-                #if os(iOS)
+            #if os(iOS) || os(macOS) || os(visionOS)
+            if #available(iOS 15.0, macOS 14.0, *) {
                 return .systemExtraLarge
-                #else
-                return nil
-                #endif
-            } else {
-                return nil
             }
+            #endif
+        case .extraLargePortrait:
+            #if os(visionOS) || (compiler(>=6.4) && (os(iOS) || os(macOS)))
+            if #available(iOS 27.0, macOS 27.0, *) {
+                return .systemExtraLargePortrait
+            }
+            #endif
         case .accessoryRectangular:
+            #if os(iOS) || os(watchOS)
             if #available(iOS 16.0, *) {
-                #if os(iOS)
                 return .accessoryRectangular
-                #else
-                return nil
-                #endif
-            } else {
-                return nil
             }
+            #endif
         case .accessoryCircular:
+            #if os(iOS) || os(watchOS)
             if #available(iOS 16.0, *) {
-                #if os(iOS)
                 return .accessoryCircular
-                #else
-                return nil
-                #endif
-            } else {
-                return nil
             }
+            #endif
         case .accessoryInline:
+            #if os(iOS) || os(watchOS)
             if #available(iOS 16.0, *) {
-                #if os(iOS)
                 return .accessoryInline
-                #else
-                return nil
-                #endif
-            } else {
-                return nil
             }
+            #endif
         }
+        return nil
     }
 }
 #endif

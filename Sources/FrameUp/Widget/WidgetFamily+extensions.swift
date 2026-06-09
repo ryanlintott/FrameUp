@@ -9,7 +9,7 @@
 import SwiftUI
 import WidgetKit
 
-@available(watchOS 9, *)
+@available(watchOS 9, visionOS 26, *)
 public extension WidgetFamily {
     #if os(iOS)
     /// Supported families for the current device.
@@ -22,15 +22,22 @@ public extension WidgetFamily {
     /// Equivalent widget size. Only returns nil for unknown values.
     var size: WidgetSize? {
         switch self {
-        case .systemSmall: return .small
-        case .systemMedium: return .medium
-        case .systemLarge: return .large
-        case .systemExtraLarge: return .extraLarge
-        case .accessoryCircular: return .accessoryCircular
-        case .accessoryRectangular: return .accessoryRectangular
-        case .accessoryInline: return .accessoryInline
-        case .accessoryCorner: return nil
-        @unknown default: return nil
+        #if os(iOS) || os(macOS) || os(visionOS)
+        case .systemSmall: .small
+        case .systemMedium: .medium
+        case .systemLarge: .large
+        case .systemExtraLarge: .extraLarge
+        #endif
+        #if os(visionOS) || (compiler(>=6.4) && (os(iOS) || os(macOS)))
+        case .systemExtraLargePortrait: .extraLarge
+        #endif
+        #if os(iOS) || os(watchOS)
+        case .accessoryCircular: .accessoryCircular
+        case .accessoryRectangular: .accessoryRectangular
+        case .accessoryInline: .accessoryInline
+        case .accessoryCorner: nil
+        #endif
+        @unknown default: nil
         }
     }
 }

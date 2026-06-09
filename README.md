@@ -480,6 +480,9 @@ Returns the size of the widget based on the screen size provided.
 #### `sizeForiPad(screenSize:, target:)
 Returns either the design canvas or the home screen size (depending on the supplied target) of the widget based on the screen size provided. On iPads widget content is put on the design canvas then scaled to fit the home screen size. (The `WidgetDemoFrame` will do this scaling for you)
 
+#### `sizeForVisionOS()`
+Returns the size of the widget on visionOS.
+
 #### `supportedSizesForCurrentDevice` (iOS Only)
 Returns an array of supported widget sizes based on device type and iOS version.
 
@@ -787,7 +790,6 @@ Text("Example widget")
     )
     .padding(1)
 ```
-
 
 
 
