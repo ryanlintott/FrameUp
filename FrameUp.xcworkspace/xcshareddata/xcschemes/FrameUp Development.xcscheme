@@ -7,7 +7,7 @@
       buildImplicitDependencies = "YES">
       <BuildActionEntries>
          <BuildActionEntry
-            buildForTesting = "YES"
+            buildForTesting = "NO"
             buildForRunning = "YES"
             buildForProfiling = "YES"
             buildForArchiving = "YES"
@@ -17,7 +17,7 @@
                BlueprintIdentifier = "CF48CC9A26F131C200406F4E"
                BuildableName = "FrameUpExample.app"
                BlueprintName = "FrameUpExample"
-               ReferencedContainer = "container:FrameUpExample.xcodeproj">
+               ReferencedContainer = "container:Example/FrameUpExample.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -26,8 +26,19 @@
       buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
-      shouldUseLaunchSchemeArgsEnv = "YES"
-      shouldAutocreateTestPlan = "YES">
+      shouldUseLaunchSchemeArgsEnv = "YES">
+      <Testables>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "FrameUpTests"
+               BuildableName = "FrameUpTests"
+               BlueprintName = "FrameUpTests"
+               ReferencedContainer = "container:">
+            </BuildableReference>
+         </TestableReference>
+      </Testables>
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"
@@ -46,7 +57,7 @@
             BlueprintIdentifier = "CF48CC9A26F131C200406F4E"
             BuildableName = "FrameUpExample.app"
             BlueprintName = "FrameUpExample"
-            ReferencedContainer = "container:FrameUpExample.xcodeproj">
+            ReferencedContainer = "container:Example/FrameUpExample.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -63,7 +74,7 @@
             BlueprintIdentifier = "CF48CC9A26F131C200406F4E"
             BuildableName = "FrameUpExample.app"
             BlueprintName = "FrameUpExample"
-            ReferencedContainer = "container:FrameUpExample.xcodeproj">
+            ReferencedContainer = "container:Example/FrameUpExample.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
