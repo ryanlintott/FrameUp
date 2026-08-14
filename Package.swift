@@ -1,4 +1,4 @@
-// swift-tools-version:5.9
+// swift-tools-version:6.0
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -6,10 +6,10 @@ import PackageDescription
 let package = Package(
     name: "FrameUp",
     platforms: [
-        .iOS(.v14),
-        .macOS(.v11),
-        .watchOS(.v7),
-        .tvOS(.v14),
+        .iOS(.v15),
+        .macOS(.v12),
+        .watchOS(.v8),
+        .tvOS(.v15),
         .visionOS(.v1)
     ],
     products: [
@@ -30,6 +30,5 @@ let package = Package(
             name: "FrameUpTests",
             dependencies: ["FrameUp"]
         ),
-    ],
-    swiftLanguageVersions: [.v5, .version("6")]
+    ]
 )

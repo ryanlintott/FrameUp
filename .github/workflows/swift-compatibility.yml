@@ -1,0 +1,87 @@
+name: Swift Compatibility
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - main
+  push:
+    branches:
+      - dev
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: swift-compatibility-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  swift-6-0:
+    name: Swift 6.0 compatibility
+    runs-on: macos-15
+    timeout-minutes: 15
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_16.0.app/Contents/Developer
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Report toolchain
+        run: |
+          xcodebuild -version
+          swift --version
+
+      - name: Test on macOS
+        run: swift test
+
+  current-swift:
+    name: Current Swift tests and platform builds
+    runs-on: macos-26
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Report toolchain
+        run: |
+          xcodebuild -version
+          swift --version
+
+      - name: Test on macOS
+        run: swift test
+
+      - name: Build for iOS
+        run: >-
+          xcodebuild build
+          -workspace .swiftpm/xcode/package.xcworkspace
+          -scheme FrameUp
+          -destination 'generic/platform=iOS'
+          CODE_SIGNING_ALLOWED=NO
+
+      - name: Build for tvOS
+        run: >-
+          xcodebuild build
+          -workspace .swiftpm/xcode/package.xcworkspace
+          -scheme FrameUp
+          -destination 'generic/platform=tvOS'
+          CODE_SIGNING_ALLOWED=NO
+
+      - name: Build for watchOS
+        run: >-
+          xcodebuild build
+          -workspace .swiftpm/xcode/package.xcworkspace
+          -scheme FrameUp
+          -destination 'generic/platform=watchOS'
+          CODE_SIGNING_ALLOWED=NO
+
+      - name: Build for visionOS
+        run: >-
+          xcodebuild build
+          -workspace .swiftpm/xcode/package.xcworkspace
+          -scheme FrameUp
+          -destination 'generic/platform=visionOS'
+          CODE_SIGNING_ALLOWED=NO
