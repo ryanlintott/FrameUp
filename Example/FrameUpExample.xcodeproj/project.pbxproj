@@ -253,7 +253,7 @@
 			);
 			mainGroup = CF48CC9226F131C200406F4E;
 			packageReferences = (
-				CF1AB2B02CB5BF530049E553 /* XCLocalSwiftPackageReference "../../FrameUp" */,
+				CF1AB2B02CB5BF530049E553 /* XCLocalSwiftPackageReference ".." */,
 			);
 			productRefGroup = CF48CC9C26F131C200406F4E /* Products */;
 			projectDirPath = "";
@@ -709,9 +709,9 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		CF1AB2B02CB5BF530049E553 /* XCLocalSwiftPackageReference "../../FrameUp" */ = {
+		CF1AB2B02CB5BF530049E553 /* XCLocalSwiftPackageReference ".." */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = ../../FrameUp;
+			relativePath = ..;
 		};
 /* End XCLocalSwiftPackageReference section */
 

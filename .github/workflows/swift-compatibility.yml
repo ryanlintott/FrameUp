@@ -57,7 +57,6 @@ jobs:
       - name: Build for iOS
         run: >-
           xcodebuild build
-          -workspace .swiftpm/xcode/package.xcworkspace
           -scheme FrameUp
           -destination 'generic/platform=iOS'
           CODE_SIGNING_ALLOWED=NO
@@ -65,7 +64,6 @@ jobs:
       - name: Build for tvOS
         run: >-
           xcodebuild build
-          -workspace .swiftpm/xcode/package.xcworkspace
           -scheme FrameUp
           -destination 'generic/platform=tvOS'
           CODE_SIGNING_ALLOWED=NO
@@ -73,7 +71,6 @@ jobs:
       - name: Build for watchOS
         run: >-
           xcodebuild build
-          -workspace .swiftpm/xcode/package.xcworkspace
           -scheme FrameUp
           -destination 'generic/platform=watchOS'
           CODE_SIGNING_ALLOWED=NO
@@ -81,7 +78,6 @@ jobs:
       - name: Build for visionOS
         run: >-
           xcodebuild build
-          -workspace .swiftpm/xcode/package.xcworkspace
           -scheme FrameUp
           -destination 'generic/platform=visionOS'
           CODE_SIGNING_ALLOWED=NO
