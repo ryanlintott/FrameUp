@@ -29,7 +29,7 @@ public extension WidgetFamily {
         case .systemExtraLarge: .extraLarge
         #endif
         #if os(visionOS) || (compiler(>=6.4) && (os(iOS) || os(macOS)))
-        case .systemExtraLargePortrait: .extraLarge
+        case .systemExtraLargePortrait: .extraLargePortrait
         #endif
         #if os(iOS) || os(watchOS)
         case .accessoryCircular: .accessoryCircular

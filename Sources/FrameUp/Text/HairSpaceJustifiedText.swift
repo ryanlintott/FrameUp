@@ -94,7 +94,7 @@ extension StringProtocol {
         let lineBreak: Character = "\n"
         if contains(lineBreak) {
             return split(separator: lineBreak, omittingEmptySubsequences: false)
-                .map { $0.justifiedByHairSpaces(font: font, maxWidth: maxWidth) }
+                .map { $0.justifiedByHairSpaces(font: font, maxWidth: maxWidth, justifyLastLine: justifyLastLine) }
                 .joined(separator: String(lineBreak))
         }
         

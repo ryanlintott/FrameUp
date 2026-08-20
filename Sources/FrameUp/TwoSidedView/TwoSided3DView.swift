@@ -81,7 +81,7 @@ extension View {
         thickness: CGFloat? = nil,
         back: () -> Back
     ) -> some View {
-        modifier(TwoSided3DViewModifier(angle: angle, axis: axis, anchor: anchor, thickness: thickness, back: back()))
+        modifier(TwoSided3DViewModifier(angle: angle, axis: axis, anchor: anchor, backsideFlip: backsideFlip, thickness: thickness, back: back()))
     }
 }
 #endif

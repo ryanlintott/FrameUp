@@ -56,12 +56,12 @@ public struct HMasonry: FULayout, Sendable {
         self.rows = max(1, rows)
         self.horizontalSpacing = horizontalSpacing ?? 10
         self.verticalSpacing = verticalSpacing ?? 10
-        self.rowHeight = (maxHeight - (self.horizontalSpacing * CGFloat(self.rows - 1))) / CGFloat(self.rows)
+        self.rowHeight = (maxHeight - (self.verticalSpacing * CGFloat(self.rows - 1))) / CGFloat(self.rows)
     }
     
     public func contentOffsets(sizes: [Int: CGSize]) -> [Int: CGPoint] {
         var rows: [Row] = (0..<rows).map { _ in
-            Row(alignment: alignment, minSpacing: verticalSpacing)
+            Row(alignment: alignment, minSpacing: horizontalSpacing)
         }
         
         for size in sizes.sortedByKey() {

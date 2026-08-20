@@ -25,7 +25,7 @@ Some widget-related tools
 - [`WidgetSize`](#widgetsize) - Similar to WidgetFamily but returns widget frame sizes by device and doesn't require `WidgetKit`
 - [`WidgetDemoFrame`](#widgetdemoframe) creates accurately sized widget frames you can use in an iOS or macOS app.
 
-Additional SwiftUI tools for iOS 14+15, macOS 11+12, watchOS 7+8, and tvOS 14+15
+Additional SwiftUI tools for iOS 15, macOS 12, and tvOS 15
 
 - [`FULayout`](#fulayout) for building custom layouts (similar to SwiftUI `Layout`).
 - FULayouts: [`HFlow`](#hflow), [`VFlow`](#vflow), [`HMasonry`](#hmasonry), [`VMasonry`](#vmasonry), [`FULayoutThatFits`](#fulayoutthatfits), and [`FUViewThatFits`](#fuviewthatfits)
@@ -39,7 +39,7 @@ Additional SwiftUI tools for iOS 14+15, macOS 11+12, watchOS 7+8, and tvOS 14+15
 The `Example` folder has an app that demonstrates the features of this package.
 
 # Installation and Usage
-This package is compatible with iOS 14+, macOS 11+, watchOS 7+, tvOS 14+, and visionOS.
+This package is compatible with iOS 15+, macOS 12+, watchOS 9+, tvOS 15+, and visionOS 1+.
 
 1. In Xcode go to `File -> Add Packages`
 2. Paste in the repo's url: `https://github.com/ryanlintott/FrameUp` and select by version.
@@ -520,7 +520,7 @@ extension CGSize: Proportionable { }
 Alternative to the `frame(width:,height:,alignment:)` View modifier that takes a `CGSize` parameter instead.
 
 ----
-# Features for iOS 14+15
+# Features for iOS 15
 
 ## FULayout
 If you like the SwiftUI `Layout` protocol but you need to target an older OS that doesn't support it then the `FULayout` protocol might be your answer!
@@ -541,7 +541,7 @@ VFlow(maxWidth: 200) {
 *Caution: This method uses Apple's private protocol `_VariadicView` under the hood. There is a small risk Apple could change the implementation so if this concerns you, use method 2 below.*
 
 ### `.forEach()`
-*\*Deprecated iOS 16, macOS 13, watchOS 7, tvOS 14, visionOS 1*
+*\*Deprecated iOS 16, macOS 13, watchOS 9, tvOS 16, visionOS 1*
 This method works in a very similar way to `ForEach()`.
 
 ```swift

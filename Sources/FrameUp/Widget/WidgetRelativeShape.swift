@@ -23,8 +23,8 @@ public struct ScaledContainerRelativeShape: Shape {
         let scaledRect = CGRect(
             x: rect.minX,
             y: rect.minY,
-            width: rect.minX + rect.width * scaleFactor,
-            height: rect.minY + rect.height * scaleFactor
+            width: rect.width * scaleFactor,
+            height: rect.height * scaleFactor
         )
         // Creating a ContainerRelativeShape in a smaller homeScreen sized frame will adjust the corner radius and fix the problem
         // It will also shrink the overall size but that is adjusted back using WidgetRelativeShape

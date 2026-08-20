@@ -142,14 +142,14 @@ public extension WidgetSize {
     /// Smallest size for this widget size.
     var minimumSize: CGSize {
         switch self {
-        case .small: return CGSize(width: 141, height: 141)
+        case .small: return CGSize(width: 120, height: 120)
         case .medium: return CGSize(width: 292, height: 141)
         case .large: return CGSize(width: 292, height: 311)
         case .extraLarge: return CGSize(width: 540, height: 260)
         case .extraLargePortrait: return CGSize(width: 338, height: 450)
         case .accessoryCircular: return CGSize(width: 68, height: 68)
         case .accessoryRectangular: return CGSize(width: 153, height: 68)
-        case .accessoryInline: return CGSize(width: 234, height: 26)
+        case .accessoryInline: return CGSize(width: 225, height: 26)
         }
     }
     

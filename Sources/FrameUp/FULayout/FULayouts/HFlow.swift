@@ -60,10 +60,6 @@ public struct HFlow: FULayout, Sendable {
         self.verticalSpacing = verticalSpacing ?? 10
     }
     
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(alignment)
-    }
-    
     public func contentOffsets(sizes: [Int: CGSize]) -> [Int: CGPoint] {
         var rows: [Row] = sizes
             .sortedByKey()

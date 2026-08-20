@@ -98,7 +98,7 @@ public struct SmartScrollView<Content: View>: View {
         showsIndicators: Bool = true,
         optionalScrolling: Bool = true,
         shrinkToFit: Bool = true,
-        content: () -> Content,
+        @ViewBuilder content: () -> Content,
         onScroll: ((EdgeInsets?) -> Void)? = nil
     ) {
         self.axes = axes
