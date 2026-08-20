@@ -1,6 +1,6 @@
 //
 //  View+IfAvailable.swift
-//  DragAndDrop
+//  IfAvailable
 //
 //  Created by Ryan Lintott on 2023-07-14.
 //
@@ -15,7 +15,7 @@ extension View {
     ///   - transform: The transform to apply to the source `View`.
     /// - Returns: The view transformed by the transform.
     @ViewBuilder
-    func ifAvailable(@ViewBuilder _ transform: (Self) -> (some View)?) -> some View {
+    nonisolated func ifAvailable(@ViewBuilder _ transform: (Self) -> (some View)?) -> some View {
         if let transformed = transform(self) {
             transformed
         } else {

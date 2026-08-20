@@ -7,8 +7,6 @@
 
 import SwiftUI
 
-/// This check ensures this code only builds in Xcode 16+
-#if compiler(>=6)
 @available(iOS 18, macOS 15, watchOS 11, tvOS 18, visionOS 2, *)
 struct UnclippedTextRenderer: TextRenderer {
     func draw(layout: Text.Layout, in context: inout GraphicsContext) {
@@ -96,4 +94,3 @@ public extension View {
     .multilineTextAlignment(.center)
     .padding()
 }
-#endif

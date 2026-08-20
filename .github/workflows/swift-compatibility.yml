@@ -35,7 +35,7 @@ jobs:
           swift --version
 
       - name: Test on macOS
-        run: swift test
+        run: swift build
 
   current-swift:
     name: Current Swift tests and platform builds

@@ -7,8 +7,4 @@
 
 import SwiftUI
 
-#if compiler(<6)
-extension Axis.Set: Hashable { }
-#else
 extension Axis.Set: @retroactive Hashable { }
-#endif

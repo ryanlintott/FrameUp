@@ -61,6 +61,7 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CFF359BB2C090B3F00AFC57E"
             BuildableName = "FrameUpWatchExample Watch App.app"
+            BlueprintName = "FrameUpWatchExample Watch App"
             ReferencedContainer = "container:FrameUpExample.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -77,6 +78,7 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CFF359BB2C090B3F00AFC57E"
             BuildableName = "FrameUpWatchExample Watch App.app"
+            BlueprintName = "FrameUpWatchExample Watch App"
             ReferencedContainer = "container:FrameUpExample.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
