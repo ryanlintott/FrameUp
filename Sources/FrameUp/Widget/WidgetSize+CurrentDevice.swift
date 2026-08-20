@@ -11,12 +11,12 @@ import SwiftUI
 
 public extension WidgetSize {
     /// The screen size ignoring orientation.
-    @preconcurrency @MainActor
+    @MainActor
     private static let currentScreenSize =
         UIScreen.main.fixedCoordinateSpace.bounds.size
     
     /// The current device.
-    @preconcurrency @MainActor
+    @MainActor
     private static let currentDevice = UIDevice.current.userInterfaceIdiom
     
     /// Find the supported sizes for a specified device
