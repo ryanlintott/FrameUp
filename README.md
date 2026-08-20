@@ -13,10 +13,10 @@ A collection of SwiftUI tools to help with layout.
 
 - SwiftUI [`Layouts`](#layouts) like [`HFlowLayout`](#hflowlayout), [`VFlowLayout`](#vflowlayout), [`VMasonryLayout`](#vmasonrylayout), [`HMasonryLayout`](#hmasonrylayout), and [`LayoutThatFits`](#layoutthatfits)
 - [`AutoRotatingView`](#autorotatingview) to set allowable orientations for a view.
-- [Frame Adjustment](#frame-adjustment) tools like [`WidthReader`](#widthreader), [`HeightReader`](#heightreader), [`onSizeChange(perform:)`](#onsizechangeperform), [`keyboardHeight`](#keyboardHeight), [`.relativePadding`](#relativepaddingedges-lengthfactor), [`ScaledView`](#scaledview) and [`OverlappingImage`](#overlappingimage).
+- [Frame Adjustment](#frame-adjustment) tools like [`WidthReader`](#widthreader), [`HeightReader`](#heightreader), [`onSizeChange(perform:)`](#onsizechangeperform), [`keyboardHeight`](#keyboardheight), [`.relativePadding`](#relativepaddingedges-lengthfactor), [`ScaledView`](#scaledview) and [`OverlappingImage`](#overlappingimage).
 - [`unclippedTextRenderer`](#unclippedtextrenderer) for fixing clipped `Text`. 
 - [`SmartScrollView`](#smartscrollview) with optional scrolling, a content-fitable frame, and live edge inset values.
-- [`FlippingView`](#flippingview) and [`rotation3DEffect(back:)`](#rotation3deffectback) for making flippable views with a different view on the back side.
+- [`FlippingView`](#flippingview) and [`rotation3DEffect(back:)`](#rotation3deffectangleaxisanchoranchorzperspectivebacksideflipback) for making flippable views with a different view on the back side.
 - [`TabMenu`](#tabmenu), a customizable iOS tab menu with `onReselect` and `onDoubleTap` functions.
 
 Some widget-related tools
@@ -71,7 +71,7 @@ Each row height will be determined by the tallest element. The overall frame siz
 ```swift
 HFlowLayout {
     ForEach(["Hello", "World", "More Text"], id: \.self) { item in
-        Text(item.value)
+        Text(item)
     }
 }
 ```
@@ -84,7 +84,7 @@ Each column width will be determined by the widest element. The overall frame si
 ```swift
 VFlowLayout {
     ForEach(["Hello", "World", "More Text"], id: \.self) { item in
-        Text(item.value)
+        Text(item)
     }
 }
 ```
@@ -95,7 +95,7 @@ A `Layout` that arranges views into a set number of columns by adding each view 
 ```swift
 VMasonryLayout(columns: 3) {
     ForEach(["Hello", "World", "More Text"], id: \.self) { item in
-        Text(item.value)
+        Text(item)
     }
 }
 ```
@@ -106,7 +106,7 @@ A `Layout` that arranges views into a set number of rows by adding each view to 
 ```swift
 HMasonryLayout(rows: 3) {
     ForEach(["Hello", "World", "More Text"], id: \.self) { item in
-        Text(item.value)
+        Text(item)
     }
 }
 ```
@@ -278,7 +278,6 @@ struct MyView: View {
     
     var body: some View {
         TextField("Moves with keyboard", text: $text)
-            .keyboardHeightEnvironmentValue()
             .padding(.bottom, keyboardHeight == 0 ? 100 : keyboardHeight)
             .ignoresSafeArea(.keyboard)
     }
@@ -392,17 +391,17 @@ The example below is a view with two sides. One blue side that says "Front" and 
 
 ```swift
 Color.blue.overlay(Text("Front"))
-    .rotation3DEffect(angle) {
+    .rotation3DEffect(angle, axis: (x: 0, y: 1, z: 0)) {
         Color.red.overlay(Text("Back"))
     }
 ```
 
-### rotation3DEffect(angle:axis:anchor:backsideFlip:back:)
+### rotation3DEffect(angle:axis:anchor:backsideFlip:thickness:back:)
 *\*visionOS*
-Rotates this view’s rendered output in three dimensions around the given axis of rotation with a closure containing a different view on the back. A minimum thickness that offsets the two views is required to ensure the side facing the user renders on top.
+Rotates this view’s rendered output in three dimensions around the given axis of rotation with a closure containing a different view on the back. A thickness offsets the two views so the side facing the user renders on top. It defaults to 2.
 ```swift
 Color.blue.overlay(Text("Front"))
-    .rotation3DEffect(angle) {
+    .rotation3DEffect(angle, axis: (x: 0, y: 1, z: 0), thickness: 2) {
         Color.red.overlay(Text("Back"))
     }
 ```
@@ -413,7 +412,7 @@ Renders a view’s content as if it’s rotated in three dimensions around the s
 
 ```swift
 Color.blue.overlay(Text("Front"))
-    .rotation3DEffect(angle) {
+    .perspectiveRotationEffect(angle, axis: (x: 0, y: 1, z: 0)) {
         Color.red.overlay(Text("Back"))
     }
 ```
@@ -438,7 +437,7 @@ let items = [
     TabMenuItem(image: Image(systemName: "books.vertical"), name: "About", tab: 3)
 ]
 
-TabMenuView(selection: $selection, items: items) { isSelected in
+TabMenu(selection: $selection, items: items) { isSelected in
     Group {
         if isSelected {
             Color.accentColor
@@ -474,10 +473,10 @@ Label {
 ### WidgetSize
 An enum similar to WidgetFamily but returns widget frame sizes by device and doesn't require `WidgetKit` so it can be used inside your main iOS or macOS app.
 
-#### `sizeForiPhone(screenSize:)
+#### `sizeForiPhone(screenSize:)`
 Returns the size of the widget based on the screen size provided.
 
-#### `sizeForiPad(screenSize:, target:)
+#### `sizeForiPad(screenSize:target:)`
 Returns either the design canvas or the home screen size (depending on the supplied target) of the widget based on the screen size provided. On iPads widget content is put on the design canvas then scaled to fit the home screen size. (The `WidgetDemoFrame` will do this scaling for you)
 
 #### `sizeForVisionOS()`
@@ -486,7 +485,7 @@ Returns the size of the widget on visionOS.
 #### `supportedSizesForCurrentDevice` (iOS Only)
 Returns an array of supported widget sizes based on device type and iOS version.
 
-#### `sizeForCurrentDevice` (iOS Only)
+#### `sizeForCurrentDevice(iPadTarget:)` (iOS Only)
 Returns the size of the widget based on the current device.
 
 All widget size information was sourced from:
@@ -528,11 +527,11 @@ If you like the SwiftUI `Layout` protocol but you need to target an older OS tha
 An `FULayout` will work in the same way as a SwiftUI `Layout`. The main difference is it will require a `maxWidth` or `maxHeight` parameter when initializing in order to know the available space. This can be provided by `GeometryReader` or with [`WidthReader`](#widthreader) or [`HeightReader`](#heightreader) from this package.
 
 ### ViewBuilder
-*\*Deprecated iOS 16, macOS 13, watchOS 7, tvOS 14, visionOS 1*
+*\*Deprecated iOS 16, macOS 13, watchOS 9, tvOS 16, visionOS 1*
 An `FULayout` uses `callAsFunction()` with a view builder so you can use it just like a SwiftUI `Layout`.
 
 ```swift
-VFlow(maxWidth: 200) {
+VFlow(maxHeight: 200) {
     Text("Hello")
     Text("World")
 }
@@ -545,15 +544,20 @@ VFlow(maxWidth: 200) {
 This method works in a very similar way to `ForEach()`.
 
 ```swift
-MyFULayout().forEach(["Hello", "World"], id: \.self) { item in
-        Text(item.value)
-    }
+struct Item: Identifiable {
+    let id = UUID()
+    let name: String
+}
+let items = [Item(name: "Hello"), Item(name: "World")]
+
+MyFULayout().forEach(items) { item in
+    Text(item.name)
 }
 ```
 
 ## FULayouts
 ### HFlow
-*\*Deprecated iOS 16, macOS 13, watchOS 7, tvOS 14, visionOS 1*
+*\*Deprecated iOS 16, macOS 13, watchOS 9, tvOS 16, visionOS 1*
 The [`FULayout`](#fulayout) equivalent of [`HFlowLayout`](#hflowlayout).
 
 A FrameUp `FULayout` that arranges views in horizontal rows flowing from one to the next with adjustable horizontal and vertical spacing and support for horiztonal and vertical alignment including a justified alignment that will space elements in completed rows evenly.
@@ -564,14 +568,14 @@ Each row height will be determined by the tallest view in that row.
 WidthReader { width in
     HFlow(maxWidth: width) {
         ForEach(["Hello", "World", "More Text"], id: \.self) { item in
-            Text(item.value)
+            Text(item)
         }
     }
 }
 ```
 
 ### VFlow
-*\*Deprecated iOS 16, macOS 13, watchOS 7, tvOS 14, visionOS 1*
+*\*Deprecated iOS 16, macOS 13, watchOS 9, tvOS 16, visionOS 1*
 The [`FULayout`](#fulayout) equivalent of [`VFlowLayout`](#vflowlayout).
 
 A FrameUp `FULayout` that arranges views in vertical columns flowing from one to the next with adjustable horizontal and vertical spacing and support for horiztonal and vertical alignment including a justified alignment that will space elements in completed columns evenly.
@@ -579,26 +583,26 @@ A FrameUp `FULayout` that arranges views in vertical columns flowing from one to
 Each column width will be determined by the widest element.
 
 ```swift
-WidthReader { width in
-    VFlow(maxWidth: width) {
+HeightReader { height in
+    VFlow(maxHeight: height) {
         ForEach(["Hello", "World", "More Text"], id: \.self) { item in
-            Text(item.value)
+            Text(item)
         }
     }
 }
 ```
  
 ### HMasonry
-*\*Deprecated iOS 16, macOS 13, watchOS 7, tvOS 14, visionOS 1*
+*\*Deprecated iOS 16, macOS 13, watchOS 9, tvOS 16, visionOS 1*
 The [`FULayout`](#fulayout) equivalent of [`HMasonryLayout`](#hmasonrylayout).
 
 A FrameUp `FULayout` that arranges views into a set number of rows by adding each view to the shortest row.
 
 ```swift
 HeightReader { height in
-    HMasonry(columns: 3, maxHeight: height) {
+    HMasonry(rows: 3, maxHeight: height) {
         ForEach(["Hello", "World", "More Text"], id: \.self) { item in
-            Text(item.value)
+            Text(item)
                 .frame(maxHeight: .infinity, alignment: .center)
         }
     }
@@ -606,16 +610,16 @@ HeightReader { height in
 ```
 
 ### VMasonry
-*\*Deprecated iOS 16, macOS 13, watchOS 7, tvOS 14, visionOS 1*
+*\*Deprecated iOS 16, macOS 13, watchOS 9, tvOS 16, visionOS 1*
 The [`FULayout`](#fulayout) equivalent of [`VMasonryLayout`](#vmasonrylayout).
 
-A FrameUp `FULayout` that arranges views into a set number of rows by adding each view to the shortest row.
+A FrameUp `FULayout` that arranges views into a set number of columns by adding each view to the shortest column.
 
 ```swift
 WidthReader { width in
     VMasonry(columns: 3, maxWidth: width) {
         ForEach(["Hello", "World", "More Text"], id: \.self) { item in
-            Text(item.value)
+            Text(item)
                 .frame(maxWidth: .infinity, alignment: .center)
         }
     }
@@ -623,7 +627,7 @@ WidthReader { width in
 ```
 
 ### FULayoutThatFits
-*\*Deprecated iOS 16, macOS 13, watchOS 7, tvOS 14, visionOS 1*
+*\*Deprecated iOS 16, macOS 13, watchOS 9, tvOS 16, visionOS 1*
 The [`FULayout`](#fulayout) equivalent of [`LayoutThatFits`](#layoutthatfits).
 
 An `FULayout` that picks the first provided layout that will fit the content in the provided maxWidth, maxHeight, or both. This is most helpful when switching between `HStackFULayout` and `VStackFULayout` as the content only needs to be provided once and will even animate when the stack changes.
@@ -643,7 +647,7 @@ FULayoutThatFits(
 ```
 
 ### FUViewThatFits
-*\*Deprecated iOS 16, macOS 13, watchOS 7, tvOS 14, visionOS 1*
+*\*Deprecated iOS 16, macOS 13, watchOS 9, tvOS 16, visionOS 1*
 The [`FULayout`](#fulayout) equivalent of SwiftUI `ViewThatFits`.
 
 An `FULayout` that presents the first view that fits the provided maxWidth, maxHeight, or both depending on which parameters are used.
@@ -669,19 +673,19 @@ WidthReader { width in
 Alternative stack layouts that can be wrapped in [`AnyFULayout`](#anyfulayout) and then toggled between with animation. Useful when you want to toggle between VStack and HStack based on available space.
 
 #### HStackFULayout
-*\*Deprecated iOS 16, macOS 13, watchOS 7, tvOS 14, visionOS 1*
+*\*Deprecated iOS 16, macOS 13, watchOS 9, tvOS 16, visionOS 1*
 Similar to `HStack` but `Spacer()` cannot be used and content will always use a fixed size on the horizontal axis.
 
 #### VStackFULayout
-*\*Deprecated iOS 16, macOS 13, watchOS 7, tvOS 14, visionOS 1*
+*\*Deprecated iOS 16, macOS 13, watchOS 9, tvOS 16, visionOS 1*
 Similar to `VStack` but `Spacer()` cannot be used and content will always use a fixed size on the vertical axis.
 
 #### ZStackFULayout
-*\*Deprecated iOS 16, macOS 13, watchOS 7, tvOS 14, visionOS 1*
+*\*Deprecated iOS 16, macOS 13, watchOS 9, tvOS 16, visionOS 1*
 Similar to `ZStack` but content will always use a fixed size on both the vertical and horizontal axes.
 
 ### AnyFULayout
-*\*Deprecated iOS 16, macOS 13, watchOS 7, tvOS 14, visionOS 1*
+*\*Deprecated iOS 16, macOS 13, watchOS 9, tvOS 16, visionOS 1*
 The [`FULayout`](#fulayout) equivalent of SwiftUI `AnyLayout`.
 
 A type-erased FrameUp layout can be used to wrap multiple layouts and switch between them with animation.
@@ -732,7 +736,7 @@ struct CustomFULayout: FULayout {
 If you've created an [`FULayout`](#fulayout) you can use it to easily create a SwiftUI `Layout`.
 
 ```swift
-struct CustomLayout: LayoutFromtFULayout {
+struct CustomLayout: LayoutFromFULayout {
     /// Add parameters here to adjust layout
     
     /// Add this function that will create the associated FULayout
@@ -765,7 +769,7 @@ A maximum width must be provided but `WidthReader` can be used to get the value.
 
 ```swift
 WidthReader { width in
-    TagView(maxWidth: width, elements: ["One", "Two", "Three"]) { element in
+    TagViewForScrollView(maxWidth: width, elements: ["One", "Two", "Three"]) { element in
         Text(element)
     }
 }

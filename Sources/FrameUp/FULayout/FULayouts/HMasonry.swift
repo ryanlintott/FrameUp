@@ -19,7 +19,7 @@ import SwiftUI
  HeightReader { height in
     HMasonry(rows: 3, maxHeight: height) {
         ForEach(["Hello", "World", "More Text"], id: \.self) { item in
-            Text(item.value)
+            Text(item)
         }
     }
  }
@@ -43,8 +43,8 @@ public struct HMasonry: FULayout, Sendable {
     ///   - alignment: Used to align rows horizontally relative to each other. Default is leading.
     ///   - rows: Number of rows to place views in.
     ///   - maxHeight: Maximum height containing all rows (can be obtained through a `HeightReader`).
-    ///   - horizontalSpacing: Minimum horizontal spacing between columns.
-    ///   - verticalSpacing: Vertical spacing between views in a column
+    ///   - horizontalSpacing: Minimum horizontal spacing between views in a row.
+    ///   - verticalSpacing: Vertical spacing between rows.
     public init(
         alignment: FUAlignment = .leading,
         rows: Int,

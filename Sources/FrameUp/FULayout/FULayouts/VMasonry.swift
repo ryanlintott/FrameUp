@@ -8,7 +8,7 @@
 import SwiftUI
 
 /**
- A FrameUp ``FULayout`` that arranges views into a set number of rows by adding each view to the shortest row.
+ A FrameUp ``FULayout`` that arranges views into a set number of columns by adding each view to the shortest column.
  
  A maximum width must be provided. ``WidthReader`` can be used to get the value and is especially helpful when inside a `ScrollView`.
  
@@ -19,7 +19,7 @@ import SwiftUI
  WidthReader { width in
      VMasonry(columns: 3, maxWidth: width) {
          ForEach(["Hello", "World", "More Text"], id: \.self) { item in
-             Text(item.value)
+             Text(item)
          }
      }
  }
@@ -38,7 +38,7 @@ public struct VMasonry: FULayout, Sendable {
     public let maxItemHeight: CGFloat? = nil
     public let fixedSize: Axis.Set = .vertical
     
-    /// Creates a FrameUp layout that arranges views columns, adding views to the shortest column.
+    /// Creates a FrameUp layout that arranges views into columns, adding views to the shortest column.
     /// - Parameters:
     ///   - alignment: Used to align columns vertically relative to each other. Default is top.
     ///   - columns: Number of columns to place views in.

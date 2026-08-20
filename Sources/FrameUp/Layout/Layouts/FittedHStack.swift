@@ -14,7 +14,7 @@ import SwiftUI
  ```swift
  FittedHStack {
      ForEach(["Hello", "World", "More Text"], id: \.self) { item in
-         Text(item.value)
+         Text(item)
      }
  }
  ```

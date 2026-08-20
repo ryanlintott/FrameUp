@@ -24,7 +24,7 @@ public struct VStackFULayout: FULayout, Sendable {
     public var maxItemWidth: CGFloat? { maxWidth }
     public let fixedSize: Axis.Set = .vertical
     
-    /// Creates a FrameUp layout version of `HStackLayout`.
+    /// Creates a FrameUp layout version of `VStackLayout`.
     /// - Parameters:
     ///   - alignment: Horizontal alignment of elements.
     ///   - spacing: Minimum vertical spacing between views. Default is 10

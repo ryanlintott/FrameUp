@@ -12,7 +12,7 @@ public enum BacksideFlip: Equatable, Identifiable {
     case automatic
     /// The backside will appear upright when flipped horizontally.
     case horizontal
-    /// The backside will appear upright when flipped horizontally.
+    /// The backside will appear upright when flipped vertically.
     case vertical
     /// The backside will not be flipped so it will appear mirrored when flipped. This can be useful when flipping non-symmetrical shapes.
     case none

@@ -24,7 +24,7 @@ internal extension FUInterfaceOrientation {
             /// UIInterfaceOrientationLandscapeLeft means the interface has turned to the LEFT even though the device has turned to the RIGHT.
             self = .landscapeRight
         case "UIInterfaceOrientationLandscapeRight":
-            /// UIInterfaceOrientationLandscapeLeft means the interface has turned to the RIGHT even though the device has turned to the LEFT.
+            /// UIInterfaceOrientationLandscapeRight means the interface has turned to the RIGHT even though the device has turned to the LEFT.
             self = .landscapeLeft
         case "UIInterfaceOrientationPortraitUpsideDown":
             self = .portraitUpsideDown

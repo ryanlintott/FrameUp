@@ -78,9 +78,9 @@ public struct SmartScrollView<Content: View>: View {
     let axes: Axis.Set
     /// A Boolean value that indicates whether the scroll view displays the scrollable component of the content offset, in a way suitable for the platform. The default value for this parameter is true.
     let showsIndicators: Bool
-    /// A Boolean value that indicates whether scrolling should be disabled if the content fits the available space. The default value is false.
+    /// A Boolean value that indicates whether scrolling should be disabled if the content fits the available space. The default value is true.
     let optionalScrolling: Bool
-    /// A Boolean value that indicates whether the outer frame should shrink to fit the content. The default value is false.
+    /// A Boolean value that indicates whether the outer frame should shrink to fit the content. The default value is true.
     let shrinkToFit: Bool
     let content: Content
     let onScroll: ((EdgeInsets?) -> Void)?

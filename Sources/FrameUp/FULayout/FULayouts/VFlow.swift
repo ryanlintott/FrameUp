@@ -21,7 +21,7 @@ import SwiftUI
  HeightReader { height in
      VFlow(maxHeight: height) {
          ForEach(["Hello", "World", "More Text"], id: \.self) { item in
-             Text(item.value)
+             Text(item)
          }
      }
  }

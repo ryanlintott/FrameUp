@@ -21,7 +21,7 @@ import SwiftUI
  WidthReader { width in
      HFlow(maxWidth: width) {
          ForEach(["Hello", "World", "More Text"], id: \.self) { item in
-             Text(item.value)
+             Text(item)
          }
      }
  }

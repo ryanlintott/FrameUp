@@ -16,7 +16,7 @@ import SwiftUI
  ```swift
  HFlowLayout {
      ForEach(["Hello", "World", "More Text"], id: \.self) { item in
-         Text(item.value)
+         Text(item)
      }
  }
  ```

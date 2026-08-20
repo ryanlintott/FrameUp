@@ -14,7 +14,7 @@ import SwiftUI
  ```swift
  HMasonryLayout(rows: 3) {
      ForEach(["Hello", "World", "More Text"], id: \.self) { item in
-         Text(item.value)
+         Text(item)
      }
  }
  ```
@@ -30,8 +30,8 @@ public struct HMasonryLayout: LayoutFromFULayout, Sendable {
     /// - Parameters:
     ///   - alignment: Used to align rows horizontally relative to each other. Default is leading.
     ///   - rows: Number of rows to place views in.
-    ///   - horizontalSpacing: Minimum horizontal spacing between columns.
-    ///   - verticalSpacing: Vertical spacing between views in a column
+    ///   - horizontalSpacing: Minimum horizontal spacing between views in a row.
+    ///   - verticalSpacing: Vertical spacing between rows.
     public init(
         alignment: FUAlignment = .leading,
         rows: Int,

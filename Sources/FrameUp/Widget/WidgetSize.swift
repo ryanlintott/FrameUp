@@ -120,7 +120,7 @@ public extension WidgetSize {
         ]
     }
     
-    /// Widget sizes for Apple Watch.
+    /// Sizes of widgets in smart stack for Apple Watch.
     ///
     /// All sizes are sourced from [Apple Human Interface Guidelines: widget specifications](https://developer.apple.com/design/human-interface-guidelines/widgets#Specifications)
     /// - Parameter watchSize: Apple Watch size in mm.
@@ -136,34 +136,42 @@ public extension WidgetSize {
         default: size = (152, 69.5)
         }
         
-        return [.medium: .init(width: size.0, height: size.1)]
+        return [.accessoryRectangular: .init(width: size.0, height: size.1)]
     }
     
-    /// Smallest size for this widget size.
+    /// Smallest size for this widget size across every device that supports it.
+    ///
+    /// Useful for checking a widget in its tightest frame.
+    ///
+    /// Values are taken from the size tables above, using the iPad design canvas rather than the smaller Home Screen frame since the design canvas is the size widget content is laid out in. Where no candidate is smaller on both axes the one with the smallest area is used, which is why `extraLarge` is the visionOS frame rather than the wider iPad canvas, and why `accessoryRectangular` is the iPhone frame rather than the narrower but taller 38mm watch frame.
     var minimumSize: CGSize {
         switch self {
-        case .small: return CGSize(width: 120, height: 120)
-        case .medium: return CGSize(width: 292, height: 141)
-        case .large: return CGSize(width: 292, height: 311)
-        case .extraLarge: return CGSize(width: 540, height: 260)
-        case .extraLargePortrait: return CGSize(width: 338, height: 450)
-        case .accessoryCircular: return CGSize(width: 68, height: 68)
-        case .accessoryRectangular: return CGSize(width: 153, height: 68)
-        case .accessoryInline: return CGSize(width: 225, height: 26)
+        case .small: .init(width: 141, height: 141)
+        case .medium: .init(width: 292, height: 141)
+        case .large: .init(width: 292, height: 311)
+        case .extraLarge: .init(width: 450, height: 338)
+        case .extraLargePortrait: .init(width: 338, height: 450)
+        case .accessoryCircular: .init(width: 68, height: 68)
+        case .accessoryRectangular: .init(width: 153, height: 68)
+        case .accessoryInline: .init(width: 225, height: 26)
         }
     }
     
-    /// Largest size for this widget size.
+    /// Largest size for this widget size across every device that supports it.
+    ///
+    /// Useful for checking a widget in its roomiest frame.
+    ///
+    /// Values are taken from the size tables above, using the iPad design canvas rather than the smaller Home Screen frame since the design canvas is the size widget content is laid out in. Where no candidate is larger on both axes the one with the largest area is used.
     var maximumSize: CGSize {
         switch self {
-        case .small: return CGSize(width: 188, height: 188)
-        case .medium: return CGSize(width: 412, height: 188)
-        case .large: return CGSize(width: 412, height: 412)
-        case .extraLarge: return CGSize(width: 860, height: 412)
-        case .extraLargePortrait: return CGSize(width: 338, height: 450)
-        case .accessoryCircular: return CGSize(width: 76, height: 76)
-        case .accessoryRectangular: return CGSize(width: 172, height: 76)
-        case .accessoryInline: return CGSize(width: 257, height: 26)
+        case .small: .init(width: 188, height: 188)
+        case .medium: .init(width: 412, height: 188)
+        case .large: .init(width: 412, height: 412)
+        case .extraLarge: .init(width: 860, height: 412)
+        case .extraLargePortrait: .init(width: 338, height: 450)
+        case .accessoryCircular: .init(width: 76, height: 76)
+        case .accessoryRectangular: .init(width: 191, height: 81.5)
+        case .accessoryInline: .init(width: 257, height: 26)
         }
     }
     

@@ -128,9 +128,9 @@ public extension Array<FULayoutColumn> {
         map(\.minColumnHeight).max() ?? 0
     }
     
-    /// Sets the justified height for all columns.
+    /// Sets the justified height for every column using a justified vertical alignment.
     /// - Parameters:
-    ///   - height: Optional width to use for justification. If none provided, the largest minWidth of the provided rows will be used.
+    ///   - height: Optional height to use for justification. If none provided, the largest minColumnHeight of the provided columns will be used.
     ///   - skipLast: Skips justifying the last column if true. (Default: false)
     mutating func justifyIfNecessary(height: CGFloat? = nil, skipLast: Bool = false) {
         let height = height ?? maxMinColumnHeight

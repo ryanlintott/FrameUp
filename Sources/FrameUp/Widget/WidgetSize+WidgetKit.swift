@@ -11,7 +11,7 @@ import WidgetKit
 
 @available(watchOS 9, visionOS 26.0, *)
 public extension WidgetSize {
-    /// Equivalent widget family. Optional as extraLarge will return nil unless running iOS 15.0 or later.
+    /// Equivalent widget family. Returns nil when the widget size has no `WidgetFamily` equivalent on the current platform and OS version.
     var widgetFamily: WidgetFamily? {
         switch self {
         case .small:
