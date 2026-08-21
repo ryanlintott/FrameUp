@@ -6,13 +6,14 @@ Changes since the previous versioned release, `0.9.11`.
 
 This release raises the baseline to Swift 6 and the minimum deployment versions required by Xcode 27, extends `WidgetFamily` and `WidgetSize` support to visionOS including the new `extraLargePortrait` size, and removes the layout APIs that were deprecated in earlier releases.
 
-Before upgrading, resolve any deprecation warnings from `0.9.11` — `HFlowLegacy`, `VFlowLegacy`, `VGridMasonry`, and `FlowContentSizeKey` are now gone. Several widget frame values and availability annotations also changed in ways that can alter results or fail to compile without a version check, so read the Breaking Changes below before moving to this version.
+Before upgrading, resolve any deprecation warnings from `0.9.11` — `HFlowLegacy`, `VFlowLegacy`, `VGridMasonry`, `TagView`, `TagViewForScrollView`, and `FlowContentSizeKey` are now gone. Several widget frame values and availability annotations also changed in ways that can alter results or fail to compile without a version check, so read the Breaking Changes below before moving to this version.
 
 ### Breaking Changes
 
 - Removed the deprecated `HFlowLegacy` and `VFlowLegacy`; use `HFlow().forEach` and `VFlow().forEach` instead.
 - Removed the deprecated `VGridMasonry`; use `VMasonry().forEach` instead.
 - Removed the deprecated `FlowContentSizeKey`; use `FULayoutSizeKey` instead.
+- Removed the deprecated `TagView` and `TagViewForScrollView`; use `HFlowLayout` with `ForEach` instead.
 - Made `rotation3DEffect(_:axis:anchor:anchorZ:perspective:backsideFlip:back:)` unavailable on visionOS. Use `perspectiveRotationEffect(_:axis:anchor:anchorZ:perspective:backsideFlip:back:)` for a flat perspective effect or `rotation3DEffect(_:axis:anchor:backsideFlip:thickness:back:)` for a true 3D rotation.
 - Added `WidgetSize.extraLargePortrait`, which requires exhaustive switches over `WidgetSize` to handle the new case.
 - `WidgetFamily.size` and `WidgetSize.widgetFamily` now require visionOS 26 or later, the version where visionOS gained WidgetKit widgets.
@@ -37,6 +38,7 @@ Before upgrading, resolve any deprecation warnings from `0.9.11` — `HFlowLegac
 - Consolidated the package, example app, and tests into a single Xcode workspace located under `Example/`, so Swift Package Index and xcodebuild-based CI build the package across all platforms instead of resolving the wrong scheme.
 - Reorganized the example app's Xcode project groups into folders and removed the unused Frameworks group.
 - Updated the README, removing the Twitter link in favour of Bluesky.
+- `splitMultilineByCharacter` binary searches for each line break instead of measuring after every character, so breaking a long unbroken word no longer costs one text measurement per character.
 
 ### Deprecated
 
@@ -48,6 +50,7 @@ Before upgrading, resolve any deprecation warnings from `0.9.11` — `HFlowLegac
 - `HFlow` hashed only its alignment, so `AnyFULayout` treated two `HFlow`s that differed in spacing or max width as equal and skipped the relayout.
 - `SmartScrollView` now applies `@ViewBuilder` to its content closure so it accepts more than one view.
 - `justifiedByHairSpaces` ignored `justifyLastLine` for any text containing a line break.
+- `justifiedByHairSpaces` took seconds to justify any line ending in right-to-left text and produced lines many times wider than `maxWidth`. It appended hair spaces one at a time and re-measured after each, but `NSString.size(withAttributes:)` ignores trailing whitespace when a line ends in a right-to-left run, so the measured width never grew and the loop only escaped once it had appended over 10,000 hair spaces. The count is now calculated from the width of a single hair space, which also corrects justified lines coming out one hair space per word too narrow.
 - The visionOS `rotation3DEffect(_:axis:anchor:backsideFlip:thickness:back:)` never forwarded `backsideFlip`, so it was always `.automatic`. This also made `FlippingView(backsideFlip:)` inert on visionOS.
 - `WidgetFamily.size` returned `.extraLarge` for `.systemExtraLargePortrait` instead of `.extraLargePortrait`. Every case is now gated on the platform and SDK that provides it rather than on whether the case exists for any platform.
 - `WidgetSize.widgetFamily` returned nil for the accessory sizes on watchOS and for `.extraLarge` on macOS and visionOS. Each case is now gated by platform and OS version so it returns the right family everywhere.

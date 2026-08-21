@@ -28,21 +28,27 @@ extension StringProtocol {
             return [String(self)]
         }
         
-        var characters = Array(String(self)).map({String($0)})
-        var multiline = [characters.removeFirst()]
-        var index = 0
+        var remaining = Substring(String(self))
+        var multiline = [String]()
         
-        while !characters.isEmpty {
-            let character = characters.removeFirst()
+        while !remaining.isEmpty {
+            /// Binary search for the longest prefix that fits rather than measuring again after every character.
+            /// The lower bound is one character so a character wider than `maxWidth` still makes progress.
+            var low = 1
+            var high = remaining.count
             
-            let line = multiline[index] + character
-            
-            if line.size(using: font).width <= maxWidth {
-                multiline[index] = line
-            } else {
-                multiline.append(character)
-                index += 1
+            while low < high {
+                let mid = low + (high - low + 1) / 2
+                
+                if remaining.prefix(mid).size(using: font).width <= maxWidth {
+                    low = mid
+                } else {
+                    high = mid - 1
+                }
             }
+            
+            multiline.append(String(remaining.prefix(low)))
+            remaining = remaining.dropFirst(low)
         }
         return multiline
     }
@@ -105,30 +111,32 @@ extension StringProtocol {
         
         guard let last = lines.last else { return "" }
         
+        /// Hair spaces are a fixed width in a given font so the number needed can be calculated from this single measurement.
+        let hairSpaceWidth = hairSpace.size(using: font).width
+        
         let justifiedLines = lines
             .dropLast(justifyLastLine ? 0 : 1)
             .map { line in
                 let words = line.split(separator: separator)
-                guard words.count > 1 else { return words.joined() }
-                let justifiedSeparator = String(hairSpace)
-                var justifiedLine = words.joined(separator: justifiedSeparator)
-                var hairSpaceCount = 0
-                while justifiedLine.size(using: font).width < maxWidth {
-                    hairSpaceCount += 1
-                    justifiedLine += hairSpace
-                }
-                hairSpaceCount -= 1
-                let (minCount, extraCount) = hairSpaceCount.quotientAndRemainder(dividingBy: words.count - 1)
-                let spaces = Array(0..<words.count)
+                let gapCount = words.count - 1
+                guard gapCount > 0 else { return words.joined() }
+                /// Words joined by a single hair space is the narrowest this line can be.
+                let baseWidth = words.joined(separator: hairSpace).size(using: font).width
+                let availableWidth = maxWidth - baseWidth
+                /// The extra hair spaces that fit are calculated rather than added one at a time and measured.
+                /// Measuring is not an option as `size(using:)` ignores trailing whitespace on a line ending in right-to-left text, making that loop run until it has added over 10,000 hair spaces.
+                let extraCount = hairSpaceWidth > 0 && availableWidth > 0 ? Int(availableWidth / hairSpaceWidth) : 0
+                let (minCount, remainder) = extraCount.quotientAndRemainder(dividingBy: gapCount)
+                /// Every gap gets the separating hair space plus an even share of the extras, with the remainder spread across the first gaps.
+                let separators = (0..<gapCount)
                     .map { i in
-                        String.init(repeating: hairSpace, count: minCount) + (i < extraCount ? hairSpace : "")
+                        String(repeating: hairSpace, count: 1 + minCount + (i < remainder ? 1 : 0))
                     }
-                return zip(words, spaces)
+                return zip(words, separators + [""])
                     .map {
-                        String($0 + $1)
+                        String($0) + $1
                     }
                     .joined()
-                    .trimmingCharacters(in: .whitespaces)
             }
         
         return (justifiedLines + (justifyLastLine ? [] : [last]))

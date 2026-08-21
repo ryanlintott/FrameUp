@@ -125,11 +125,6 @@ For a feature-by-feature guide with examples, see the [README](https://github.co
 - ``FULayoutThatFits``
 - ``FUViewThatFits``
 
-### Tag Views
-
-- ``TagView``
-- ``TagViewForScrollView``
-
 ### Proportions
 
 - ``Proportionable``

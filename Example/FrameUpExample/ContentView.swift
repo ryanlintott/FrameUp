@@ -37,8 +37,6 @@ struct ContentView: View {
         
         FULayoutExamples()
         
-        TagViewExamples()
-        
         /// These likely won't work
         ExperimentViews()
     }

@@ -106,6 +106,7 @@ struct SmartScrollViewExample: View {
                 Image(systemName: "gear")
             }
         }
+        .navigationBarTitleDisplayMode(.inline)
         .navigationTitle("SmartScrollView")
         // padding of at least 1 point is needed when inside a navigation stack as it will resize the available space
         .padding(.top, 1)

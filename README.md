@@ -31,7 +31,6 @@ Additional SwiftUI tools for iOS 15, macOS 12, and tvOS 15
 - FULayouts: [`HFlow`](#hflow), [`VFlow`](#vflow), [`HMasonry`](#hmasonry), [`VMasonry`](#vmasonry), [`FULayoutThatFits`](#fulayoutthatfits), and [`FUViewThatFits`](#fuviewthatfits)
 - [`AnyFULayout`](#anyfulayout) to wrap multiple layouts and switch between with animation.
 - Make your own [`Custom FULayout`](#custom-fulayout) and add a SwiftUI `Layout` version using [`LayoutFromFULayout`](#layoutfromfulayout)
-- [`TagView`](#tagview) for a simple flow view based on an array of elements.
 - [`WidgetRelativeShape`](#widgetrelativeshape) fixes a `ContainerRelativeShape` bug on iPad.
 
 
@@ -744,33 +743,6 @@ struct CustomLayout: LayoutFromFULayout {
         CustomFULayout(
             /// Pass parameters through to FULayout using maxSize to help define the maximum item size.
         )
-    }
-}
-```
-
-## TagView
-An older and much simpler version of [`HFlow`](#hflow) not based on `FULayout`.
-
-### TagView
-A view that creates views based on an array of elements from left to right, adding rows when needed. Each row height will be determined by the tallest element.
-
-*Warning: Does not work in ScrollView.*
-
-```swift
-TagView(elements: ["One", "Two", "Three"]) { element in
-    Text(element)
-}
-```
-
-### TagViewForScrollView
-A view that creates views based on an array of elements from left to right, adding rows when needed. Each row height will be determined by the tallest element.
-
-A maximum width must be provided but `WidthReader` can be used to get the value.
-
-```swift
-WidthReader { width in
-    TagViewForScrollView(maxWidth: width, elements: ["One", "Two", "Three"]) { element in
-        Text(element)
     }
 }
 ```
