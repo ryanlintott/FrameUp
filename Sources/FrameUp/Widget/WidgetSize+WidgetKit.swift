@@ -33,7 +33,7 @@ public extension WidgetSize {
             }
             #endif
         case .extraLargePortrait:
-            #if os(visionOS) || (compiler(>=6.4) && (os(iOS) || os(macOS)))
+            #if (os(visionOS) && compiler(>=6.2)) || ((os(iOS) || os(macOS)) && compiler(>=6.4))
             if #available(iOS 27.0, macOS 27.0, *) {
                 return .systemExtraLargePortrait
             }

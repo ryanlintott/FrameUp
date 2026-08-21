@@ -33,7 +33,7 @@ extension WidgetSize.Platform {
         #elseif os(watchOS)
         .watch
         #else
-        .unspecified
+        .unsupported
         #endif
     }
 }
