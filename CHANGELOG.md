@@ -18,6 +18,10 @@
 - Made `rotation3DEffect(_:axis:anchor:anchorZ:perspective:backsideFlip:back:)` unavailable on visionOS. Use `perspectiveRotationEffect(_:axis:anchor:anchorZ:perspective:backsideFlip:back:)` for a flat perspective effect or `rotation3DEffect(_:axis:anchor:backsideFlip:thickness:back:)` for a true 3D rotation.
 - Added `WidgetSize.extraLargePortrait`, which requires exhaustive switches over `WidgetSize` to handle the new case.
 
+### Deprecated
+
+- `WidgetSize.supportedSizes(for device: UIUserInterfaceIdiom)`; use `WidgetSize.supportedSizesForCurrentDevice` instead.
+
 ### Fixed
 
 - `HMasonry` had its horizontal and vertical spacing swapped: row heights were computed from `horizontalSpacing` and views within a row were spaced by `verticalSpacing`. This also affected `HMasonryLayout`.
@@ -26,6 +30,7 @@
 - `justifiedByHairSpaces` ignored `justifyLastLine` for any text containing a line break.
 - The visionOS `rotation3DEffect(_:axis:anchor:backsideFlip:thickness:back:)` never forwarded `backsideFlip`, so it was always `.automatic`. This also made `FlippingView(backsideFlip:)` inert on visionOS.
 - `WidgetFamily.size` returned `.extraLarge` for `.systemExtraLargePortrait` instead of `.extraLargePortrait`.
+- Fixed some missing cases in `WidgetSize.supportedSizesForCurrentDevice`.
 - `ScaledContainerRelativeShape` folded the rect origin into its width and height, so it only scaled correctly for a rect at the origin.
 - Corrected `WidgetSize.minimumSize` and `maximumSize`, which had drifted from the per-device size tables. They now list the smallest and largest frame across every device that supports the size, using the iPad design canvas rather than the Home Screen frame, and falling back to smallest or largest area where no candidate wins on both axes. `.accessoryInline` minimum was 234x26 and is now 225x26; `.extraLarge` minimum was the 540x260 iPad Home Screen frame and is now the 450x338 visionOS frame; `.accessoryRectangular` maximum was 172x76 and is now the 191x81.5 Apple Watch frame.
 
@@ -38,6 +43,10 @@
 - Fixed two broken README anchor links.
 
 ### Added
+
+- `WidgetSize.Platform`, an enum of every Apple platform that supports widgets, with `Platform.current` for the platform currently running.
+- `WidgetSize.supportedSizesForCurrentDevice` now works on macOS, watchOS, and visionOS instead of iOS only.
+- `WidgetSize.sizeForCurrentDevice()` on visionOS and watchOS, alongside `sizesForVisionOS()`, `sizesForWatch(watchSize:)` and `sizesForWatch(screenSize:)`.
 
 - Added GitHub Actions workflows to test Swift 6 compatibility and build on the latest Swift across all supported platforms.
 - Enabled Swift Package Index to automatically build DocC documentation.

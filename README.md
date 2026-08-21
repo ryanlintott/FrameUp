@@ -482,11 +482,11 @@ Returns either the design canvas or the home screen size (depending on the suppl
 #### `sizeForVisionOS()`
 Returns the size of the widget on visionOS.
 
-#### `supportedSizesForCurrentDevice` (iOS Only)
-Returns an array of supported widget sizes based on device type and iOS version.
+#### `supportedSizesForCurrentDevice`
+Returns an array of supported widget sizes based on the current platform and OS version.
 
 #### `sizeForCurrentDevice(iPadTarget:)` (iOS Only)
-Returns the size of the widget based on the current device.
+Returns the size of the widget based on the current device. On visionOS and watchOS use `sizeForCurrentDevice()`, which takes no target.
 
 All widget size information was sourced from:
 [Apple - Human Interface Guidelines](https://developer.apple.com/design/human-interface-guidelines/widgets#Specifications)
