@@ -10,6 +10,14 @@
 - Reorganized the example app's Xcode project groups into folders and removed the unused Frameworks group.
 - Updated the README, removing the Twitter link in favour of Bluesky.
 
+### Breaking Changes
+
+- Removed the deprecated `HFlowLegacy` and `VFlowLegacy`; use `HFlow().forEach` and `VFlow().forEach` instead.
+- Removed the deprecated `VGridMasonry`; use `VMasonry().forEach` instead.
+- Removed the deprecated `FlowContentSizeKey`; use `FULayoutSizeKey` instead.
+- Made `rotation3DEffect(_:axis:anchor:anchorZ:perspective:backsideFlip:back:)` unavailable on visionOS. Use `perspectiveRotationEffect(_:axis:anchor:anchorZ:perspective:backsideFlip:back:)` for a flat perspective effect or `rotation3DEffect(_:axis:anchor:backsideFlip:thickness:back:)` for a true 3D rotation.
+- Added `WidgetSize.extraLargePortrait`, which requires exhaustive switches over `WidgetSize` to handle the new case.
+
 ### Fixed
 
 - `HMasonry` had its horizontal and vertical spacing swapped: row heights were computed from `horizontalSpacing` and views within a row were spaced by `verticalSpacing`. This also affected `HMasonryLayout`.
@@ -31,7 +39,6 @@
 
 ### Added
 
-- Added regression tests covering the layout fixes above and the `WidgetSize`/`WidgetFamily` round trip.
 - Added GitHub Actions workflows to test Swift 6 compatibility and build on the latest Swift across all supported platforms.
 - Enabled Swift Package Index to automatically build DocC documentation.
 - Added the missing watchOS example app scheme.

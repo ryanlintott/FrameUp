@@ -25,6 +25,21 @@ public enum WidgetSize: String, Identifiable, CaseIterable {
     }
 }
 
+extension WidgetSize {
+    /// All apple plaforms that might support widgets
+    public enum Platform {
+        case phone
+        case pad
+        case mac
+        case macCatalyst
+        case watch
+        case vision
+        case tv
+        case carPlay
+        case unspecified
+    }
+}
+
 /// iPad widget frame target.
 ///
 /// iPad widgets have a design canvas frame used for laying out the content, and a smaller Home Screen frame that the content is scaled to fit. This parameter can be used to specify which size you want.
@@ -120,6 +135,28 @@ public extension WidgetSize {
         ]
     }
     
+    /// Apple Watch case size in mm for the supplied screen size.
+    internal static func watchSize(screenSize: CGSize) -> CGFloat? {
+        switch (screenSize.width, screenSize.height) {
+        case (136, 170): 38
+        case (156, 195): 42   // Series 1–3
+        case (162, 197): 40
+        case (176, 215): 41
+        case (184, 224): 44
+        case (187, 223): 42   // Series 10/11
+        case (198, 242): 45
+        case (205, 251): 49   // Ultra, Ultra 2
+        case (208, 248): 46   // Series 10/11
+        case (211, 257): 49   // Ultra 3
+        default: nil          // future device — fall back to nearest by height
+        }
+    }
+    
+    static func sizesForWatch(screenSize: CGSize) -> [WidgetSize: CGSize] {
+        guard let watchSize = watchSize(screenSize: screenSize) else { return [:] }
+        return sizesForWatch(watchSize: watchSize)
+    }
+    
     /// Sizes of widgets in smart stack for Apple Watch.
     ///
     /// All sizes are sourced from [Apple Human Interface Guidelines: widget specifications](https://developer.apple.com/design/human-interface-guidelines/widgets#Specifications)
@@ -196,7 +233,14 @@ public extension WidgetSize {
         Self.sizesForVisionOS()[self]
     }
     
-    /// Size for this widget on an iPhone with the specified screen size.
+    /// Size for this widget on a watch with the specified screen size.
+    /// - Parameter watchSize: Apple Watch size in mm.
+    /// - Returns: Size for this widget. Nil if widget size is not available.
+    func sizeForWatch(screenSize: CGSize) -> CGSize? {
+        Self.sizesForWatch(screenSize: screenSize)[self]
+    }
+    
+    /// Size for this widget on a watch with the specified screen size.
     /// - Parameter watchSize: Apple Watch size in mm.
     /// - Returns: Size for this widget. Nil if widget size is not available.
     func sizeForWatch(watchSize: CGFloat) -> CGSize? {

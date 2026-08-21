@@ -28,7 +28,7 @@ public extension WidgetSize {
             #endif
         case .extraLarge:
             #if os(iOS) || os(macOS) || os(visionOS)
-            if #available(iOS 15.0, macOS 14.0, *) {
+            if #available(macOS 14.0, *) {
                 return .systemExtraLarge
             }
             #endif

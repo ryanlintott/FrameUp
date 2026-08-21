@@ -21,20 +21,6 @@
                ReferencedContainer = "container:FrameUpExample.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
-         <BuildActionEntry
-            buildForTesting = "YES"
-            buildForRunning = "YES"
-            buildForProfiling = "YES"
-            buildForArchiving = "YES"
-            buildForAnalyzing = "YES">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "CF48CC9A26F131C200406F4E"
-               BuildableName = "FrameUpExample.app"
-               BlueprintName = "FrameUpExample"
-               ReferencedContainer = "container:FrameUpExample.xcodeproj">
-            </BuildableReference>
-         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
@@ -61,7 +47,6 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CFF359BB2C090B3F00AFC57E"
             BuildableName = "FrameUpWatchExample Watch App.app"
-            BlueprintName = "FrameUpWatchExample Watch App"
             ReferencedContainer = "container:FrameUpExample.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -78,7 +63,6 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CFF359BB2C090B3F00AFC57E"
             BuildableName = "FrameUpWatchExample Watch App.app"
-            BlueprintName = "FrameUpWatchExample Watch App"
             ReferencedContainer = "container:FrameUpExample.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

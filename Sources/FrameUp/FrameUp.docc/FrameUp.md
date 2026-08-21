@@ -6,7 +6,7 @@ A Swift Package of SwiftUI layout tools for flowing, fitting, measuring, scaling
 
 Arrange views with layouts like ``HFlowLayout`` and ``VMasonryLayout``, pick the best layout for the available space with ``LayoutThatFits``, measure the space you are given with ``WidthReader``, ``HeightReader`` and ``SwiftUICore/View/onSizeChange(perform:)``, and use ``SmartScrollView`` that fits to the content and only scrolls when it needs to.
 
-Additional tools help with problems SwiftUI does not solve on its own. ``AutoRotatingView`` lets a view have it's own set of allowed device orientations separate from the app. ``FlippingView`` and ``SwiftUICore/View/rotation3DEffect(_:axis:anchor:anchorZ:perspective:backsideFlip:back:)`` put a different view on the back of a rotated view. ``SwiftUICore/View/unclippedTextRenderer()`` stops SwiftUI `Text` from clipping. ``WidgetSize`` and ``WidgetDemoFrame`` give accurate widget frames without `WidgetKit`. And ``FULayout`` provides a `Layout`-like API that works in iOS 15.
+Additional tools help with problems SwiftUI does not solve on its own. ``AutoRotatingView`` lets a view have its own set of allowed device orientations separate from the app. ``FlippingView`` and ``SwiftUICore/View/rotation3DEffect(_:axis:anchor:anchorZ:perspective:backsideFlip:back:)`` put a different view on the back of a rotated view. ``SwiftUICore/View/unclippedTextRenderer()`` stops SwiftUI `Text` from clipping. ``WidgetSize`` and ``WidgetDemoFrame`` give accurate widget frames without `WidgetKit`. And ``FULayout`` provides a `Layout`-like API that works in iOS 15.
 
 Requires iOS 15+, macOS 12+, watchOS 9+, tvOS 15+, or visionOS 1+.
 
@@ -140,10 +140,3 @@ For a feature-by-feature guide with examples, see the [README](https://github.co
 - ``Swift/Dictionary``
 - ``UIKit/UIImage``
 - ``WidgetKit/WidgetFamily``
-
-### Deprecated
-
-- ``HFlowLegacy``
-- ``VFlowLegacy``
-- ``VGridMasonry``
-- ``FlowContentSizeKey``

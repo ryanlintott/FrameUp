@@ -58,7 +58,7 @@ struct ContentView: View {
         }
         .keyboardHeightEnvironmentValue()
         #else
-        if #available(macOS 13, *) {
+        if #available(macOS 13, visionOS 26, *) {
             NavigationSplitView {
                 List {
                     logo

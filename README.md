@@ -373,7 +373,7 @@ A two-sided view that can be flipped by tapping or swiping.
 
 The axis, anchor, perspective, drag distance to flip, animation for tap to flip and more can all be customized.
 
-For visionOS a slightly different initializer might be needed and the flips will occur in 3d space. If instead you want a perspective effect on a flat view you can use `PerspectiveFlippingView`
+On visionOS, use the initializer with a three-dimensional anchor and optional thickness. If you want a perspective effect on a flat view instead, use `PerspectiveFlippingView`.
 
 ```swift
 FlippingView(flips: $flips) {
@@ -384,7 +384,7 @@ FlippingView(flips: $flips) {
 ```
 
 ### rotation3DEffect(angle:axis:anchor:anchorZ:perspective:backsideFlip:back:)
-*\*deprecated in visionOS*
+*\*Unavailable in visionOS. Use `perspectiveRotationEffect` for a flat perspective effect or the `rotation3DEffect` overload with `thickness` for a true 3D rotation.*
 Renders a view’s content as if it’s rotated in three dimensions around the specified axis with a closure containing a different view to show on the back.
 
 The example below is a view with two sides. One blue side that says "Front" and a red side on the back that says "Back". Changing the angle will show each side as it becomes visible.
@@ -794,10 +794,3 @@ Text("Example widget")
     )
     .padding(1)
 ```
-
-
-
-
-
-
-
