@@ -30,6 +30,7 @@ struct VFlowLayoutExample: View {
                                 .frame(height: CGFloat(item.value.count) * 6)
                                 .background(Color.blue)
                                 .cornerRadius(12)
+                                .geometryGroupIfAvailable()
                         }
                     }
                     .background(Color.gray.opacity(0.5))

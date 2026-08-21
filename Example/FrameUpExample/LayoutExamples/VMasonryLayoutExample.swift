@@ -30,6 +30,7 @@ struct VMasonryLayoutExample: View {
                                 .foregroundColor(.white)
                                 .background(Color.blue)
                                 .cornerRadius(12)
+                                .geometryGroupIfAvailable()
                         }
                     }
                     .background(Color.gray.opacity(0.5))

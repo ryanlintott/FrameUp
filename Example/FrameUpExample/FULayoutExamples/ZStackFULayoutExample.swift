@@ -27,6 +27,7 @@ struct ZStackFULayoutExample: View {
                                 .padding(12)
                                 .frame(height: CGFloat(item.value.count) * 6)
                                 .border(Color.blue)
+                                .geometryGroupIfAvailable()
                         }
                     }
                         .background(Color.gray.opacity(0.5))

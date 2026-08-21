@@ -22,4 +22,13 @@ extension View {
             self
         }
     }
+    
+    /// Applies ``SwiftUICore/View/geometryGroup()`` if available.
+    nonisolated public func geometryGroupIfAvailable() -> some View {
+        ifAvailable {
+            if #available(iOS 17, macOS 14, tvOS 17, watchOS 10, *) {
+                $0.geometryGroup()
+            }
+        }
+    }
 }

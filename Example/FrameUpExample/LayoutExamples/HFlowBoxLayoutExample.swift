@@ -24,6 +24,7 @@ struct HFlowBoxLayoutExample: View {
                         ForEach(boxes, id: \.self) { box in
                             Color.red
                                 .frame(width: 80, height: 80)
+                                .geometryGroupIfAvailable()
                         }
                     }
                 }

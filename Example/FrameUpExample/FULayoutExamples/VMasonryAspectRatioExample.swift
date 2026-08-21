@@ -31,6 +31,7 @@ struct VMasonryAspectRatioExample: View {
                                         .foregroundColor(.white)
                                 )
                                 .cornerRadius(12)
+                                .geometryGroupIfAvailable()
                         }
                     }
                     .background(Color.gray.opacity(0.5))
