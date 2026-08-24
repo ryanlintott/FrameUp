@@ -42,6 +42,13 @@ public struct HFlowLayout: LayoutFromFULayout, Sendable {
         self.verticalSpacing = verticalSpacing
     }
     
+    /// An unspecified width means the ideal width is requested. For a flow that's a single row containing every view.
+    ///
+    /// Height is unused by ``HFlow`` so it keeps the SwiftUI default.
+    public var sizeReplacingUnspecifiedDimensions: CGSize {
+        .init(width: .infinity, height: ProposedViewSize.unspecified.replacingUnspecifiedDimensions().height)
+    }
+    
     public func fuLayout(maxSize: CGSize) -> HFlow {
         HFlow(
             alignment: alignment,

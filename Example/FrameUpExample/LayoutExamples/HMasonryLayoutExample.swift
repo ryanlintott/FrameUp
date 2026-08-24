@@ -13,7 +13,7 @@ struct HMasonryLayoutExample: View {
     @State private var items: [Item] = .examples
     @State private var horizontalAlignment: FUHorizontalAlignment = .leading
     @State private var verticalAlignment: FUVerticalAlignment = .top
-    @State private var maxHeight: CGFloat = 300
+    @State private var height: CGFloat = 300
     @State private var rows = 3
     @State private var layoutDirection: LayoutDirection = .leftToRight
     
@@ -36,12 +36,12 @@ struct HMasonryLayoutExample: View {
                     }
                     .background(Color.gray.opacity(0.5))
                     .border(Color.red)
-                    .frame(maxHeight: maxHeight)
+                    .frame(height: height)
                     .padding()
                 }
                 .animation(.default, value: items)
                 .animation(.default, value: rows)
-                .animation(.default, value: maxHeight)
+                .animation(.default, value: height)
                 .animation(.default, value: horizontalAlignment)
                 .animation(.default, value: verticalAlignment)
                 .animation(.default, value: layoutDirection)
@@ -72,12 +72,12 @@ struct HMasonryLayoutExample: View {
                 
                 #if os(tvOS)
                 HStack {
-                    Text("Max Height \(maxHeight, specifier: "%.0F")")
-                    Button("-") { maxHeight = max(50, maxHeight - 50) }
-                    Button("+") { maxHeight = min(600, maxHeight + 50) }
+                    Text("Height \(height, specifier: "%.0F")")
+                    Button("-") { height = max(50, height - 50) }
+                    Button("+") { height = min(600, height + 50) }
                 }
                 #else
-                Stepper("Max Height \(maxHeight, specifier: "%.0F")", value: $maxHeight, in: 50...600, step: 50)
+                Stepper("Height \(height, specifier: "%.0F")", value: $height, in: 50...600, step: 50)
                 #endif
                 
                 #if os(tvOS)

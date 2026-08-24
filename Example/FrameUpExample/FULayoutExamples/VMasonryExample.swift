@@ -13,7 +13,7 @@ struct VMasonryExample: View {
     @State private var items: [Item] = .examples
     @State private var horizontalAlignment: FUHorizontalAlignment = .leading
     @State private var verticalAlignment: FUVerticalAlignment = .top
-    @State private var maxWidth: CGFloat = 300
+    @State private var width: CGFloat = 300
     @State private var columns = 3
     @State private var layoutDirection: LayoutDirection = .leftToRight
     
@@ -23,7 +23,7 @@ struct VMasonryExample: View {
         VStack {
             Color.clear.overlay(
                 ScrollView(.vertical) {
-                    VMasonry(alignment: alignment, columns: columns, maxWidth: maxWidth) {
+                    VMasonry(alignment: alignment, columns: columns, maxWidth: width) {
                         ForEach(items) { item in
                             Text(item.value)
                                 .padding(12)
@@ -39,7 +39,7 @@ struct VMasonryExample: View {
                 }
                 .animation(.default, value: items)
                 .animation(.default, value: columns)
-                .animation(.default, value: maxWidth)
+                .animation(.default, value: width)
                 .animation(.default, value: horizontalAlignment)
                 .animation(.default, value: verticalAlignment)
                 .animation(.default, value: layoutDirection)
@@ -70,12 +70,12 @@ struct VMasonryExample: View {
                 
                 #if os(tvOS)
                 HStack {
-                    Text("Max Width \(maxWidth, specifier: "%.0F")")
-                    Button("-") { maxWidth = max(50, maxWidth - 50) }
-                    Button("+") { maxWidth = min(600, maxWidth + 50) }
+                    Text("Width \(width, specifier: "%.0F")")
+                    Button("-") { width = max(50, width - 50) }
+                    Button("+") { width = min(600, width + 50) }
                 }
                 #else
-                Stepper("Max Width \(maxWidth, specifier: "%.0F")", value: $maxWidth, in: 50...600, step: 50)
+                Stepper("Width \(width, specifier: "%.0F")", value: $width, in: 50...600, step: 50)
                 #endif
                 
                 #if os(tvOS)

@@ -10,8 +10,8 @@ import FrameUp
 import SwiftUI
 
 struct FUViewThatFitsExample: View {
-    @State private var maxWidth: CGFloat = 200
-    @State private var maxHeight: CGFloat = 200
+    @State private var width: CGFloat = 200
+    @State private var height: CGFloat = 200
     
     @State private var fitHoriztonal: Bool = true
     @State private var fitVertical: Bool = true
@@ -19,11 +19,11 @@ struct FUViewThatFitsExample: View {
     var fuViewThatFits: FUViewThatFits {
         switch (fitVertical, fitHoriztonal) {
         case (true, true):
-            return FUViewThatFits(maxWidth: maxWidth, maxHeight: maxHeight)
+            return FUViewThatFits(maxWidth: width, maxHeight: height)
         case (true, false):
-            return FUViewThatFits(maxHeight: maxHeight)
+            return FUViewThatFits(maxHeight: height)
         case (false, true):
-            return FUViewThatFits(maxWidth: maxWidth)
+            return FUViewThatFits(maxWidth: width)
         case (false, false):
             return FUViewThatFits(maxWidth: .infinity, maxHeight: .infinity)
         }
@@ -38,7 +38,7 @@ struct FUViewThatFitsExample: View {
                 Color.yellow.frame(width: 200, height: 200)
                 Color.blue.frame(width: 100, height: 100)
             }
-            .frame(width: maxWidth, height: maxHeight)
+            .frame(width: width, height: height)
             .border(Color.red)
             
             Spacer()
@@ -47,12 +47,12 @@ struct FUViewThatFitsExample: View {
                 Toggle("Fit Horizontal", isOn: $fitHoriztonal)
                 HStack {
                     #if os(tvOS)
-                    Text("Max Width \(maxWidth)")
-                    Button("-") { maxWidth = max(50, maxWidth - 50) }
-                    Button("+") { maxWidth = min(350, maxWidth + 50) }
+                    Text("Width \(width)")
+                    Button("-") { width = max(50, width - 50) }
+                    Button("+") { width = min(350, width + 50) }
                     #else
-                    Text("Max Width")
-                    Slider(value: $maxWidth, in: 50...350)
+                    Text("Width")
+                    Slider(value: $width, in: 50...350)
                         .padding()
                     #endif
                 }
@@ -60,12 +60,12 @@ struct FUViewThatFitsExample: View {
                 Toggle("Fit Vertical", isOn: $fitVertical)
                 HStack {
                     #if os(tvOS)
-                    Text("Max Height \(maxHeight)")
-                    Button("-") { maxHeight = max(50, maxHeight - 50) }
-                    Button("+") { maxHeight = min(350, maxHeight + 50) }
+                    Text("Height \(height)")
+                    Button("-") { height = max(50, height - 50) }
+                    Button("+") { height = min(350, height + 50) }
                     #else
-                    Text("Max Height")
-                    Slider(value: $maxHeight, in: 50...350)
+                    Text("Height")
+                    Slider(value: $height, in: 50...350)
                         .padding()
                     #endif
                 }

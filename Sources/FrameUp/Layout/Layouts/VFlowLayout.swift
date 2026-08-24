@@ -42,6 +42,13 @@ public struct VFlowLayout: LayoutFromFULayout, Sendable {
         self.verticalSpacing = verticalSpacing
     }
     
+    /// An unspecified height means the ideal height is requested. For a flow that's a single column containing every view.
+    ///
+    /// Width is unused by ``VFlow`` so it keeps the SwiftUI default.
+    public var sizeReplacingUnspecifiedDimensions: CGSize {
+        .init(width: ProposedViewSize.unspecified.replacingUnspecifiedDimensions().width, height: .infinity)
+    }
+    
     public func fuLayout(maxSize: CGSize) -> VFlow {
         VFlow(
             alignment: alignment,

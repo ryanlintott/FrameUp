@@ -12,7 +12,7 @@ import SwiftUI
 struct HStackFULayoutExample: View {
     @State private var items: [Item] = .examples
     @State private var verticalAlignment: FUVerticalAlignment = .center
-    @State private var maxHeight: CGFloat = 300
+    @State private var height: CGFloat = 300
     @State private var layoutDirection: LayoutDirection = .leftToRight
     
     var body: some View {
@@ -23,7 +23,7 @@ struct HStackFULayoutExample: View {
             
             Color.clear.overlay(
                 ScrollView(.horizontal) {
-                    HStackFULayout(alignment: verticalAlignment, maxHeight: maxHeight) {
+                    HStackFULayout(alignment: verticalAlignment, maxHeight: height) {
                         ForEach(items) { item in
                             Text(item.value)
                                 .padding(12)
@@ -36,11 +36,11 @@ struct HStackFULayoutExample: View {
                     }
                     .background(Color.gray.opacity(0.5))
                     .border(Color.red)
-                    .frame(maxHeight: maxHeight)
+                    .frame(height: height)
                     .padding()
                 }
                 .animation(.default, value: items)
-                .animation(.default, value: maxHeight)
+                .animation(.default, value: height)
                 .animation(.default, value: verticalAlignment)
                 .animation(.default, value: layoutDirection)
             )
@@ -63,12 +63,12 @@ struct HStackFULayoutExample: View {
 
                 #if os(tvOS)
                 HStack {
-                    Text("Max Height \(maxHeight, specifier: "%.0F")")
-                    Button("-") { maxHeight = max(50, maxHeight - 50) }
-                    Button("+") { maxHeight = min(600, maxHeight + 50) }
+                    Text("Height \(height, specifier: "%.0F")")
+                    Button("-") { height = max(50, height - 50) }
+                    Button("+") { height = min(600, height + 50) }
                 }
                 #else
-                Stepper("Max Height \(maxHeight, specifier: "%.0F")", value: $maxHeight, in: 50...600, step: 50)
+                Stepper("Height \(height, specifier: "%.0F")", value: $height, in: 50...600, step: 50)
                 #endif
                 
                 Picker("Layout Direction", selection: $layoutDirection) {

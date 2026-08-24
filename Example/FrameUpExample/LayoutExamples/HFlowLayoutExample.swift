@@ -13,7 +13,7 @@ struct HFlowLayoutExample: View {
     @State private var items: [Item] = .examples
     @State private var horizontalAlignment: FUHorizontalAlignment = .leading
     @State private var verticalAlignment: FUVerticalAlignment = .top
-    @State private var maxWidth: CGFloat = 300
+    @State private var width: CGFloat = 300
     @State private var layoutDirection: LayoutDirection = .leftToRight
     
     var alignment: FUAlignment { .init(horizontal: horizontalAlignment, vertical: verticalAlignment)}
@@ -21,7 +21,7 @@ struct HFlowLayoutExample: View {
     var body: some View {
         VStack {
             Color.clear.overlay(
-                ScrollView(.vertical) {
+                ScrollView {
                     HFlowLayout(alignment: alignment) {
                         ForEach(items) { item in
                             Text(item.value)
@@ -35,11 +35,11 @@ struct HFlowLayoutExample: View {
                     }
                     .background(Color.gray.opacity(0.5))
                     .border(Color.red)
-                    .frame(maxWidth: maxWidth)
+                    .frame(width: width)
                     .padding()
                 }
                 .animation(.default, value: items)
-                .animation(.default, value: maxWidth)
+                .animation(.default, value: width)
                 .animation(.default, value: horizontalAlignment)
                 .animation(.default, value: verticalAlignment)
                 .animation(.default, value: layoutDirection)
@@ -70,12 +70,12 @@ struct HFlowLayoutExample: View {
                 
                 #if os(tvOS)
                 HStack {
-                    Text("Max Width \(maxWidth, specifier: "%.0F")")
-                    Button("-") { maxWidth = max(50, maxWidth - 50) }
-                    Button("+") { maxWidth = min(600, maxWidth + 50) }
+                    Text("Width \(width, specifier: "%.0F")")
+                    Button("-") { width = max(50, width - 50) }
+                    Button("+") { width = min(600, width + 50) }
                 }
                 #else
-                Stepper("Max Width \(maxWidth, specifier: "%.0F")", value: $maxWidth, in: 50...600, step: 50)
+                Stepper("Width \(width, specifier: "%.0F")", value: $width, in: 50...600, step: 50)
                 #endif
                 
                 Picker("Layout Direction", selection: $layoutDirection) {
