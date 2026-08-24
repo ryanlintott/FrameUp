@@ -59,6 +59,7 @@ Before upgrading, resolve any deprecation warnings from `0.9.11` — `HFlowLegac
 - `WidgetSize.supportedSizesForCurrentDevice` was missing the accessory sizes on iPad and returned an empty array on Mac Catalyst. It now reports the correct sizes for every supported platform and OS version.
 - `ScaledContainerRelativeShape` folded the rect origin into its width and height, so it only scaled correctly for a rect at the origin.
 - Corrected `WidgetSize.minimumSize` and `maximumSize`, which had drifted from the per-device size tables. They now list the smallest and largest frame across every device that supports the size, using the iPad design canvas rather than the Home Screen frame, and falling back to smallest or largest area where no candidate wins on both axes. `.accessoryInline` minimum was 234x26 and is now 225x26; `.extraLarge` minimum was the 540x260 iPad Home Screen frame and is now the 450x338 visionOS frame; `.accessoryRectangular` maximum was 172x76 and is now the 191x81.5 Apple Watch frame.
+- `AutoRotatingView` sometimes animated a 90 degree orientation change as a 270 degree rotation the other way. The angle is now accumulated, always taking the shortest path.
 - The example app's `ContentView` did not build on visionOS.
 
 ### Documentation

@@ -14,6 +14,10 @@ public struct AutoRotatingView<Content: View>: View {
     @State private var contentOrientation: FUInterfaceOrientation? = nil
     /// The current orientation of the device.
     @State private var interfaceOrientation: FUInterfaceOrientation? = nil
+    /// The rotation of the content relative to the interface.
+    ///
+    /// This angle accumulates rather than resetting to an equivalent angle between -180 and 180 degrees so rotation animations always take the shortest path.
+    @State private var contentRotation: Angle = .zero
     
     /// Allowed orientations for the content.
     let allowedOrientations: [FUInterfaceOrientation]
@@ -80,6 +84,9 @@ public struct AutoRotatingView<Content: View>: View {
                 if let newContentOrientation {
                     contentOrientation = newContentOrientation
                 }
+                if let contentOrientation, let interfaceOrientation {
+                    contentRotation = contentRotation.closestEquivalent(to: contentOrientation.rotation(to: interfaceOrientation))
+                }
                 
 //                print("Device: \(deviceOrientation?.name ?? "nil") Content: \(contentOrientation?.name ?? "nil")")
             }
@@ -87,21 +94,18 @@ public struct AutoRotatingView<Content: View>: View {
     }
     
     var rotation: Angle {
-        guard
-            isOn,
-            let contentOrientation = contentOrientation,
-            let interfaceOrientation = interfaceOrientation
-        else { return .zero }
-        
-        return contentOrientation.rotation(to: interfaceOrientation)
+        isOn ? contentRotation : .zero
     }
     
     /// This value is true if the aspect ratio of the device and content orientations match
     var isMatchingAspectRatio: Bool {
-        switch rotation {
-        case .zero, .degrees(180): return true
-        default: return false
-        }
+        guard
+            isOn,
+            let contentOrientation = contentOrientation,
+            let interfaceOrientation = interfaceOrientation
+        else { return true }
+        
+        return contentOrientation.isLandscape == interfaceOrientation.isLandscape
     }
     
     public var body: some View {
