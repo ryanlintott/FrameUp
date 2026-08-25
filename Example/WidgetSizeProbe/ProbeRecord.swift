@@ -41,6 +41,10 @@ struct ProbeRecord: Codable {
     let showsContainerBackground: Bool?
     /// Screen size ignoring orientation, the key the `WidgetSize` lookup tables switch on. Nil when it could not be read, see ``ProbeRecord/screenSize``.
     let screenSize: CGSize?
+    /// Pixels per point on the display. Nil when it could not be read, see ``ProbeRecord/screenSize``.
+    ///
+    /// Recorded rather than inferred. A screen size in points does not imply a scale, and a frame that happens to be a whole number of points is a whole number of pixels at both 2x and 3x, so the scale cannot be recovered from the frame afterwards.
+    let displayScale: CGFloat?
     /// User interface idiom as a string. Nil when it could not be read, see ``ProbeRecord/screenSize``.
     let idiom: String?
 }
@@ -72,6 +76,12 @@ extension ProbeRecord {
     static var screenSize: CGSize? {
         guard Thread.isMainThread else { return nil }
         return MainActor.assumeIsolated { UIScreen.main.fixedCoordinateSpace.bounds.size }
+    }
+
+    /// Pixels per point on the display. Nil when not read from the main thread, see ``ProbeRecord/screenSize``.
+    static var displayScale: CGFloat? {
+        guard Thread.isMainThread else { return nil }
+        return MainActor.assumeIsolated { UIScreen.main.scale }
     }
 
     /// User interface idiom as a string. Nil when not read from the main thread, see ``ProbeRecord/screenSize``.
@@ -125,6 +135,7 @@ enum ProbeLog {
                 renderingMode: nil,
                 showsContainerBackground: nil,
                 screenSize: ProbeRecord.screenSize,
+                displayScale: ProbeRecord.displayScale,
                 idiom: ProbeRecord.idiom
             )
         )
@@ -144,6 +155,7 @@ enum ProbeLog {
                 renderingMode: renderingMode,
                 showsContainerBackground: showsContainerBackground,
                 screenSize: ProbeRecord.screenSize,
+                displayScale: ProbeRecord.displayScale,
                 idiom: ProbeRecord.idiom
             )
         )
