@@ -376,24 +376,49 @@ extension WidgetFrame {
 
     /// iPad Lock Screen frames, measured rather than published. Apple's table has no accessory row for iPad at all.
     ///
-    /// A `systemSmall` on the iPad Lock Screen is 152x152 rather than the 155x155 it is on the Home Screen. 152 points is also the width of `accessoryRectangular`, so the Lock Screen widget column appears to be 152 points wide with a system small sized to fit it.
+    /// A `systemSmall` on the iPad Lock Screen is a different size from the same widget on the Home Screen, and on every iPad measured its width is exactly the width of `accessoryRectangular`. The Lock Screen widget column is that wide and a system small is sized to fit it. On a 834x1112 iPad the Lock Screen frame is larger than the Home Screen one rather than smaller.
     ///
-    /// > Note: only one iPad screen size has been measured. Every other iPad resolves to these values by nearest width, which is unverified. iPad Lock Screen widgets arrived in iPadOS 17 but the earliest measurement is on 18.6, so these apply from 18.
+    /// > Note: iPad Lock Screen widgets arrived in iPadOS 17 but the earliest measurement is on 18.6, so these apply from 18. `1192x1590`, `970x1389` and `954x1373` are Display Zoom modes rather than devices and have not been measured.
     private static let iPadLockScreen: [WidgetFrame] = [
+        // Measured on iPad Pro 13-inch M4, iPadOS 26.5
+        iPadLock(screenSize: (1032, 1376), small: (301, 301), circular: (120, 120), rectangular: (301, 120), inline: (744, 72)),
+        // Measured on iPad Pro 12.9-inch 6th generation, iPadOS 26.5
+        iPadLock(screenSize: (1024, 1366), small: (298, 298), circular: (119, 119), rectangular: (298, 119), inline: (748, 72)),
+        // Measured on iPad Pro 11-inch 4th generation, iPadOS 26.5
+        iPadLock(screenSize: (834, 1194), small: (304, 304), circular: (122, 122), rectangular: (304, 122), inline: (744, 72)),
+        // Measured on iPad Air 3rd generation, iPadOS 26.5
+        iPadLock(screenSize: (834, 1112), small: (304, 304), circular: (122, 122), rectangular: (304, 122), inline: (744, 72)),
         // Measured on iPad Air 11-inch M2 (iPad14,9), iPadOS 18.6 and 26.5
+        iPadLock(screenSize: (820, 1180), small: (304, 304), circular: (126, 126), rectangular: (304, 126), inline: (744, 72)),
+        // Measured on iPad 9th generation, iPadOS 26.5
+        iPadLock(screenSize: (810, 1080), small: (292, 292), circular: (116, 116), rectangular: (292, 116), inline: (744, 72)),
+        // Measured on iPad mini 5th generation, iPadOS 26.5
+        iPadLock(screenSize: (768, 1024), small: (271, 271), circular: (106, 106), rectangular: (271, 106), inline: (744, 72)),
+        // Measured on iPad mini 6th generation, iPadOS 26.5
+        iPadLock(screenSize: (744, 1133), small: (266, 266), circular: (107, 107), rectangular: (266, 107), inline: (744, 72))
+    ].flatMap { $0 }
+
+    private static func iPadLock(
+        screenSize: (CGFloat, CGFloat),
+        small: (CGFloat, CGFloat),
+        circular: (CGFloat, CGFloat),
+        rectangular: (CGFloat, CGFloat),
+        inline: (CGFloat, CGFloat)
+    ) -> [WidgetFrame] {
         group(
             platform: .pad,
             minMajorOSVersion: 18,
             placement: .lockScreen,
-            screenSize: (820, 1180),
+            screenSize: screenSize,
+            /// Every iPad is a 2x display, and no iPad screen size is known to split by scale.
             displayScale: nil,
             target: .designCanvas,
-            frames: [
-                .small: (152, 152),
-                .accessoryCircular: (63, 63),
-                .accessoryRectangular: (152, 63),
-                .accessoryInline: (372, 36)
-            ]
+            frames: framesFromPixels(displayScale: 2, [
+                .small: small,
+                .accessoryCircular: circular,
+                .accessoryRectangular: rectangular,
+                .accessoryInline: inline
+            ])
         )
-    ].flatMap { $0 }
+    }
 }

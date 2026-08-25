@@ -104,6 +104,25 @@ Apple publishes no row for this family on any platform. Every iPhone screen size
 
 On every device the width is identical to `systemMedium` and `systemLarge`, so this is the same column made taller rather than a differently proportioned frame.
 
+### iPad Lock Screen, iPadOS 18 and later
+
+Apple's table has no accessory row for iPad. Every value here is measured, all on iPadOS 26.5 except 820×1180 which is also confirmed on 18.6. All are design canvas values at 2x.
+
+| Screen | systemSmall | circular | rectangular | inline |
+| --- | --- | --- | --- | --- |
+| 1032×1376 | 150.5 | 60 | 150.5×60 | 372×36 |
+| 1024×1366 | 149 | 59.5 | 149×59.5 | 374×36 |
+| 834×1194 | 152 | 61 | 152×61 | 372×36 |
+| 834×1112 | 152 | 61 | 152×61 | 372×36 |
+| 820×1180 | 152 | 63 | 152×63 | 372×36 |
+| 810×1080 | 146 | 58 | 146×58 | 372×36 |
+| 768×1024 | 135.5 | 53 | 135.5×53 | 372×36 |
+| 744×1133 | 133 | 53.5 | 133×53.5 | 372×36 |
+
+On every iPad the Lock Screen `systemSmall` is exactly as wide as `accessoryRectangular`. The Lock Screen widget column is that wide and a system small is sized to fit it. On a 834×1112 iPad the Lock Screen frame is **larger** than the Home Screen frame, 152 against 150, so it is not simply a shrunken version.
+
+`1032×1376` has no row in `WidgetSize` at all. Every M4 and M5 13-inch iPad Pro reports it. Its design canvas system frames were measured and are identical to those of 1024×1366, so the nearest width fallback already gives the right answer for those, but its Lock Screen frames differ and now have their own row.
+
 ### iPad
 
 All at 820×1180 @2x, and identical on iPadOS 18.6, 26.5 and 27.0. `displaySize` reports the design canvas, not the Home Screen frame.
