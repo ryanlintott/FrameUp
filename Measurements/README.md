@@ -68,9 +68,15 @@ Spot checks confirming Apple's published values, including two screen sizes Appl
 
 ### iPad
 
-| Screen | OS | Device | Small | Medium | Large |
-| --- | --- | --- | --- | --- | --- |
-| 820×1180 | 27.0 | iPad A16 (`iPad15,7`) | 155 | 342×155 | 342×342 |
+All at 820×1180 @2x. `displaySize` reports the design canvas, not the Home Screen frame.
+
+| OS | Device | Small | Medium | Large |
+| --- | --- | --- | --- | --- |
+| 18.6 | iPad Air 11-inch M2 (`iPad14,9`) | 155 | 342×155 | 342×342 |
+| 26.5 | iPad Air 11-inch M2 (`iPad14,9`) | 155 | 342×155 | 342×342 |
+| 27.0 | iPad A16 (`iPad15,7`) | 155 | 342×155 | 342×342 |
+
+A small widget placed on the Home Screen of the 26.5 iPad renders **272 pixels wide, which is 136 points**, while the same widget reports a 155 point `displaySize`. Measured by decoding the screenshot and scanning for the widget's near-white fill across 29 scanlines.
 
 ## Findings
 
@@ -92,6 +98,10 @@ Spot checks confirming Apple's published values, including two screen sizes Appl
 
 Records with `"stage": "timeline"` come from a placed widget. Gallery reads produce only `placeholder` and `snapshot` stages, so `stage` distinguishes the two contexts where `isPreview` does not.
 
+**iPad frames did not change in iOS 26.** The same iPad Air reports identical frames on iPadOS 18.6 and 26.5, and a third iPad agrees on 27.0. Whatever changed for iPhone in iOS 26 left iPad alone, so the iPad table needs no OS version axis.
+
+**The iPad design canvas and Home Screen frames are both confirmed, and the scaling is still real.** Apple's published values for 820×1180 are a 155 point canvas and a 136 point Home Screen frame. `displaySize` returns 155 whether the widget is in the gallery or placed, and the placed widget measures 136 points on screen. The ratio is 0.877, matching `scaleFactorForiPad`. Content is still laid out large and scaled down on iPadOS 26.
+
 **Screen size alone is not always enough. Scale can split a row.** 414×896 exists at both 2x (iPhone XR, 11) and 3x (iPhone XS Max, 11 Pro Max). On iOS 26 those two report different frames: 166.5 versus 171.33 points, a difference of 4.83 points. Both are whole pixels at their own scale — 333 px and 514 px — and neither value is a whole pixel at the other scale. A lookup keyed on screen size alone cannot serve both, so the display scale belongs in the key.
 
 This is the only screen size known to split. It was found by noticing that 166.5 points is not a whole number of pixels at 3x, which is what prompted measuring the 3x device.
@@ -108,4 +118,4 @@ This is the only screen size known to split. It was found by noticing that 166.5
 
 **`displaySize` is the trustworthy value; `viewSize` is not.** On iPad the rendered `viewSize` for `systemMedium` and `systemLarge` came back as 341.911765 rather than 342. That is 11625/34, which is not a whole number of pixels, while every `displaySize` is. The gallery appears to render the widget through a transform, so `viewSize` measured there reflects the render rather than the frame.
 
-**A second, smaller `systemSmall` frame appears on iPad.** Most records report 155×155 but some report 152×152, from both `placeholder` and `render`. Both are whole pixel values. It is not yet known which placement produces the smaller frame.
+**A second, smaller `systemSmall` frame appears on iPad.** Most records report 155×155 but some report 152×152, from both `placeholder` and `render`. Both are whole pixel values. This appears on iPadOS 18.6 and 26.5 alike, so it is not an iOS 26 change. It is still not known which placement produces the smaller frame.
