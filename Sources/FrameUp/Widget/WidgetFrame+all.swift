@@ -11,7 +11,7 @@ extension WidgetFrame {
     /// Every known set of widget frames.
     ///
     /// iPhone sets from iOS 26 onward were measured with the `WidgetSizeProbe` widget in the example app. Everything else is sourced from [Apple Human Interface Guidelines: widget specifications](https://developer.apple.com/design/human-interface-guidelines/widgets#Specifications), which describes iOS 18 and earlier. Spot checks on iOS 18.6 confirmed the published iPhone values, including the 402 and 440 point wide screens that Apple never published a row for.
-    static let all: [WidgetFrame] = iPhoneiOS15 + iPhoneiOS15LockScreen + iPhoneiOS26 + iPhoneiOS26LockScreen + iPad + iPadLockScreen + visionOS + watch
+    static let all: [WidgetFrame] = iPhoneiOS15 + iPhoneiOS15LockScreen + iPhoneiOS26 + iPhoneiOS26LockScreen + iPhoneiOS27Portrait + iPad + iPadLockScreen + visionOS + watch
 
     /// iPhone frames for iOS 18 and earlier, as published by Apple.
     ///
@@ -117,16 +117,6 @@ extension WidgetFrame {
         iPhoneiOS26(screenSize: (414, 896), displayScale: 3, small: (514, 514), medium: (1088, 514), large: (1088, 1134)),
         // Measured on iPhone 17 (iPhone18,3) and iPhone 17 Pro (iPhone18,1), iOS 26.5 and 27.0
         iPhoneiOS26(screenSize: (402, 874), displayScale: 3, small: (493, 493), medium: (1049, 493), large: (1049, 1095)),
-        // extraLargePortrait arrived in iOS 27 and Apple publishes no row for it on any platform. Measured on iPhone 17 (iPhone18,3), iOS 27.0, and on this screen size only, so every other iPhone resolves to it by nearest width and is unverified.
-        group(
-            platform: .phone,
-            minMajorOSVersion: 27,
-            placement: .homeScreen,
-            screenSize: (402, 874),
-            displayScale: 3,
-            target: nil,
-            frames: framesFromPixels(displayScale: 3, [.extraLargePortrait: (1049, 1697)])
-        ),
         // Measured on iPhone 16 (iPhone17,3), iOS 26.5
         iPhoneiOS26(screenSize: (393, 852), displayScale: 3, small: (488, 488), medium: (1034, 488), large: (1034, 1080)),
         // Measured on iPhone 13 (iPhone14,5) and iPhone 17e (iPhone18,5), iOS 26.5 and 27.0
@@ -210,6 +200,52 @@ extension WidgetFrame {
                 .accessoryRectangular: rectangular,
                 .accessoryInline: inline
             ])
+        )
+    }
+
+    /// iPhone `extraLargePortrait` frames, measured rather than published. Apple publishes no row for this family on any platform.
+    ///
+    /// Every iPhone screen size that iOS 27 supports has been measured, and every one of them offers the family, including the smallest.
+    ///
+    /// On every device the width is identical to `systemMedium` and `systemLarge`, so this is the same column made taller rather than a differently proportioned frame. 414x896 splits by display scale here as it does for the system and accessory frames.
+    private static let iPhoneiOS27Portrait: [WidgetFrame] = [
+        // Measured on iPhone 17 Pro Max (iPhone18,2), iOS 27.0
+        iPhoneiOS27Portrait(screenSize: (440, 956), displayScale: 3, portrait: (1134, 1834)),
+        // Measured on iPhone 16 Plus (iPhone17,4), iOS 27.0
+        iPhoneiOS27Portrait(screenSize: (430, 932), displayScale: 3, portrait: (1116, 1804)),
+        // Measured on iPhone 13 Pro Max (iPhone14,3), iOS 27.0
+        iPhoneiOS27Portrait(screenSize: (428, 926), displayScale: 3, portrait: (1115, 1799)),
+        // Measured on iPhone Air (iPhone18,4), iOS 27.0
+        iPhoneiOS27Portrait(screenSize: (420, 912), displayScale: 3, portrait: (1100, 1774)),
+        // Measured on iPhone 11 Pro Max (iPhone12,5), iOS 27.0. Also the iPhone XS Max.
+        iPhoneiOS27Portrait(screenSize: (414, 896), displayScale: 3, portrait: (1088, 1754)),
+        // Measured on iPhone 11 (iPhone12,1), iOS 27.0. Also the iPhone XR.
+        iPhoneiOS27Portrait(screenSize: (414, 896), displayScale: 2, portrait: (712, 1153)),
+        // Measured on iPhone 17 (iPhone18,3), iOS 27.0
+        iPhoneiOS27Portrait(screenSize: (402, 874), displayScale: 3, portrait: (1049, 1697)),
+        // Measured on iPhone 16 (iPhone17,3), iOS 27.0
+        iPhoneiOS27Portrait(screenSize: (393, 852), displayScale: 3, portrait: (1034, 1672)),
+        // Measured on iPhone 17e (iPhone18,5), iOS 27.0
+        iPhoneiOS27Portrait(screenSize: (390, 844), displayScale: 3, portrait: (1026, 1662)),
+        // Measured on iPhone 11 Pro (iPhone12,3), iOS 27.0
+        iPhoneiOS27Portrait(screenSize: (375, 812), displayScale: 3, portrait: (1001, 1617)),
+        // Measured on iPhone SE 3rd generation (iPhone14,6), iOS 27.0
+        iPhoneiOS27Portrait(screenSize: (375, 667), displayScale: 2, portrait: (638, 980))
+    ].flatMap { $0 }
+
+    private static func iPhoneiOS27Portrait(
+        screenSize: (CGFloat, CGFloat),
+        displayScale: CGFloat,
+        portrait: (CGFloat, CGFloat)
+    ) -> [WidgetFrame] {
+        group(
+            platform: .phone,
+            minMajorOSVersion: 27,
+            placement: .homeScreen,
+            screenSize: screenSize,
+            displayScale: displayScale,
+            target: nil,
+            frames: framesFromPixels(displayScale: displayScale, [.extraLargePortrait: portrait])
         )
     }
 

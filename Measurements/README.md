@@ -86,11 +86,23 @@ Every iPhone screen size that iOS 26 supports, all on iOS 26.5 except 402×874 w
 
 ### iPhone extraLargePortrait, iOS 27
 
-| Screen | Frame |
-| --- | --- |
-| 402×874 @3x | 349.67×565.67 |
+Apple publishes no row for this family on any platform. Every iPhone screen size that iOS 27 supports is measured here, and every one of them offers the family.
 
-Measured on iPhone 17 (`iPhone18,3`), iOS 27.0. Apple publishes no row for this family on any platform, and only this screen size has been measured.
+| Screen | Frame | Pixels |
+| --- | --- | --- |
+| 440×956 @3x | 378×611.33 | 1134×1834 |
+| 430×932 @3x | 372×601.33 | 1116×1804 |
+| 428×926 @3x | 371.67×599.67 | 1115×1799 |
+| 420×912 @3x | 366.67×591.33 | 1100×1774 |
+| 414×896 @3x | 362.67×584.67 | 1088×1754 |
+| 414×896 @2x | 356×576.5 | 712×1153 |
+| 402×874 @3x | 349.67×565.67 | 1049×1697 |
+| 393×852 @3x | 344.67×557.33 | 1034×1672 |
+| 390×844 @3x | 342×554 | 1026×1662 |
+| 375×812 @3x | 333.67×539 | 1001×1617 |
+| 375×667 @2x | 319×490 | 638×980 |
+
+On every device the width is identical to `systemMedium` and `systemLarge`, so this is the same column made taller rather than a differently proportioned frame.
 
 ### iPad
 
@@ -138,6 +150,8 @@ There is no formula. Circular is not proportional to screen width, at 0.136, 0.1
 **iPad frames did not change in iOS 26.** The same iPad Air reports identical frames on iPadOS 18.6 and 26.5, and a third iPad agrees on 27.0. Whatever changed for iPhone in iOS 26 left iPad alone, so the iPad table needs no OS version axis.
 
 **The iPad design canvas and Home Screen frames are both confirmed, and the scaling is still real.** Apple's published values for 820×1180 are a 155 point canvas and a 136 point Home Screen frame. `displaySize` returns 155 whether the widget is in the gallery or placed, and the placed widget measures 136 points on screen. The ratio is 0.877, matching `scaleFactorForiPad`. Content is still laid out large and scaled down on iPadOS 26.
+
+**414×896 splits by display scale for every family measured on it.** The system frames, the accessory frames and `extraLargePortrait` all differ between the 2x iPhone 11 and the 3x iPhone 11 Pro Max. It is a rule for that screen size rather than a quirk of one family.
 
 **Screen size alone is not always enough. Scale can split a row.** 414×896 exists at both 2x (iPhone XR, 11) and 3x (iPhone XS Max, 11 Pro Max). On iOS 26 those two report different frames: 166.5 versus 171.33 points, a difference of 4.83 points. Both are whole pixels at their own scale — 333 px and 514 px — and neither value is a whole pixel at the other scale. A lookup keyed on screen size alone cannot serve both, so the display scale belongs in the key.
 

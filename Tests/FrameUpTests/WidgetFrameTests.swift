@@ -257,4 +257,36 @@ struct WidgetFrameTests {
         #expect(onTwentySix[.extraLargePortrait] == nil)
         #expect(try #require(onTwentySeven[.extraLargePortrait]) == CGSize(width: 1049.0/3, height: 1697.0/3))
     }
+
+    /// On every iPhone, extraLargePortrait is exactly as wide as medium and large. It is the same column made taller.
+    @Test func extraLargePortraitSharesTheMediumWidth() throws {
+        for stored in WidgetFrame.all
+        where stored.platform == .phone && stored.widgetSize == .extraLargePortrait {
+            let frames = WidgetSize.sizesForiPhone(
+                screenSize: stored.screenSize,
+                majorOSVersion: 27,
+                displayScale: stored.displayScale
+            )
+            let medium = try #require(frames[.medium])
+            let large = try #require(frames[.large])
+            #expect(stored.frame.width == medium.width, "\(stored.screenSize)")
+            #expect(stored.frame.width == large.width, "\(stored.screenSize)")
+            #expect(stored.frame.height > large.height, "\(stored.screenSize)")
+        }
+    }
+
+    /// Every iPhone screen size iOS 27 supports has an extraLargePortrait frame, so none of them falls back to another screen size.
+    @Test func everyScreenSizeHasAnExtraLargePortraitFrame() throws {
+        let screenSizes = Set(
+            WidgetFrame.all
+                .filter { $0.platform == .phone && $0.widgetSize == .small && $0.minMajorOSVersion >= 26 }
+                .map { "\($0.screenSize)-\(String(describing: $0.displayScale))" }
+        )
+        let portraitSizes = Set(
+            WidgetFrame.all
+                .filter { $0.platform == .phone && $0.widgetSize == .extraLargePortrait }
+                .map { "\($0.screenSize)-\(String(describing: $0.displayScale))" }
+        )
+        #expect(screenSizes == portraitSizes)
+    }
 }
