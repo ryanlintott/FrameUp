@@ -36,21 +36,34 @@ The file keeps every distinct record rather than a merged summary. Deriving a si
 
 All values are `displaySize`, in points.
 
-### iPhone
+### iPhone — iOS 26 and later
 
-| Screen | OS | Device | Small | Medium | Large | vs. current `WidgetSize` |
-| --- | --- | --- | --- | --- | --- | --- |
-| 390×844 | 18.6 | iPhone 13 (`iPhone14,5`) | 158 | 338×158 | 338×354 | matches |
-| 402×874 | 18.6 | iPhone 16 Pro (`iPhone17,1`) | 158 | 338×158 | 338×354 | matches |
-| 440×956 | 18.6 | iPhone 16 Pro Max (`iPhone17,2`) | 170 | 364×170 | 364×382 | matches |
-| 390×844 | 26.5 | iPhone 13 (`iPhone14,5`) | 162 | 342×162 | 342×358 | **wrong** |
-| 390×844 | 26.5 | iPhone 17e (`iPhone18,5`) | 162 | 342×162 | 342×358 | **wrong** |
-| 390×844 | 27.0 | iPhone 17e (`iPhone18,5`) | 162 | 342×162 | 342×358 | **wrong** |
-| 402×874 | 26.5 | iPhone 17 (`iPhone18,3`) | 164.33 | 349.67×164.33 | 349.67×365 | **wrong** |
-| 402×874 | 27.0 | iPhone 17 (`iPhone18,3`) | 164.33 | 349.67×164.33 | 349.67×365 | **wrong** |
-| 402×874 | 27.0 | iPhone 17 Pro (`iPhone18,1`) | 164.33 | 349.67×164.33 | 349.67×365 | **wrong** |
-| 420×912 | 27.0 | iPhone Air (`iPhone18,4`) | 172.67 | 366.67×172.67 | 366.67×382 | **wrong** |
-| 440×956 | 27.0 | iPhone 17 Pro Max (`iPhone18,2`) | 176.67 | 378×176.67 | 378×394 | **wrong** |
+Every value here is a measurement, not a published figure. Apple's table has no rows for 402, 420, 428 or 440 point wide screens, and its values for the sizes it does list describe iOS 18.
+
+| Screen | Small | Medium | Large | Devices |
+| --- | --- | --- | --- | --- |
+| 440×956 | 176.67 | 378×176.67 | 378×394 | iPhone 16/17 Pro Max |
+| 430×932 | 174.67 | 372×174.67 | 372×388 | iPhone 15/16 Pro Max, 14/15/16 Plus |
+| 428×926 | 174.33 | 371.67×174.33 | 371.67×387 | iPhone 12/13/14 Pro Max |
+| 420×912 | 172.67 | 366.67×172.67 | 366.67×382 | iPhone Air |
+| 414×896 | 166.5 | 356×166.5 | 356×371.5 | iPhone 11, XR |
+| 402×874 | 164.33 | 349.67×164.33 | 349.67×365 | iPhone 16/17 Pro, iPhone 17 |
+| 393×852 | 162.67 | 344.67×162.67 | 344.67×360 | iPhone 14 Pro, 15, 16 |
+| 390×844 | 162 | 342×162 | 342×358 | iPhone 12, 13, 14, 17e |
+| 375×812 | 159 | 333.67×159 | 333.67×349 | iPhone 11 Pro, 12/13 mini, X, XS |
+| 375×667 | 146 | 319×146 | 319×318 | iPhone SE 2/3, 8 |
+
+`360×780` is not covered. No simulator device reports it — the 12/13 mini report 375×812 — so it appears to be a Display Zoom mode rather than a device's native size.
+
+### iPhone — iOS 18 and earlier
+
+Spot checks confirming Apple's published values, including two screen sizes Apple never published a row for.
+
+| Screen | Small | Medium | Large | Matches current `WidgetSize`? |
+| --- | --- | --- | --- | --- |
+| 440×956 | 170 | 364×170 | 364×382 | yes |
+| 402×874 | 158 | 338×158 | 338×354 | yes |
+| 390×844 | 158 | 338×158 | 338×354 | yes |
 
 ### iPad
 
@@ -77,6 +90,10 @@ All values are `displaySize`, in points.
 **Placed widgets report the same frame as gallery previews.** A `systemSmall` widget placed on the Home Screen of an iPhone 17 reports 164.333×164.333, identical to what the gallery reported for the same device. Measuring the placed widget's rendered pixels on a screenshot gives 493 px wide at @3x, which is exactly 164.333 pt. Reading sizes from the gallery is therefore a valid shortcut, and no widget needs to be placed to collect a measurement.
 
 Records with `"stage": "timeline"` come from a placed widget. Gallery reads produce only `placeholder` and `snapshot` stages, so `stage` distinguishes the two contexts where `isPreview` does not.
+
+**Two devices sharing a screen size report identical frames.** iPhone 11 Pro and iPhone 13 mini both report 375×812 and both give 159 / 333.67×159 / 333.67×349. Combined with the iPhone 13 and 17e agreeing at 390×844, screen size plus OS is enough to determine the frame.
+
+**The iOS 26 grid is finer than the old one.** On iOS 18, 390, 393 and 402 point wide screens all produced the same 158×158 small widget. On iOS 26 they produce 162, 162.67 and 164.33. A lookup table for iOS 26 cannot reuse the coarse screen-width boundaries the old table used.
 
 **Frames land on whole pixels.** Every `displaySize` is an integer number of pixels, which is why values are fractional exactly when the pixel count is not divisible by the scale factor: thirds on @3x, halves on @2x, never anything else.
 
