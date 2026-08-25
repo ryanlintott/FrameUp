@@ -41,15 +41,25 @@ struct ProbeProvider: TimelineProvider {
 /// A `Shape` is used rather than `onAppear` because widget bodies are rendered as static snapshots where appearance callbacks are not guaranteed to run, while `path(in:)` is always called during rendering.
 struct FrameProbe: Shape {
     let family: String
+    let renderingMode: String
+    let showsContainerBackground: Bool
 
     func path(in rect: CGRect) -> Path {
-        ProbeLog.emit(family: family, viewSize: rect.size)
+        ProbeLog.emit(
+            family: family,
+            viewSize: rect.size,
+            renderingMode: renderingMode,
+            showsContainerBackground: showsContainerBackground
+        )
         return Path(rect)
     }
 }
 
 struct ProbeEntryView: View {
     let entry: ProbeEntry
+    /// Identifies where the widget is being drawn. The Lock Screen renders vibrant and without a container background.
+    @Environment(\.widgetRenderingMode) private var widgetRenderingMode
+    @Environment(\.showsWidgetContainerBackground) private var showsWidgetContainerBackground
 
     func sizeString(_ size: CGSize) -> String {
         String(format: "%g", size.width) + "×" + String(format: "%g", size.height)
@@ -66,7 +76,14 @@ struct ProbeEntryView: View {
         .multilineTextAlignment(.center)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         /// Measures the full widget frame rather than the space the text happens to occupy.
-        .background(FrameProbe(family: entry.family).fill(Color.clear))
+        .background(
+            FrameProbe(
+                family: entry.family,
+                renderingMode: widgetRenderingMode.description,
+                showsContainerBackground: showsWidgetContainerBackground
+            )
+            .fill(Color.clear)
+        )
         .probeContainerBackground()
     }
 }
@@ -76,9 +93,21 @@ struct WidgetSizeProbe: Widget {
 
     /// Families measured by this probe.
     ///
-    /// Only the Home Screen system families so far. These already have known frames in `WidgetSize`, so they can be used to validate the method against published values before measuring families that have no published frame.
+    /// Every family the OS might offer. The accessory families are what the Lock Screen shows, so they have to be declared for the widget to appear there at all. `systemExtraLarge` is offered only on iPad and `extraLargePortrait` only from iOS 27, and WidgetKit ignores a family the current device does not support.
     var supportedFamilies: [WidgetFamily] {
-        [.systemSmall, .systemMedium, .systemLarge]
+        var families: [WidgetFamily] = [
+            .systemSmall,
+            .systemMedium,
+            .systemLarge,
+            .systemExtraLarge,
+            .accessoryCircular,
+            .accessoryRectangular,
+            .accessoryInline
+        ]
+        if #available(iOS 27, *) {
+            families.append(.systemExtraLargePortrait)
+        }
+        return families
     }
 
     var body: some WidgetConfiguration {

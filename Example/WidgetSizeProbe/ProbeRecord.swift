@@ -35,6 +35,10 @@ struct ProbeRecord: Codable {
     let stage: String
     /// Whether WidgetKit reported this render as a preview, such as in the widget gallery.
     let isPreview: Bool?
+    /// Rendering mode the widget was drawn with. The Lock Screen and StandBy in low light use `vibrant`, the Home Screen uses `fullColor` or `accented`, so this identifies where a render came from. Nil for provider callbacks, which have no environment.
+    let renderingMode: String?
+    /// Whether the widget was drawn with a container background. False on the Lock Screen and in StandBy. Nil for provider callbacks.
+    let showsContainerBackground: Bool?
     /// Screen size ignoring orientation, the key the `WidgetSize` lookup tables switch on. Nil when it could not be read, see ``ProbeRecord/screenSize``.
     let screenSize: CGSize?
     /// User interface idiom as a string. Nil when it could not be read, see ``ProbeRecord/screenSize``.
@@ -118,6 +122,8 @@ enum ProbeLog {
                 viewSize: nil,
                 stage: stage,
                 isPreview: isPreview,
+                renderingMode: nil,
+                showsContainerBackground: nil,
                 screenSize: ProbeRecord.screenSize,
                 idiom: ProbeRecord.idiom
             )
@@ -125,7 +131,7 @@ enum ProbeLog {
     }
 
     /// Emits a record for a frame measured while rendering the widget body.
-    static func emit(family: String, viewSize: CGSize) {
+    static func emit(family: String, viewSize: CGSize, renderingMode: String, showsContainerBackground: Bool) {
         emit(
             ProbeRecord(
                 deviceModel: ProbeRecord.deviceModel,
@@ -135,6 +141,8 @@ enum ProbeLog {
                 viewSize: viewSize,
                 stage: "render",
                 isPreview: nil,
+                renderingMode: renderingMode,
+                showsContainerBackground: showsContainerBackground,
                 screenSize: ProbeRecord.screenSize,
                 idiom: ProbeRecord.idiom
             )

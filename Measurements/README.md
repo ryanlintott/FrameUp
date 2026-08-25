@@ -68,15 +68,20 @@ Spot checks confirming Apple's published values, including two screen sizes Appl
 
 ### iPad
 
-All at 820×1180 @2x. `displaySize` reports the design canvas, not the Home Screen frame.
+All at 820×1180 @2x, and identical on iPadOS 18.6, 26.5 and 27.0. `displaySize` reports the design canvas, not the Home Screen frame.
 
-| OS | Device | Small | Medium | Large |
-| --- | --- | --- | --- | --- |
-| 18.6 | iPad Air 11-inch M2 (`iPad14,9`) | 155 | 342×155 | 342×342 |
-| 26.5 | iPad Air 11-inch M2 (`iPad14,9`) | 155 | 342×155 | 342×342 |
-| 27.0 | iPad A16 (`iPad15,7`) | 155 | 342×155 | 342×342 |
+| Family | Frame | Source |
+| --- | --- | --- |
+| `systemSmall` on the Home Screen | 155×155 | published |
+| `systemSmall` on the Lock Screen | **152×152** | measured, not published |
+| `systemMedium` | 342×155 | published |
+| `systemLarge` | 342×342 | published |
+| `systemExtraLarge` | 715.5×342 | published |
+| `accessoryCircular` | **63×63** | measured, not published |
+| `accessoryRectangular` | **152×63** | measured, not published |
+| `accessoryInline` | **372×36** | measured, not published |
 
-A small widget placed on the Home Screen of the 26.5 iPad renders **272 pixels wide, which is 136 points**, while the same widget reports a 155 point `displaySize`. Measured by decoding the screenshot and scanning for the widget's near-white fill across 29 scanlines.
+A small widget placed on the Home Screen of the 26.5 iPad renders **272 pixels wide, which is 136 points**, while reporting a 155 point `displaySize`. Measured by decoding the screenshot and scanning for the widget's near-white fill across 29 scanlines.
 
 ## Findings
 
@@ -118,4 +123,10 @@ This is the only screen size known to split. It was found by noticing that 166.5
 
 **`displaySize` is the trustworthy value; `viewSize` is not.** On iPad the rendered `viewSize` for `systemMedium` and `systemLarge` came back as 341.911765 rather than 342. That is 11625/34, which is not a whole number of pixels, while every `displaySize` is. The gallery appears to render the widget through a transform, so `viewSize` measured there reflects the render rather than the frame.
 
-**A second, smaller `systemSmall` frame appears on iPad.** Most records report 155×155 but some report 152×152, from both `placeholder` and `render`. Both are whole pixel values. This appears on iPadOS 18.6 and 26.5 alike, so it is not an iOS 26 change. It is still not known which placement produces the smaller frame.
+**A widget size can have more than one frame on the same device, depending on where it is placed.** An iPad `systemSmall` is 155×155 on the Home Screen and 152×152 on the Lock Screen. A widget placed on the Lock Screen reports 152 from its `timeline` callback, so this is a real placement rather than a preview artefact. 152 points is also the width of `accessoryRectangular`, which suggests the Lock Screen widget column is 152 points wide and a system small placed there is sized to that column.
+
+This is a different axis from ``WidgetTarget``. That distinguishes an iPad's design canvas from its scaled Home Screen frame; this distinguishes one placement from another.
+
+`widgetRenderingMode` does not identify the placement. Both frames appear in `vibrant`, `fullColor` and `accented` renders, because the gallery previews a widget in several modes before it is placed. The reliable signal is a `displaySize` from the `timeline` stage of a placed widget.
+
+**The iPad accessory frames were never published.** Apple's table has no accessory row for iPad and `WidgetSize` documents them as unknown. They are `accessoryCircular` 63×63, `accessoryRectangular` 152×63 and `accessoryInline` 372×36, the same on iPadOS 18.6 and 26.5.
