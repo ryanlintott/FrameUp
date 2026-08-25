@@ -66,6 +66,23 @@ Spot checks confirming Apple's published values, including two screen sizes Appl
 | 402×874 | 158 | 338×158 | 338×354 | yes |
 | 390×844 | 158 | 338×158 | 338×354 | yes |
 
+### iPhone accessory and extra large portrait, iOS 27
+
+Measured on iPhone 17 (`iPhone18,3`), 402×874 @3x, iOS 27.0.
+
+| Family | Measured | Apple publishes | Change |
+| --- | --- | --- | --- |
+| `accessoryCircular` | **58×58** | 72×72 | −14 |
+| `accessoryRectangular` | **148×58** | 160×72 | −12, −14 |
+| `accessoryInline` | **342×36** | 234×26 | **+108, +10** |
+| `extraLargePortrait` | **349.67×565.67** | no row at all | — |
+
+The accessory frames changed in iOS 26 the way the system frames did, and by more in relative terms. `accessoryInline` is 46 percent wider than the published value. Every measured value is a whole number of pixels at 3x: 174, 444×174, 1026×108, and 1049×1697 for the portrait frame.
+
+`extraLargePortrait` shares its width with `systemMedium` and `systemLarge` on this device, 1049 pixels, which is consistent with it being a taller version of the same column.
+
+> Only one screen size has been measured. Apple's published accessory frames differ per screen size, so a full replacement table needs the same sweep the system sizes had.
+
 ### iPad
 
 All at 820×1180 @2x, and identical on iPadOS 18.6, 26.5 and 27.0. `displaySize` reports the design canvas, not the Home Screen frame.

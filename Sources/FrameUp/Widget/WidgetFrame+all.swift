@@ -16,8 +16,6 @@ extension WidgetFrame {
     /// iPhone frames for iOS 18 and earlier, as published by Apple.
     ///
     /// These are published values rather than measurements. Three of them were confirmed on iOS 18.6 with the `WidgetSizeProbe` widget and are marked below, including 440x956 and 402x874 which Apple never published a row for. The rest are unverified.
-    ///
-    /// > Note: `extraLargePortrait` is supported on iPhone from iOS 27 but has no frame here yet, so it is omitted.
     private static let iPhoneiOS15: [WidgetFrame] = [
         // Confirmed on iPhone 16 Pro Max (iPhone17,2), iOS 18.6, which reports a 440x956 screen and resolves here by nearest width
         iPhoneiOS15(screenSize: (430, 932), small: (170, 170), medium: (364, 170), large: (364, 382)),
