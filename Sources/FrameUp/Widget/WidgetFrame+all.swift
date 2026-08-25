@@ -252,7 +252,7 @@ extension WidgetFrame {
 
     /// Apple Watch Smart Stack frames, as published by Apple, keyed on case size the way Apple publishes them.
     ///
-    /// Each entry applies from its case size upward, so a case size larger than any Apple Watch yet released takes the largest frame and one smaller than any Apple Watch ever made has no frame.
+    /// These are exactly the rows Apple publishes, so the list can be checked against the specification line by line.
     ///
     /// > Note: `accessoryCircular` and `accessoryInline` are supported on Apple Watch but have no frame here yet, so they are omitted. `accessoryCorner` is supported too but has no ``WidgetSize`` case.
     static let watchRectangularByCaseSize: [(minCaseSize: CGFloat, frame: CGSize)] = [
@@ -260,13 +260,20 @@ extension WidgetFrame {
         (45, CGSize(width: 184, height: 80.5)),
         (44, CGSize(width: 173, height: 76.5)),
         (41, CGSize(width: 165, height: 72.5)),
-        /// Apple publishes this against a 40mm case and lists nothing smaller. It is extended down to 38mm, the smallest Apple Watch ever made, which is what the lookup this replaced did.
-        (38, CGSize(width: 152, height: 69.5))
+        (40, CGSize(width: 152, height: 69.5))
     ]
 
     /// The Smart Stack frame for a case size in millimetres.
+    ///
+    /// A case larger than any Apple publishes takes the largest frame, and one smaller than any Apple publishes takes the smallest. The 38mm Apple Watch is the only real device below the published range, and it takes the 40mm frame.
+    ///
+    /// The result does not depend on the order of ``watchRectangularByCaseSize``.
     static func watchRectangular(caseSize: CGFloat) -> CGSize? {
-        watchRectangularByCaseSize.first { caseSize >= $0.minCaseSize }?.frame
+        let applicable = watchRectangularByCaseSize.filter { caseSize >= $0.minCaseSize }
+        if let largest = applicable.max(by: { $0.minCaseSize < $1.minCaseSize }) {
+            return largest.frame
+        }
+        return watchRectangularByCaseSize.min(by: { $0.minCaseSize < $1.minCaseSize })?.frame
     }
 
     /// Apple Watch frames, derived by giving each watch the frame published for its case size.

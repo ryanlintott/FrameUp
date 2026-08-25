@@ -88,4 +88,23 @@ struct WidgetFrameWatchTests {
             }
         }
     }
+
+    /// The 38mm Apple Watch is smaller than any case size Apple publishes, so it takes the smallest published frame.
+    @Test func theSmallestWatchTakesTheSmallestPublishedFrame() throws {
+        let byCase = try #require(WidgetFrame.watchRectangular(caseSize: 38))
+        let byScreen = WidgetSize.sizesForWatch(screenSize: CGSize(width: 136, height: 170))
+        #expect(byCase == CGSize(width: 152, height: 69.5))
+        #expect(try #require(byScreen[.accessoryRectangular]) == byCase)
+    }
+
+    /// A case size larger than any Apple publishes takes the largest frame, so a future Apple Watch still reports something.
+    @Test func aLargerCaseTakesTheLargestPublishedFrame() throws {
+        #expect(try #require(WidgetFrame.watchRectangular(caseSize: 52)) == CGSize(width: 191, height: 81.5))
+    }
+
+    /// The published rows are the ones Apple lists, with no invented entry to catch smaller watches.
+    @Test func theCaseSizeListMatchesApplesPublishedRows() {
+        let published = WidgetFrame.watchRectangularByCaseSize.map(\.minCaseSize).sorted()
+        #expect(published == [40, 41, 44, 45, 49])
+    }
 }
