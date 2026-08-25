@@ -4,9 +4,13 @@
 
 Changes since the previous versioned release, `0.9.11`.
 
-This release raises the baseline to Swift 6 and the minimum deployment versions required by Xcode 27, extends `WidgetFamily` and `WidgetSize` support to visionOS including the new `extraLargePortrait` size, and removes the layout APIs that were deprecated in earlier releases.
+This release raises the baseline to Swift 6 and the minimum deployment versions required by Xcode 27, corrects the widget frames wherever Apple's published values are wrong or missing, and removes the layout APIs that were deprecated in earlier releases.
 
-Before upgrading, resolve any deprecation warnings from `0.9.11` — `HFlowLegacy`, `VFlowLegacy`, `VGridMasonry`, `TagView`, `TagViewForScrollView`, and `FlowContentSizeKey` are now gone. Several widget frame values and availability annotations also changed in ways that can alter results or fail to compile without a version check, so read the Breaking Changes below before moving to this version.
+Apple's [published widget specifications](https://developer.apple.com/design/human-interface-guidelines/widgets#Specifications) have not been updated since iOS 18. They have no row for the 402, 420 and 440 point wide iPhones, no accessory row for iPad, no row at all for `.extraLargePortrait`, and iOS 26 changed the frame of every iPhone widget without the table changing with it. FrameUp's frames were a faithful copy of that table and were wrong in all the same ways.
+
+Frames that Apple does not publish, or publishes values for that no longer hold, are now measured on a real system using a widget extension built for the purpose. That covers every iPhone frame on iOS 26 and later, every iPad accessory and Lock Screen frame, and `.extraLargePortrait` on both platforms. The rest stay as Apple publishes them: the iPhone frames for iOS 18 and earlier, which measurement confirmed, the iPad system frames, of which one screen size was confirmed, and the Apple Watch and visionOS frames, which were not measured. The raw measurements are committed under `Measurements/`.
+
+Before upgrading, resolve any deprecation warnings from `0.9.11` — `HFlowLegacy`, `VFlowLegacy`, `VGridMasonry`, `TagView`, `TagViewForScrollView`, and `FlowContentSizeKey` are now gone. Widget frame values, availability annotations, and lookup behaviour also changed in ways that can alter results or fail to compile without a version check, so read the Breaking Changes below before moving to this version.
 
 ### Breaking Changes
 
@@ -18,6 +22,9 @@ Before upgrading, resolve any deprecation warnings from `0.9.11` — `HFlowLegac
 - Added `WidgetSize.extraLargePortrait`, which requires exhaustive switches over `WidgetSize` to handle the new case.
 - `WidgetFamily.size` and `WidgetSize.widgetFamily` now require visionOS 26 or later, the version where visionOS gained WidgetKit widgets.
 - `WidgetSize.sizesForWatch(watchSize:)` now keys its frame to `.accessoryRectangular` instead of `.medium`, so `WidgetSize.medium.sizeForWatch(watchSize:)` now returns nil and `.accessoryRectangular` returns the size.
+- Every iPhone widget frame is different on iOS 26 and later. `sizesForiPhone`, `sizeForiPhone`, and `sizeForCurrentDevice` return measured values on those systems rather than Apple's published ones. System sizes differ by up to 14 points, and the accessory sizes by more: `.accessoryInline` on a 402 point iPhone is 342x36 where Apple publishes 234x26. iOS 18 and earlier are unchanged and were confirmed correct by measurement.
+- A widget size can now have a different frame depending on where it appears. An iPad `.small` is 155x155 on the Home Screen and 152x152 on the Lock Screen. A lookup that names no placement reports the Home Screen frame for sizes that have one and the Lock Screen frame for the accessory sizes, which is what the previous lookups returned, so this only affects callers that ask for a placement explicitly.
+- A screen size with no exact entry now resolves to the nearest known screen size rather than falling through to the arm for the next smaller device. This is what corrected the 402, 420, and 440 point wide iPhones, and it also means an unrecognised Apple Watch screen size returns the nearest known frame instead of no frames at all.
 
 ### Added
 
@@ -27,6 +34,13 @@ Before upgrading, resolve any deprecation warnings from `0.9.11` — `HFlowLegac
 - `WidgetSize.sizesForWatch(screenSize:)` and `sizeForWatch(screenSize:)`, which find the Apple Watch case size from the screen size before looking up the frame.
 - `WidgetSize.sizeForCurrentDevice()` on visionOS and watchOS, alongside the existing iOS `sizeForCurrentDevice(iPadTarget:)`.
 - `WidgetSize.supportedSizesForCurrentDevice` now works on macOS, watchOS, visionOS, Mac Catalyst, and CarPlay instead of iOS only.
+- `WidgetPlacement`, an enum of the places a widget can appear. It mirrors `WidgetKit.WidgetLocation`, which cannot be used here because it is unavailable on macOS, tvOS, and visionOS and requires iOS 17.
+- `majorOSVersion` and `displayScale` parameters on `sizesForiPhone`/`sizeForiPhone`, and `majorOSVersion` on `sizesForiPad`/`sizeForiPad`, along with a `placement` parameter on all four. Every one defaults to the running device, so existing call sites are unaffected.
+- Frames for the screen sizes Apple has never published a row for: the 402, 420, and 440 point wide iPhones, and the 1032x1376 iPad that every M4 and M5 13-inch iPad Pro reports.
+- iPad accessory frames, which Apple publishes for no iPad at all, plus the smaller `.small` frame an iPad uses on the Lock Screen. Measured on every iPad screen size.
+- `.extraLargePortrait` frames on iPhone and iPad, measured on every screen size that iOS 27 and iPadOS 27 support. Apple publishes no row for this family on any platform.
+- `Sendable` conformance on `WidgetSize`, `WidgetSize.Platform`, and `WidgetTarget`.
+- `Measurements/`, holding every raw measurement as JSON along with how it was captured, and `WidgetSizeProbe`, the widget extension in the example app that produced them.
 - A DocC documentation catalog with a landing page that curates the public API into topic groups, and a `.spi.yml` so Swift Package Index builds that documentation automatically.
 - `LayoutFromFULayout.sizeReplacingUnspecifiedDimensions`, the size used in place of any unspecified dimension in a proposed size. Defaults to the SwiftUI 10 by 10 default and is overridden by `HFlowLayout` and `VFlowLayout` so an unspecified dimension along the flow axis means unlimited.
 - A GitHub Actions workflow that checks Swift 6.0 compatibility and runs tests and per-platform builds on the latest Swift.
@@ -57,6 +71,9 @@ Before upgrading, resolve any deprecation warnings from `0.9.11` — `HFlowLegac
 - `WidgetFamily.size` returned `.extraLarge` for `.systemExtraLargePortrait` instead of `.extraLargePortrait`. Every case is now gated on the platform and SDK that provides it rather than on whether the case exists for any platform.
 - `WidgetSize.widgetFamily` returned nil for the accessory sizes on watchOS and for `.extraLarge` on macOS and visionOS. Each case is now gated by platform and OS version so it returns the right family everywhere.
 - `WidgetSize.supportedSizesForCurrentDevice` was missing the accessory sizes on iPad and returned an empty array on Mac Catalyst. It now reports the correct sizes for every supported platform and OS version.
+- Every iPhone with a 402, 420, or 440 point wide screen reported the frames of a narrower phone. `sizesForiPhone` matched on ranges of screen width in a fixed order, and Apple publishes no row for any of those widths, so an iPhone 16 Pro, 17, or Air fell through to the arm meant for a 393 point screen and an iPhone 16 Pro Max or 17 Pro Max to the arm meant for 430. On iOS 18 those fall-throughs happened to give the right answer, which is why this went unnoticed; on iOS 26 they did not.
+- Accessory frames were reported for iOS 15, where accessory widgets do not exist. They now apply from iOS 16.
+- Added the 744x1133 iPad row that Apple publishes and FrameUp lacked. It reached the same values through the default arm, so the result is unchanged.
 - `ScaledContainerRelativeShape` folded the rect origin into its width and height, so it only scaled correctly for a rect at the origin.
 - Corrected `WidgetSize.minimumSize` and `maximumSize`, which had drifted from the per-device size tables. They now list the smallest and largest frame across every device that supports the size, using the iPad design canvas rather than the Home Screen frame, and falling back to smallest or largest area where no candidate wins on both axes. `.accessoryInline` minimum was 234x26 and is now 225x26; `.extraLarge` minimum was the 540x260 iPad Home Screen frame and is now the 450x338 visionOS frame; `.accessoryRectangular` maximum was 172x76 and is now the 191x81.5 Apple Watch frame.
 - `AutoRotatingView` sometimes animated a 90 degree orientation change as a 270 degree rotation the other way. The angle is now accumulated, always taking the shortest path.
