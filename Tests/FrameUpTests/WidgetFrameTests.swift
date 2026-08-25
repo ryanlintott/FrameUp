@@ -108,13 +108,17 @@ struct WidgetFrameTests {
         #expect(try #require(unknown[.small]) == #require(known[.small]))
     }
 
-    /// A newer set only lists the frames that changed. Accessory frames are not measured on iOS 26 yet, so they carry over.
-    @Test func newerSetsLayerOverOlderOnes() throws {
-        let modern = WidgetSize.sizesForiPhone(screenSize: CGSize(width: 390, height: 844), majorOSVersion: 26)
-        let legacy = WidgetSize.sizesForiPhone(screenSize: CGSize(width: 390, height: 844), majorOSVersion: 18)
-        #expect(modern[.small] != legacy[.small])
-        #expect(try #require(modern[.accessoryCircular]) == #require(legacy[.accessoryCircular]))
-        #expect(try #require(modern[.accessoryInline]) == #require(legacy[.accessoryInline]))
+    /// A newer frame only has to list what changed. A widget size with no frame for the newer OS keeps the one from the older OS.
+    @Test func newerFramesLayerOverOlderOnes() throws {
+        let screen = CGSize(width: 402, height: 874)
+        let onTwentySix = WidgetSize.sizesForiPhone(screenSize: screen, majorOSVersion: 26, displayScale: 3)
+        let onTwentySeven = WidgetSize.sizesForiPhone(screenSize: screen, majorOSVersion: 27, displayScale: 3)
+        /// No iOS 27 system frames were measured, so they carry over from iOS 26.
+        #expect(try #require(onTwentySeven[.small]) == #require(onTwentySix[.small]))
+        #expect(try #require(onTwentySeven[.accessoryCircular]) == #require(onTwentySix[.accessoryCircular]))
+        /// extraLargePortrait exists only from iOS 27.
+        #expect(onTwentySix[.extraLargePortrait] == nil)
+        #expect(onTwentySeven[.extraLargePortrait] != nil)
     }
 
     /// An OS older than every set still returns frames rather than nothing.
@@ -217,5 +221,40 @@ struct WidgetFrameTests {
         let frames = WidgetSize.sizesForiPhone(screenSize: CGSize(width: 390, height: 844), majorOSVersion: 15)
         #expect(frames[.accessoryCircular] == nil)
         #expect(frames[.small] == CGSize(width: 158, height: 158))
+    }
+
+    /// The iPhone accessory frames changed in iOS 26, so a lookup on that OS must not return the published values.
+    @Test(arguments: [
+        (CGFloat(402), CGFloat(874), CGFloat(3), CGSize(width: 174.0/3, height: 174.0/3)),
+        (CGFloat(440), CGFloat(956), CGFloat(3), CGSize(width: 60, height: 60)),
+        (CGFloat(375), CGFloat(667), CGFloat(2), CGSize(width: 56, height: 56)),
+        (CGFloat(414), CGFloat(896), CGFloat(2), CGSize(width: 60, height: 60)),
+        (CGFloat(414), CGFloat(896), CGFloat(3), CGSize(width: 191.0/3, height: 191.0/3))
+    ])
+    func accessoryCircularOniOS26(width: CGFloat, height: CGFloat, displayScale: CGFloat, expected: CGSize) throws {
+        let screen = CGSize(width: width, height: height)
+        let modern = WidgetSize.sizesForiPhone(screenSize: screen, majorOSVersion: 26, displayScale: displayScale)
+        let published = WidgetSize.sizesForiPhone(screenSize: screen, majorOSVersion: 18, displayScale: displayScale)
+        #expect(try #require(modern[.accessoryCircular]) == expected)
+        #expect(try #require(modern[.accessoryCircular]) != #require(published[.accessoryCircular]))
+    }
+
+    /// Every iPhone reports a 36 point tall inline accessory widget on iOS 26, where Apple publishes 26.
+    @Test func inlineAccessoryHeightIsThirtySixOniOS26() throws {
+        for stored in WidgetFrame.all
+        where stored.platform == .phone
+            && stored.widgetSize == .accessoryInline
+            && stored.minMajorOSVersion >= 26 {
+            #expect(stored.frame.height == 36, "\(stored.screenSize)")
+        }
+    }
+
+    /// extraLargePortrait arrived in iOS 27, so an iOS 26 lookup has no frame for it.
+    @Test func extraLargePortraitStartsAtiOS27() throws {
+        let screen = CGSize(width: 402, height: 874)
+        let onTwentySix = WidgetSize.sizesForiPhone(screenSize: screen, majorOSVersion: 26, displayScale: 3)
+        let onTwentySeven = WidgetSize.sizesForiPhone(screenSize: screen, majorOSVersion: 27, displayScale: 3)
+        #expect(onTwentySix[.extraLargePortrait] == nil)
+        #expect(try #require(onTwentySeven[.extraLargePortrait]) == CGSize(width: 1049.0/3, height: 1697.0/3))
     }
 }

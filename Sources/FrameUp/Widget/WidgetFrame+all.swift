@@ -11,7 +11,7 @@ extension WidgetFrame {
     /// Every known set of widget frames.
     ///
     /// iPhone sets from iOS 26 onward were measured with the `WidgetSizeProbe` widget in the example app. Everything else is sourced from [Apple Human Interface Guidelines: widget specifications](https://developer.apple.com/design/human-interface-guidelines/widgets#Specifications), which describes iOS 18 and earlier. Spot checks on iOS 18.6 confirmed the published iPhone values, including the 402 and 440 point wide screens that Apple never published a row for.
-    static let all: [WidgetFrame] = iPhoneiOS15 + iPhoneiOS15LockScreen + iPhoneiOS26 + iPad + iPadLockScreen
+    static let all: [WidgetFrame] = iPhoneiOS15 + iPhoneiOS15LockScreen + iPhoneiOS26 + iPhoneiOS26LockScreen + iPad + iPadLockScreen
 
     /// iPhone frames for iOS 18 and earlier, as published by Apple.
     ///
@@ -117,6 +117,16 @@ extension WidgetFrame {
         iPhoneiOS26(screenSize: (414, 896), displayScale: 3, small: (514, 514), medium: (1088, 514), large: (1088, 1134)),
         // Measured on iPhone 17 (iPhone18,3) and iPhone 17 Pro (iPhone18,1), iOS 26.5 and 27.0
         iPhoneiOS26(screenSize: (402, 874), displayScale: 3, small: (493, 493), medium: (1049, 493), large: (1049, 1095)),
+        // extraLargePortrait arrived in iOS 27 and Apple publishes no row for it on any platform. Measured on iPhone 17 (iPhone18,3), iOS 27.0, and on this screen size only, so every other iPhone resolves to it by nearest width and is unverified.
+        group(
+            platform: .phone,
+            minMajorOSVersion: 27,
+            placement: .homeScreen,
+            screenSize: (402, 874),
+            displayScale: 3,
+            target: nil,
+            frames: framesFromPixels(displayScale: 3, [.extraLargePortrait: (1049, 1697)])
+        ),
         // Measured on iPhone 16 (iPhone17,3), iOS 26.5
         iPhoneiOS26(screenSize: (393, 852), displayScale: 3, small: (488, 488), medium: (1034, 488), large: (1034, 1080)),
         // Measured on iPhone 13 (iPhone14,5) and iPhone 17e (iPhone18,5), iOS 26.5 and 27.0
@@ -145,6 +155,60 @@ extension WidgetFrame {
                 .small: small,
                 .medium: medium,
                 .large: large
+            ])
+        )
+    }
+
+    /// iPhone accessory frames for iOS 26 and later, measured rather than published.
+    ///
+    /// These changed in iOS 26 the way the system frames did, and by more in relative terms. On a 402x874 iPhone `accessoryInline` is 342 points wide where Apple publishes 234, which is 46 percent wider.
+    ///
+    /// Every iPhone screen size that iOS 26 supports has been measured. `accessoryInline` is 36 points tall on every one of them, where Apple publishes 26.
+    ///
+    /// Values are written in pixels for the same reason as the system frames, and 414x896 splits by display scale here too.
+    private static let iPhoneiOS26LockScreen: [WidgetFrame] = [
+        // Measured on iPhone 17 Pro Max (iPhone18,2), iOS 26.5
+        iPhoneiOS26Lock(screenSize: (440, 956), displayScale: 3, circular: (180, 180), rectangular: (474, 180), inline: (1110, 108)),
+        // Measured on iPhone 16 Plus (iPhone17,4), iOS 26.5
+        iPhoneiOS26Lock(screenSize: (430, 932), displayScale: 3, circular: (180, 180), rectangular: (474, 180), inline: (1110, 108)),
+        // Measured on iPhone 13 Pro Max (iPhone14,3), iOS 26.5
+        iPhoneiOS26Lock(screenSize: (428, 926), displayScale: 3, circular: (180, 180), rectangular: (468, 180), inline: (1092, 108)),
+        // Measured on iPhone Air (iPhone18,4), iOS 26.5
+        iPhoneiOS26Lock(screenSize: (420, 912), displayScale: 3, circular: (173, 173), rectangular: (459, 173), inline: (1080, 108)),
+        // Measured on iPhone 11 Pro Max (iPhone12,5), iOS 26.5. Also the iPhone XS Max.
+        iPhoneiOS26Lock(screenSize: (414, 896), displayScale: 3, circular: (191, 191), rectangular: (470, 191), inline: (1074, 108)),
+        // Measured on iPhone 11 (iPhone12,1), iOS 26.5. Also the iPhone XR. Same screen size as the row above but at 2x, and the frames differ.
+        iPhoneiOS26Lock(screenSize: (414, 896), displayScale: 2, circular: (120, 120), rectangular: (308, 120), inline: (716, 72)),
+        // Measured on iPhone 17 (iPhone18,3), iOS 27.0
+        iPhoneiOS26Lock(screenSize: (402, 874), displayScale: 3, circular: (174, 174), rectangular: (444, 174), inline: (1026, 108)),
+        // Measured on iPhone 16 (iPhone17,3), iOS 26.5
+        iPhoneiOS26Lock(screenSize: (393, 852), displayScale: 3, circular: (174, 174), rectangular: (443, 174), inline: (1023, 108)),
+        // Measured on iPhone 17e (iPhone18,5), iOS 26.5
+        iPhoneiOS26Lock(screenSize: (390, 844), displayScale: 3, circular: (174, 174), rectangular: (438, 174), inline: (1008, 108)),
+        // Measured on iPhone 11 Pro (iPhone12,3), iOS 26.5
+        iPhoneiOS26Lock(screenSize: (375, 812), displayScale: 3, circular: (174, 174), rectangular: (429, 174), inline: (981, 108)),
+        // Measured on iPhone SE 3rd generation (iPhone14,6), iOS 26.5
+        iPhoneiOS26Lock(screenSize: (375, 667), displayScale: 2, circular: (112, 112), rectangular: (282, 112), inline: (646, 72))
+    ].flatMap { $0 }
+
+    private static func iPhoneiOS26Lock(
+        screenSize: (CGFloat, CGFloat),
+        displayScale: CGFloat,
+        circular: (CGFloat, CGFloat),
+        rectangular: (CGFloat, CGFloat),
+        inline: (CGFloat, CGFloat)
+    ) -> [WidgetFrame] {
+        group(
+            platform: .phone,
+            minMajorOSVersion: 26,
+            placement: .lockScreen,
+            screenSize: screenSize,
+            displayScale: displayScale,
+            target: nil,
+            frames: framesFromPixels(displayScale: displayScale, [
+                .accessoryCircular: circular,
+                .accessoryRectangular: rectangular,
+                .accessoryInline: inline
             ])
         )
     }

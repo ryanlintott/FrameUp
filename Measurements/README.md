@@ -66,22 +66,31 @@ Spot checks confirming Apple's published values, including two screen sizes Appl
 | 402×874 | 158 | 338×158 | 338×354 | yes |
 | 390×844 | 158 | 338×158 | 338×354 | yes |
 
-### iPhone accessory and extra large portrait, iOS 27
+### iPhone accessory frames, iOS 26 and later
 
-Measured on iPhone 17 (`iPhone18,3`), 402×874 @3x, iOS 27.0.
+Every iPhone screen size that iOS 26 supports, all on iOS 26.5 except 402×874 which is 27.0.
 
-| Family | Measured | Apple publishes | Change |
-| --- | --- | --- | --- |
-| `accessoryCircular` | **58×58** | 72×72 | −14 |
-| `accessoryRectangular` | **148×58** | 160×72 | −12, −14 |
-| `accessoryInline` | **342×36** | 234×26 | **+108, +10** |
-| `extraLargePortrait` | **349.67×565.67** | no row at all | — |
+| Screen | circular | rectangular | inline | Apple publishes circular |
+| --- | --- | --- | --- | --- |
+| 440×956 @3x | 60 | 158×60 | 370×36 | 76 |
+| 430×932 @3x | 60 | 158×60 | 370×36 | 76 |
+| 428×926 @3x | 60 | 156×60 | 364×36 | 76 |
+| 420×912 @3x | 57.67 | 153×57.67 | 360×36 | no row |
+| 414×896 @3x | 63.67 | 156.67×63.67 | 358×36 | 76 |
+| 414×896 @2x | 60 | 154×60 | 358×36 | 76 |
+| 402×874 @3x | 58 | 148×58 | 342×36 | no row |
+| 393×852 @3x | 58 | 147.67×58 | 341×36 | 72 |
+| 390×844 @3x | 58 | 146×58 | 336×36 | 72 |
+| 375×812 @3x | 58 | 143×58 | 327×36 | 72 |
+| 375×667 @2x | 56 | 141×56 | 323×36 | 68 |
 
-The accessory frames changed in iOS 26 the way the system frames did, and by more in relative terms. `accessoryInline` is 46 percent wider than the published value. Every measured value is a whole number of pixels at 3x: 174, 444×174, 1026×108, and 1049×1697 for the portrait frame.
+### iPhone extraLargePortrait, iOS 27
 
-`extraLargePortrait` shares its width with `systemMedium` and `systemLarge` on this device, 1049 pixels, which is consistent with it being a taller version of the same column.
+| Screen | Frame |
+| --- | --- |
+| 402×874 @3x | 349.67×565.67 |
 
-> Only one screen size has been measured. Apple's published accessory frames differ per screen size, so a full replacement table needs the same sweep the system sizes had.
+Measured on iPhone 17 (`iPhone18,3`), iOS 27.0. Apple publishes no row for this family on any platform, and only this screen size has been measured.
 
 ### iPad
 
@@ -119,6 +128,12 @@ A small widget placed on the Home Screen of the 26.5 iPad renders **272 pixels w
 **Placed widgets report the same frame as gallery previews.** A `systemSmall` widget placed on the Home Screen of an iPhone 17 reports 164.333×164.333, identical to what the gallery reported for the same device. Measuring the placed widget's rendered pixels on a screenshot gives 493 px wide at @3x, which is exactly 164.333 pt. Reading sizes from the gallery is therefore a valid shortcut, and no widget needs to be placed to collect a measurement.
 
 Records with `"stage": "timeline"` come from a placed widget. Gallery reads produce only `placeholder` and `snapshot` stages, so `stage` distinguishes the two contexts where `isPreview` does not.
+
+**The iPhone accessory frames changed in iOS 26 too, and by more than the system frames.** Every published value is wrong on iOS 26 and later. `accessoryInline` is the extreme case: 342 points wide on a 402 point iPhone where Apple publishes 234, 46 percent wider, against a worst case of 8 percent for the system sizes.
+
+Two patterns hold across every iPhone measured. `accessoryInline` is 36 points tall on all of them, where Apple publishes 26. And 414×896 splits by display scale here as it does for the system sizes, so the scale key is needed for accessory frames too.
+
+There is no formula. Circular is not proportional to screen width, at 0.136, 0.144 and 0.149 of it across the range, and it moves by the same 2 points across both a 38 point and a 27 point difference in screen width. Every screen size had to be measured.
 
 **iPad frames did not change in iOS 26.** The same iPad Air reports identical frames on iPadOS 18.6 and 26.5, and a third iPad agrees on 27.0. Whatever changed for iPhone in iOS 26 left iPad alone, so the iPad table needs no OS version axis.
 
