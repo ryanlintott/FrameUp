@@ -1,5 +1,5 @@
 //
-//  WidgetFrameSetiPadTests.swift
+//  WidgetFrameiPadTests.swift
 //  FrameUp
 //
 //  Created by Ryan Lintott on 2026-08-25.
@@ -9,7 +9,7 @@ import CoreGraphics
 import Testing
 @testable import FrameUp
 
-struct WidgetFrameSetiPadTests {
+struct WidgetFrameiPadTests {
     /// One published iPad row, both targets.
     struct Row: Sendable, CustomStringConvertible {
         let screenSize: CGSize
@@ -124,16 +124,27 @@ struct WidgetFrameSetiPadTests {
     }
 
     @Test func everyPublishedFrameLandsOnAWholePixelAtTwoX() {
-        for set in WidgetFrameSet.all where set.platform == .pad {
-            for (widgetSize, frame) in set.frames {
-                for value in [frame.width, frame.height] {
-                    let pixels = value * 2
-                    #expect(
-                        abs(pixels - pixels.rounded()) < 0.0001,
-                        "\(set.screenSize) \(widgetSize) has \(value) points, which is not a whole pixel at 2x"
-                    )
-                }
+        for stored in WidgetFrame.all where stored.platform == .pad {
+            for value in [stored.frame.width, stored.frame.height] {
+                let pixels = value * 2
+                #expect(
+                    abs(pixels - pixels.rounded()) < 0.0001,
+                    "\(stored.screenSize) \(stored.widgetSize) has \(value) points, which is not a whole pixel at 2x"
+                )
             }
         }
+    }
+
+    /// Resolving per widget size means a frame measured on one iPad still resolves on the others, rather than disappearing because that screen size has no accessory row.
+    @Test(arguments: [CGFloat(1024), 834, 768])
+    func accessoryFramesResolveOnUnmeasurediPads(width: CGFloat) throws {
+        let frames = WidgetSize.sizesForiPad(
+            screenSize: CGSize(width: width, height: 1180),
+            target: .designCanvas,
+            majorOSVersion: 26
+        )
+        #expect(try #require(frames[.accessoryCircular]) == CGSize(width: 63, height: 63))
+        /// The system sizes still come from that iPad's own row rather than the measured one.
+        #expect(frames[.small] != CGSize(width: 152, height: 152))
     }
 }

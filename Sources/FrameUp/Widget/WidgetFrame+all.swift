@@ -7,18 +7,18 @@
 
 import SwiftUI
 
-extension WidgetFrameSet {
+extension WidgetFrame {
     /// Every known set of widget frames.
     ///
     /// iPhone sets from iOS 26 onward were measured with the `WidgetSizeProbe` widget in the example app. Everything else is sourced from [Apple Human Interface Guidelines: widget specifications](https://developer.apple.com/design/human-interface-guidelines/widgets#Specifications), which describes iOS 18 and earlier. Spot checks on iOS 18.6 confirmed the published iPhone values, including the 402 and 440 point wide screens that Apple never published a row for.
-    static let all: [WidgetFrameSet] = iPhoneiOS15 + iPhoneiOS15LockScreen + iPhoneiOS26 + iPad + iPadLockScreen
+    static let all: [WidgetFrame] = iPhoneiOS15 + iPhoneiOS15LockScreen + iPhoneiOS26 + iPad + iPadLockScreen
 
     /// iPhone frames for iOS 18 and earlier, as published by Apple.
     ///
     /// These are published values rather than measurements. Three of them were confirmed on iOS 18.6 with the `WidgetSizeProbe` widget and are marked below, including 440x956 and 402x874 which Apple never published a row for. The rest are unverified.
     ///
     /// > Note: `extraLargePortrait` is supported on iPhone from iOS 27 but has no frame here yet, so it is omitted.
-    private static let iPhoneiOS15: [WidgetFrameSet] = [
+    private static let iPhoneiOS15: [WidgetFrame] = [
         // Confirmed on iPhone 16 Pro Max (iPhone17,2), iOS 18.6, which reports a 440x956 screen and resolves here by nearest width
         iPhoneiOS15(screenSize: (430, 932), small: (170, 170), medium: (364, 170), large: (364, 382)),
         iPhoneiOS15(screenSize: (428, 926), small: (170, 170), medium: (364, 170), large: (364, 382)),
@@ -33,15 +33,15 @@ extension WidgetFrameSet {
         // No device has been observed reporting this screen size. It is likely a Display Zoom mode rather than a device's native size.
         iPhoneiOS15(screenSize: (360, 780), small: (155, 155), medium: (329, 155), large: (329, 345)),
         iPhoneiOS15(screenSize: (320, 568), small: (141, 141), medium: (292, 141), large: (292, 311))
-    ]
+    ].flatMap { $0 }
 
     private static func iPhoneiOS15(
         screenSize: (CGFloat, CGFloat),
         small: (CGFloat, CGFloat),
         medium: (CGFloat, CGFloat),
         large: (CGFloat, CGFloat)
-    ) -> WidgetFrameSet {
-        WidgetFrameSet(
+    ) -> [WidgetFrame] {
+        group(
             platform: .phone,
             /// FrameUp supports iOS 15 and later, so the published values are treated as applying from there.
             minMajorOSVersion: 15,
@@ -64,7 +64,7 @@ extension WidgetFrameSet {
     /// These are the accessory columns of the same published table, separated because accessory widgets appear on the Lock Screen rather than the Home Screen. Accessory widgets arrived in iOS 16, so these apply from there rather than from 15.
     ///
     /// > Note: these have not been measured on iOS 26. The system frames on that OS all changed, so these may be out of date.
-    private static let iPhoneiOS15LockScreen: [WidgetFrameSet] = [
+    private static let iPhoneiOS15LockScreen: [WidgetFrame] = [
         iPhoneiOS15Lock(screenSize: (430, 932), circular: (76, 76), rectangular: (172, 76), inline: (257, 26)),
         iPhoneiOS15Lock(screenSize: (428, 926), circular: (76, 76), rectangular: (172, 76), inline: (257, 26)),
         iPhoneiOS15Lock(screenSize: (414, 896), circular: (76, 76), rectangular: (160, 72), inline: (248, 26)),
@@ -75,7 +75,7 @@ extension WidgetFrameSet {
         iPhoneiOS15Lock(screenSize: (375, 667), circular: (68, 68), rectangular: (153, 68), inline: (225, 26)),
         iPhoneiOS15Lock(screenSize: (360, 780), circular: (72, 72), rectangular: (157, 72), inline: (225, 26)),
         iPhoneiOS15Lock(screenSize: (320, 568), circular: (72, 72), rectangular: (157, 72), inline: (225, 26))
-    ]
+    ].flatMap { $0 }
 
     /// The accessory frames from the same published row, recorded against the Lock Screen where they actually appear.
     private static func iPhoneiOS15Lock(
@@ -83,8 +83,8 @@ extension WidgetFrameSet {
         circular: (CGFloat, CGFloat),
         rectangular: (CGFloat, CGFloat),
         inline: (CGFloat, CGFloat)
-    ) -> WidgetFrameSet {
-        WidgetFrameSet(
+    ) -> [WidgetFrame] {
+        group(
             platform: .phone,
             minMajorOSVersion: 16,
             placement: .lockScreen,
@@ -104,7 +104,7 @@ extension WidgetFrameSet {
     /// Values are written in pixels because every measured frame lands on a whole number of pixels. Dividing by the display scale reproduces the fractional point values exactly. The frames themselves are stored in points.
     ///
     /// > Note: the accessory sizes and `extraLargePortrait` have not been measured on iOS 26 yet, so they are omitted here. Sets layer rather than replace, so a lookup on iOS 26 still returns the published accessory frames from the iOS 15 set. Those values are unverified on iOS 26 and may have changed the way the system sizes did.
-    private static let iPhoneiOS26: [WidgetFrameSet] = [
+    private static let iPhoneiOS26: [WidgetFrame] = [
         // Measured on iPhone 17 Pro Max (iPhone18,2), iOS 27.0
         iPhoneiOS26(screenSize: (440, 956), displayScale: 3, small: (530, 530), medium: (1134, 530), large: (1134, 1182)),
         // Measured on iPhone 16 Plus (iPhone17,4), iOS 26.5
@@ -127,7 +127,7 @@ extension WidgetFrameSet {
         iPhoneiOS26(screenSize: (375, 812), displayScale: 3, small: (477, 477), medium: (1001, 477), large: (1001, 1047)),
         // Measured on iPhone SE 3rd generation (iPhone14,6), iOS 26.5
         iPhoneiOS26(screenSize: (375, 667), displayScale: 2, small: (292, 292), medium: (638, 292), large: (638, 636))
-    ]
+    ].flatMap { $0 }
 
     private static func iPhoneiOS26(
         screenSize: (CGFloat, CGFloat),
@@ -135,8 +135,8 @@ extension WidgetFrameSet {
         small: (CGFloat, CGFloat),
         medium: (CGFloat, CGFloat),
         large: (CGFloat, CGFloat)
-    ) -> WidgetFrameSet {
-        WidgetFrameSet(
+    ) -> [WidgetFrame] {
+        group(
             platform: .phone,
             minMajorOSVersion: 26,
             placement: .homeScreen,
@@ -156,7 +156,7 @@ extension WidgetFrameSet {
     /// Each screen size contributes two sets, one for the design canvas the content is laid out in and one for the smaller Home Screen frame the canvas is scaled into. The 820x1180 canvas values are confirmed by measurement on iPadOS 18.6, 26.5 and 27.0, and its Home Screen value of 136 points is confirmed by measuring a placed widget on screen. iPad frames did not change in iOS 26, so unlike iPhone these apply from iOS 15 with no later set.
     ///
     /// > Note: `extraLargePortrait` is supported on iPad from iOS 27 but has no frame here yet, so it is omitted.
-    private static let iPad: [WidgetFrameSet] = [
+    private static let iPad: [WidgetFrame] = [
         iPadFrameSet(screenSize: (1192, 1590), canvas: ((188, 188), (412, 188), (412, 412), (860, 412)), homeScreen: ((188, 188), (412, 188), (412, 412), (860, 412))),
         iPadFrameSet(screenSize: (1024, 1366), canvas: ((170, 170), (378.5, 170), (378.5, 378.5), (795, 378.5)), homeScreen: ((160, 160), (356, 160), (356, 356), (748, 356))),
         iPadFrameSet(screenSize: (970, 1389), canvas: ((162, 162), (350, 162), (350, 350), (726, 350)), homeScreen: ((162, 162), (350, 162), (350, 350), (726, 350))),
@@ -176,9 +176,9 @@ extension WidgetFrameSet {
         screenSize: (CGFloat, CGFloat),
         canvas: ((CGFloat, CGFloat), (CGFloat, CGFloat), (CGFloat, CGFloat), (CGFloat, CGFloat)),
         homeScreen: ((CGFloat, CGFloat), (CGFloat, CGFloat), (CGFloat, CGFloat), (CGFloat, CGFloat))
-    ) -> [WidgetFrameSet] {
-        [(WidgetTarget.designCanvas, canvas), (.homeScreen, homeScreen)].map { target, sizes in
-            WidgetFrameSet(
+    ) -> [WidgetFrame] {
+        [(WidgetTarget.designCanvas, canvas), (.homeScreen, homeScreen)].flatMap { target, sizes in
+            group(
                 platform: .pad,
                 minMajorOSVersion: 15,
                 placement: .homeScreen,
@@ -201,9 +201,9 @@ extension WidgetFrameSet {
     /// A `systemSmall` on the iPad Lock Screen is 152x152 rather than the 155x155 it is on the Home Screen. 152 points is also the width of `accessoryRectangular`, so the Lock Screen widget column appears to be 152 points wide with a system small sized to fit it.
     ///
     /// > Note: only one iPad screen size has been measured. Every other iPad resolves to these values by nearest width, which is unverified. iPad Lock Screen widgets arrived in iPadOS 17 but the earliest measurement is on 18.6, so these apply from 18.
-    private static let iPadLockScreen: [WidgetFrameSet] = [
+    private static let iPadLockScreen: [WidgetFrame] = [
         // Measured on iPad Air 11-inch M2 (iPad14,9), iPadOS 18.6 and 26.5
-        WidgetFrameSet(
+        group(
             platform: .pad,
             minMajorOSVersion: 18,
             placement: .lockScreen,
@@ -217,5 +217,5 @@ extension WidgetFrameSet {
                 .accessoryInline: (372, 36)
             ]
         )
-    ]
+    ].flatMap { $0 }
 }

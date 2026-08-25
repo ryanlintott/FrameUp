@@ -71,7 +71,7 @@ public extension WidgetSize {
     
     /// Widget sizes for iPhone
     ///
-    /// Frames for iOS 25 and earlier are sourced from [Apple Human Interface Guidelines: widget specifications](https://developer.apple.com/design/human-interface-guidelines/widgets#Specifications). iOS 26 changed the frame of every iPhone widget, and Apple has not updated that table, so frames for iOS 26 and later are measured instead. See ``WidgetFrameSet`` and `Measurements/` in the repository.
+    /// Frames for iOS 25 and earlier are sourced from [Apple Human Interface Guidelines: widget specifications](https://developer.apple.com/design/human-interface-guidelines/widgets#Specifications). iOS 26 changed the frame of every iPhone widget, and Apple has not updated that table, so frames for iOS 26 and later are measured instead. See ``WidgetFrame`` and `Measurements/` in the repository.
     ///
     /// A screen size with no exact entry resolves to the nearest known screen size by width, then by height. Screen sizes that Apple never published a row for, such as the 402 and 440 point wide iPhones, are included.
     ///
@@ -87,10 +87,10 @@ public extension WidgetSize {
         displayScale: CGFloat? = nil,
         placement: WidgetPlacement? = nil
     ) -> [WidgetSize: CGSize] {
-        WidgetFrameSet.frames(
+        WidgetFrame.frames(
             platform: .phone,
             screenSize: screenSize,
-            majorOSVersion: majorOSVersion ?? WidgetFrameSet.currentMajorOSVersion,
+            majorOSVersion: majorOSVersion ?? WidgetFrame.currentMajorOSVersion,
             displayScale: displayScale,
             placement: placement
         )
@@ -114,10 +114,10 @@ public extension WidgetSize {
         majorOSVersion: Int? = nil,
         placement: WidgetPlacement? = nil
     ) -> [WidgetSize: CGSize] {
-        WidgetFrameSet.frames(
+        WidgetFrame.frames(
             platform: .pad,
             screenSize: screenSize,
-            majorOSVersion: majorOSVersion ?? WidgetFrameSet.currentMajorOSVersion,
+            majorOSVersion: majorOSVersion ?? WidgetFrame.currentMajorOSVersion,
             placement: placement,
             target: target
         )

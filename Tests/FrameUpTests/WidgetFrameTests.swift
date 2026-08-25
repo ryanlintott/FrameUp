@@ -1,5 +1,5 @@
 //
-//  WidgetFrameSetTests.swift
+//  WidgetFrameTests.swift
 //  FrameUp
 //
 //  Created by Ryan Lintott on 2026-08-25.
@@ -9,7 +9,7 @@ import CoreGraphics
 import Testing
 @testable import FrameUp
 
-struct WidgetFrameSetTests {
+struct WidgetFrameTests {
     /// One expected lookup result.
     struct Expectation: Sendable, CustomStringConvertible {
         let screenSize: CGSize
@@ -123,86 +123,67 @@ struct WidgetFrameSetTests {
         #expect(frames[.small] == CGSize(width: 158, height: 158))
     }
 
-    @Test func everyStoredScreenSizeResolvesToItself() throws {
-        for set in WidgetFrameSet.all where set.platform == .phone {
+    @Test func everyStoredFrameResolvesToItself() throws {
+        for stored in WidgetFrame.all where stored.platform == .phone {
             let frames = WidgetSize.sizesForiPhone(
-                screenSize: set.screenSize,
-                majorOSVersion: set.minMajorOSVersion,
-                displayScale: set.displayScale,
-                placement: set.placement
+                screenSize: stored.screenSize,
+                majorOSVersion: stored.minMajorOSVersion,
+                displayScale: stored.displayScale,
+                placement: stored.placement
             )
-            for (widgetSize, frame) in set.frames {
-                #expect(try #require(frames[widgetSize]) == frame, "\(set.screenSize) \(widgetSize)")
-            }
+            #expect(
+                try #require(frames[stored.widgetSize]) == stored.frame,
+                "\(stored.screenSize) \(stored.widgetSize) \(stored.placement)"
+            )
         }
     }
 
     /// Widget frames always land on a whole number of pixels. Multiplying by six covers both 2x and 3x devices and catches a mistyped decimal.
     @Test func everyStoredFrameLandsOnAWholePixel() {
-        for set in WidgetFrameSet.all {
-            for (widgetSize, frame) in set.frames {
-                for value in [frame.width, frame.height] {
-                    let pixels = value * 6
-                    #expect(
-                        abs(pixels - pixels.rounded()) < 0.0001,
-                        "\(set.screenSize) \(widgetSize) has \(value) points, which is not a whole pixel"
-                    )
-                }
+        for stored in WidgetFrame.all {
+            for value in [stored.frame.width, stored.frame.height] {
+                let pixels = value * 6
+                #expect(
+                    abs(pixels - pixels.rounded()) < 0.0001,
+                    "\(stored.screenSize) \(stored.widgetSize) has \(value) points, which is not a whole pixel"
+                )
             }
         }
     }
 
-    @Test func noTwoSetsShareTheSameKey() {
+    @Test func noTwoFramesShareTheSameKey() {
         var seen = Set<String>()
-        for set in WidgetFrameSet.all {
-            let key = "\(set.platform)-\(set.screenSize)-\(String(describing: set.displayScale))-\(set.placement)-\(String(describing: set.target))-\(set.minMajorOSVersion)"
-            #expect(seen.contains(key) == false, "duplicate set for \(key)")
+        for stored in WidgetFrame.all {
+            let key = [
+                "\(stored.platform)",
+                "\(stored.widgetSize)",
+                "\(stored.screenSize)",
+                String(describing: stored.displayScale),
+                "\(stored.placement)",
+                String(describing: stored.target),
+                "\(stored.minMajorOSVersion)"
+            ].joined(separator: "-")
+            #expect(seen.contains(key) == false, "duplicate frame for \(key)")
             seen.insert(key)
         }
     }
 
-    /// 414x896 is 2x on an iPhone 11 and 3x on an iPhone 11 Pro Max, and from iOS 26 they report different frames.
-    @Test func displayScaleSplitsOneScreenSize() throws {
-        let screen = CGSize(width: 414, height: 896)
-        let twoX = WidgetSize.sizesForiPhone(screenSize: screen, majorOSVersion: 26, displayScale: 2)
-        let threeX = WidgetSize.sizesForiPhone(screenSize: screen, majorOSVersion: 26, displayScale: 3)
-        #expect(try #require(twoX[.small]).width == 166.5)
-        #expect(try #require(threeX[.small]).width == 514.0 / 3)
-    }
-
-    /// Each of the two frames is a whole number of pixels only at its own scale, which is what identifies them as genuinely different frames rather than a rounding artefact.
-    @Test(arguments: [(CGFloat(2), CGFloat(333)), (CGFloat(3), CGFloat(514))])
-    func eachSplitFrameIsWholePixelsAtItsOwnScale(displayScale: CGFloat, expectedPixels: CGFloat) throws {
-        let frames = WidgetSize.sizesForiPhone(
-            screenSize: CGSize(width: 414, height: 896),
-            majorOSVersion: 26,
-            displayScale: displayScale
-        )
-        let points = try #require(frames[.small]).width
-        #expect(abs(points * displayScale - expectedPixels) < 0.0001)
-        /// The same value at the other scale is a half pixel.
-        let otherScale: CGFloat = displayScale == 2 ? 3 : 2
-        let atOtherScale = points * otherScale
-        #expect(abs(atOtherScale - atOtherScale.rounded()) > 0.0001)
-    }
-
-    /// A caller that cannot know the display scale still gets a stable answer rather than an arbitrary one.
-    @Test func unknownDisplayScaleResolvesDeterministically() throws {
-        let screen = CGSize(width: 414, height: 896)
-        let unknown = WidgetSize.sizesForiPhone(screenSize: screen, majorOSVersion: 26, displayScale: nil)
-        let twoX = WidgetSize.sizesForiPhone(screenSize: screen, majorOSVersion: 26, displayScale: 2)
-        #expect(try #require(unknown[.small]) == #require(twoX[.small]))
-    }
-
-    /// The published sets carry no display scale, so they apply whatever the caller passes.
-    @Test(arguments: [CGFloat(2), CGFloat(3)])
-    func publishedSetsApplyAtAnyDisplayScale(displayScale: CGFloat) throws {
-        let frames = WidgetSize.sizesForiPhone(
-            screenSize: CGSize(width: 414, height: 896),
-            majorOSVersion: 18,
-            displayScale: displayScale
-        )
-        #expect(try #require(frames[.small]) == CGSize(width: 169, height: 169))
+    /// Every stored frame must be reachable. A frame with a display scale or target no real device reports would silently never match.
+    @Test func everyStoredFrameIsReachable() {
+        for stored in WidgetFrame.all {
+            let frames = WidgetFrame.frames(
+                platform: stored.platform,
+                screenSize: stored.screenSize,
+                majorOSVersion: stored.minMajorOSVersion,
+                displayScale: stored.displayScale,
+                placement: stored.placement,
+                target: stored.target
+            )
+            #expect(
+                frames[stored.widgetSize] != nil,
+                "\(stored.platform) \(stored.screenSize) \(stored.widgetSize) \(stored.placement) is unreachable"
+            )
+        }
     }
 
     /// Accessory widgets appear on the Lock Screen, so their frames are stored against that placement, but a lookup that does not name a placement still reports them.

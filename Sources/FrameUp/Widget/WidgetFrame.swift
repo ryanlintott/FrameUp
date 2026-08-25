@@ -1,0 +1,150 @@
+//
+//  WidgetFrame.swift
+//  FrameUp
+//
+//  Created by Ryan Lintott on 2026-08-25.
+//
+
+import SwiftUI
+
+/// The frame of one widget size, on one screen size, in one place, from one operating system version onward.
+///
+/// Apple publishes widget frames in [Human Interface Guidelines: widget specifications](https://developer.apple.com/design/human-interface-guidelines/widgets#Specifications), but that table has not been updated since iOS 18. It has no row for several current iPhone screen sizes, no accessory row for iPad at all, and iOS 26 changed the frames for every iPhone screen size. Frames that Apple does not publish are measured instead. See `Measurements/` in the repository for the raw data and how it was captured.
+///
+/// One frame per line means each value carries everything that qualifies it. A widget size that arrived in a later OS, or that only appears in one place, or that differs by display scale, is an ordinary row rather than a special case.
+struct WidgetFrame: Sendable {
+    /// Platform this frame applies to.
+    let platform: WidgetSize.Platform
+    /// Widget size this frame is for.
+    let widgetSize: WidgetSize
+    /// The frame in points.
+    let frame: CGSize
+    /// Screen size in points, ignoring orientation.
+    let screenSize: CGSize
+    /// Lowest major OS version this frame applies to. A later frame for the same widget size, screen size and placement supersedes it.
+    let minMajorOSVersion: Int
+    /// Number of pixels per point on the display, matching SwiftUI's `displayScale` environment value.
+    ///
+    /// Not to be confused with ``WidgetSize/scaleFactorForiPad(screenSize:)``, which is the ratio between an iPad's Home Screen frame and its larger design canvas.
+    ///
+    /// A screen size in points does not imply a scale: 414x896 is a 2x screen on an iPhone 11 and a 3x screen on an iPhone 11 Pro Max, and from iOS 26 those report different frames. Nil means this frame applies at any scale, which is the case wherever a screen size is not known to split.
+    let displayScale: CGFloat?
+    /// Where the widget appears. A widget size can have a different frame in different places on the same device.
+    let placement: WidgetPlacement
+    /// Widget frame target. Only iPad distinguishes a design canvas from the smaller Home Screen frame, so this is nil on every other platform.
+    let target: WidgetTarget?
+}
+
+extension WidgetFrame {
+    /// Major version of the operating system currently running.
+    ///
+    /// Apple aligned version numbers across platforms in 2025, so iOS 26, iPadOS 26, macOS 26 and watchOS 26 all report 26. A Mac previewing an iPhone widget therefore selects the correct frames using its own version number.
+    static var currentMajorOSVersion: Int {
+        ProcessInfo.processInfo.operatingSystemVersion.majorVersion
+    }
+
+    /// Expands one group of frames that share a screen size, placement and OS version into a row for each widget size.
+    static func group(
+        platform: WidgetSize.Platform,
+        minMajorOSVersion: Int,
+        placement: WidgetPlacement,
+        screenSize: (CGFloat, CGFloat),
+        displayScale: CGFloat?,
+        target: WidgetTarget?,
+        frames: [WidgetSize: (CGFloat, CGFloat)]
+    ) -> [WidgetFrame] {
+        frames.map { widgetSize, frame in
+            WidgetFrame(
+                platform: platform,
+                widgetSize: widgetSize,
+                frame: CGSize(width: frame.0, height: frame.1),
+                screenSize: CGSize(width: screenSize.0, height: screenSize.1),
+                minMajorOSVersion: minMajorOSVersion,
+                displayScale: displayScale,
+                placement: placement,
+                target: target
+            )
+        }
+    }
+
+    /// Converts frames measured in pixels to points.
+    ///
+    /// Widget frames always land on a whole number of pixels, which is why a frame is fractional in points exactly when the pixel count is not divisible by the display scale. Writing the measurement in pixels keeps repeating decimals such as 176.66666… exact.
+    static func framesFromPixels(displayScale: CGFloat, _ pixels: [WidgetSize: (CGFloat, CGFloat)]) -> [WidgetSize: (CGFloat, CGFloat)] {
+        pixels.mapValues { ($0.0 / displayScale, $0.1 / displayScale) }
+    }
+}
+
+extension WidgetFrame {
+    /// Frames for a device, chosen independently for each widget size.
+    ///
+    /// Each widget size resolves to the nearest screen size that has a frame for it, by width and then by height. Resolving per widget size rather than per device means a size that has only been measured on one screen still resolves everywhere, the way the system sizes already do. Height matters because some screen widths appear more than once: 375 points is both an iPhone SE and an iPhone 11 Pro, and their frames differ by 13 points.
+    ///
+    /// Among the frames at that screen size, the one that applies is chosen by placement first, so a size that appears both on the Home Screen and elsewhere reports its Home Screen frame, then by the highest OS version the supplied version satisfies, then by display scale.
+    /// - Parameters:
+    ///   - platform: Platform to look up.
+    ///   - screenSize: Screen size in points, ignoring orientation.
+    ///   - majorOSVersion: Major OS version to look up frames for.
+    ///   - displayScale: Pixels per point on the display. Only 414x896 is known to need this, where a 2x iPhone 11 and a 3x iPhone 11 Pro Max report different frames from iOS 26. Nil resolves deterministically, preferring a frame that applies at any scale and otherwise the lowest scale.
+    ///   - placement: Where the widget appears. Nil considers every placement, preferring the Home Screen where a widget size appears in more than one.
+    ///   - target: Widget frame target. Only used on iPad.
+    /// - Returns: Frames by widget size in points. Sizes with no known frame are omitted.
+    static func frames(
+        platform: WidgetSize.Platform,
+        screenSize: CGSize,
+        majorOSVersion: Int,
+        displayScale: CGFloat? = nil,
+        placement: WidgetPlacement? = nil,
+        target: WidgetTarget? = nil
+    ) -> [WidgetSize: CGSize] {
+        let candidates = all.filter { candidate in
+            guard candidate.platform == platform,
+                  candidate.target == target,
+                  candidate.minMajorOSVersion <= majorOSVersion
+            else { return false }
+            if let placement, candidate.placement != placement { return false }
+            /// A frame with no display scale applies at every scale. One with a scale only applies when the caller knows the scale and it matches.
+            guard let frameScale = candidate.displayScale, let displayScale else { return true }
+            return frameScale == displayScale
+        }
+
+        return Dictionary(grouping: candidates, by: \.widgetSize)
+            .compactMapValues { $0.min { a, b in a.isBetterThan(b, for: screenSize, displayScale: displayScale) }?.frame }
+    }
+
+    /// Ordering used to pick one frame from several that could apply.
+    private func isBetterThan(_ other: WidgetFrame, for screenSize: CGSize, displayScale: CGFloat?) -> Bool {
+        let widthDelta = (abs(self.screenSize.width - screenSize.width), abs(other.screenSize.width - screenSize.width))
+        if widthDelta.0 != widthDelta.1 { return widthDelta.0 < widthDelta.1 }
+
+        let heightDelta = (abs(self.screenSize.height - screenSize.height), abs(other.screenSize.height - screenSize.height))
+        if heightDelta.0 != heightDelta.1 { return heightDelta.0 < heightDelta.1 }
+
+        /// Placement outranks OS version so a Home Screen frame is not replaced by a newer frame from somewhere else.
+        if placement != other.placement { return placement.priority < other.placement.priority }
+
+        if minMajorOSVersion != other.minMajorOSVersion { return minMajorOSVersion > other.minMajorOSVersion }
+
+        let scaleRank = (self.scaleRank(for: displayScale), other.scaleRank(for: displayScale))
+        if scaleRank.0 != scaleRank.1 { return scaleRank.0 < scaleRank.1 }
+
+        /// Final tie break so the result never depends on the order of `all`.
+        return self.screenSize.width > other.screenSize.width
+    }
+
+    /// Lower is preferred. An exact scale match beats a frame that applies at any scale, which beats a lower scale.
+    private func scaleRank(for displayScale: CGFloat?) -> CGFloat {
+        if let displayScale, self.displayScale == displayScale { return -2 }
+        guard let frameScale = self.displayScale else { return -1 }
+        return frameScale
+    }
+}
+
+extension WidgetPlacement {
+    /// Lower is preferred when a widget size has a frame in more than one place.
+    var priority: Int {
+        let order = Self.defaultResolutionOrder
+        guard let index = order.firstIndex(of: self) else { return order.count }
+        return order.count - 1 - index
+    }
+}
