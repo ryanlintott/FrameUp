@@ -31,23 +31,23 @@ struct WidgetFrameSet: Sendable {
     let target: WidgetTarget?
     /// Frames by widget size. Sizes with no known frame are omitted rather than guessed.
     let frames: [WidgetSize: CGSize]
-
+    
     init(
         platform: WidgetSize.Platform,
-        screenSize: CGSize,
         minMajorOSVersion: Int,
-        displayScale: CGFloat? = nil,
-        placement: WidgetPlacement = .homeScreen,
-        target: WidgetTarget? = nil,
-        frames: [WidgetSize: CGSize]
+        placement: WidgetPlacement,
+        screenSize: (CGFloat, CGFloat),
+        displayScale: CGFloat?,
+        target: WidgetTarget?,
+        frames: [WidgetSize: (CGFloat, CGFloat)]
     ) {
         self.platform = platform
-        self.screenSize = screenSize
+        self.screenSize = .init(width: screenSize.0, height: screenSize.1)
         self.displayScale = displayScale
         self.placement = placement
         self.minMajorOSVersion = minMajorOSVersion
         self.target = target
-        self.frames = frames
+        self.frames = frames.mapValues { CGSize(width: $0.0, height: $0.1) }
     }
 }
 
@@ -61,14 +61,11 @@ extension WidgetFrameSet {
 
     /// Builds frames from pixel measurements.
     ///
-    /// Widget frames always land on a whole number of pixels, which is why a frame is fractional in points exactly when the pixel count is not divisible by the display scale. Writing the measurement in pixels keeps repeating decimals such as 176.66666… exact. The frames themselves are stored in points.
-    static func framesFromPixels(displayScale: CGFloat, _ pixels: [WidgetSize: (CGFloat, CGFloat)]) -> [WidgetSize: CGSize] {
-        pixels.mapValues { CGSize(width: $0.0 / displayScale, height: $0.1 / displayScale) }
-    }
-
-    /// Builds frames from point values.
-    static func framesFromPoints(_ points: [WidgetSize: (CGFloat, CGFloat)]) -> [WidgetSize: CGSize] {
-        points.mapValues { CGSize(width: $0.0, height: $0.1) }
+    /// Converts frames measured in pixels to the points the initializer expects.
+    ///
+    /// Widget frames always land on a whole number of pixels, which is why a frame is fractional in points exactly when the pixel count is not divisible by the display scale. Writing the measurement in pixels keeps repeating decimals such as 176.66666… exact.
+    static func framesFromPixels(displayScale: CGFloat, _ pixels: [WidgetSize: (CGFloat, CGFloat)]) -> [WidgetSize: (CGFloat, CGFloat)] {
+        pixels.mapValues { ($0.0 / displayScale, $0.1 / displayScale) }
     }
 }
 

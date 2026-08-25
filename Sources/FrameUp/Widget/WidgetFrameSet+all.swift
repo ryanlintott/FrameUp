@@ -35,6 +35,30 @@ extension WidgetFrameSet {
         iPhoneiOS15(screenSize: (320, 568), small: (141, 141), medium: (292, 141), large: (292, 311))
     ]
 
+    private static func iPhoneiOS15(
+        screenSize: (CGFloat, CGFloat),
+        small: (CGFloat, CGFloat),
+        medium: (CGFloat, CGFloat),
+        large: (CGFloat, CGFloat)
+    ) -> WidgetFrameSet {
+        WidgetFrameSet(
+            platform: .phone,
+            /// FrameUp supports iOS 15 and later, so the published values are treated as applying from there.
+            minMajorOSVersion: 15,
+            placement: .homeScreen,
+            screenSize: screenSize,
+            /// Apple published one value per screen size, and each is a whole pixel at both 2x and 3x, so there is no evidence these split by scale.
+            displayScale: nil,
+            /// Only iPad has a design canvas separate from its Home Screen frame.
+            target: nil,
+            frames: [
+                .small: small,
+                .medium: medium,
+                .large: large
+            ]
+        )
+    }
+
     /// iPhone accessory frames for iOS 18 and earlier, as published by Apple.
     ///
     /// These are the accessory columns of the same published table, separated because accessory widgets appear on the Lock Screen rather than the Home Screen. Accessory widgets arrived in iOS 16, so these apply from there rather than from 15.
@@ -52,6 +76,28 @@ extension WidgetFrameSet {
         iPhoneiOS15Lock(screenSize: (360, 780), circular: (72, 72), rectangular: (157, 72), inline: (225, 26)),
         iPhoneiOS15Lock(screenSize: (320, 568), circular: (72, 72), rectangular: (157, 72), inline: (225, 26))
     ]
+
+    /// The accessory frames from the same published row, recorded against the Lock Screen where they actually appear.
+    private static func iPhoneiOS15Lock(
+        screenSize: (CGFloat, CGFloat),
+        circular: (CGFloat, CGFloat),
+        rectangular: (CGFloat, CGFloat),
+        inline: (CGFloat, CGFloat)
+    ) -> WidgetFrameSet {
+        WidgetFrameSet(
+            platform: .phone,
+            minMajorOSVersion: 16,
+            placement: .lockScreen,
+            screenSize: screenSize,
+            displayScale: nil,
+            target: nil,
+            frames: [
+                .accessoryCircular: circular,
+                .accessoryRectangular: rectangular,
+                .accessoryInline: inline
+            ]
+        )
+    }
 
     /// iPhone frames for iOS 26 and later, measured rather than published.
     ///
@@ -83,25 +129,72 @@ extension WidgetFrameSet {
         iPhoneiOS26(screenSize: (375, 667), displayScale: 2, small: (292, 292), medium: (638, 292), large: (638, 636))
     ]
 
+    private static func iPhoneiOS26(
+        screenSize: (CGFloat, CGFloat),
+        displayScale: CGFloat,
+        small: (CGFloat, CGFloat),
+        medium: (CGFloat, CGFloat),
+        large: (CGFloat, CGFloat)
+    ) -> WidgetFrameSet {
+        WidgetFrameSet(
+            platform: .phone,
+            minMajorOSVersion: 26,
+            placement: .homeScreen,
+            screenSize: screenSize,
+            displayScale: displayScale,
+            target: nil,
+            frames: framesFromPixels(displayScale: displayScale, [
+                .small: small,
+                .medium: medium,
+                .large: large
+            ])
+        )
+    }
+
     /// iPad frames, as published by Apple.
     ///
     /// Each screen size contributes two sets, one for the design canvas the content is laid out in and one for the smaller Home Screen frame the canvas is scaled into. The 820x1180 canvas values are confirmed by measurement on iPadOS 18.6, 26.5 and 27.0, and its Home Screen value of 136 points is confirmed by measuring a placed widget on screen. iPad frames did not change in iOS 26, so unlike iPhone these apply from iOS 15 with no later set.
     ///
     /// > Note: `extraLargePortrait` is supported on iPad from iOS 27 but has no frame here yet, so it is omitted.
     private static let iPad: [WidgetFrameSet] = [
-        iPadRow((1192, 1590), canvas: ((188, 188), (412, 188), (412, 412), (860, 412)), homeScreen: ((188, 188), (412, 188), (412, 412), (860, 412))),
-        iPadRow((1024, 1366), canvas: ((170, 170), (378.5, 170), (378.5, 378.5), (795, 378.5)), homeScreen: ((160, 160), (356, 160), (356, 356), (748, 356))),
-        iPadRow((970, 1389), canvas: ((162, 162), (350, 162), (350, 350), (726, 350)), homeScreen: ((162, 162), (350, 162), (350, 350), (726, 350))),
-        iPadRow((954, 1373), canvas: ((162, 162), (350, 162), (350, 350), (726, 350)), homeScreen: ((162, 162), (350, 162), (350, 350), (726, 350))),
-        iPadRow((834, 1194), canvas: ((155, 155), (342, 155), (342, 342), (715.5, 342)), homeScreen: ((136, 136), (300, 136), (300, 300), (628, 300))),
-        iPadRow((834, 1112), canvas: ((150, 150), (327.5, 150), (327.5, 327.5), (682, 327.5)), homeScreen: ((132, 132), (288, 132), (288, 288), (600, 288))),
+        iPadFrameSet(screenSize: (1192, 1590), canvas: ((188, 188), (412, 188), (412, 412), (860, 412)), homeScreen: ((188, 188), (412, 188), (412, 412), (860, 412))),
+        iPadFrameSet(screenSize: (1024, 1366), canvas: ((170, 170), (378.5, 170), (378.5, 378.5), (795, 378.5)), homeScreen: ((160, 160), (356, 160), (356, 356), (748, 356))),
+        iPadFrameSet(screenSize: (970, 1389), canvas: ((162, 162), (350, 162), (350, 350), (726, 350)), homeScreen: ((162, 162), (350, 162), (350, 350), (726, 350))),
+        iPadFrameSet(screenSize: (954, 1373), canvas: ((162, 162), (350, 162), (350, 350), (726, 350)), homeScreen: ((162, 162), (350, 162), (350, 350), (726, 350))),
+        iPadFrameSet(screenSize: (834, 1194), canvas: ((155, 155), (342, 155), (342, 342), (715.5, 342)), homeScreen: ((136, 136), (300, 136), (300, 300), (628, 300))),
+        iPadFrameSet(screenSize: (834, 1112), canvas: ((150, 150), (327.5, 150), (327.5, 327.5), (682, 327.5)), homeScreen: ((132, 132), (288, 132), (288, 288), (600, 288))),
         // Canvas values confirmed on iPad Air 11-inch M2 (iPad14,9) on iPadOS 18.6 and 26.5, and iPad A16 (iPad15,7) on 27.0. The 136 point Home Screen frame confirmed by measuring a placed widget at 272 pixels.
-        iPadRow((820, 1180), canvas: ((155, 155), (342, 155), (342, 342), (715.5, 342)), homeScreen: ((136, 136), (300, 136), (300, 300), (628, 300))),
-        iPadRow((810, 1080), canvas: ((146, 146), (320.5, 146), (320.5, 320.5), (669, 320.5)), homeScreen: ((124, 124), (272, 124), (272, 272), (568, 272))),
-        iPadRow((768, 1024), canvas: ((141, 141), (305.5, 141), (305.5, 305.5), (634.5, 305.5)), homeScreen: ((120, 120), (260, 120), (260, 260), (540, 260))),
+        iPadFrameSet(screenSize: (820, 1180), canvas: ((155, 155), (342, 155), (342, 342), (715.5, 342)), homeScreen: ((136, 136), (300, 136), (300, 300), (628, 300))),
+        iPadFrameSet(screenSize: (810, 1080), canvas: ((146, 146), (320.5, 146), (320.5, 320.5), (669, 320.5)), homeScreen: ((124, 124), (272, 124), (272, 272), (568, 272))),
+        iPadFrameSet(screenSize: (768, 1024), canvas: ((141, 141), (305.5, 141), (305.5, 305.5), (634.5, 305.5)), homeScreen: ((120, 120), (260, 120), (260, 260), (540, 260))),
         // Published by Apple with the same values as 768x1024. The switch this table replaced had no row for it and reached the same values through its default arm.
-        iPadRow((744, 1133), canvas: ((141, 141), (305.5, 141), (305.5, 305.5), (634.5, 305.5)), homeScreen: ((120, 120), (260, 120), (260, 260), (540, 260)))
+        iPadFrameSet(screenSize: (744, 1133), canvas: ((141, 141), (305.5, 141), (305.5, 305.5), (634.5, 305.5)), homeScreen: ((120, 120), (260, 120), (260, 260), (540, 260)))
     ].flatMap { $0 }
+
+    /// Builds the design canvas and Home Screen sets for one iPad screen size.
+    private static func iPadFrameSet(
+        screenSize: (CGFloat, CGFloat),
+        canvas: ((CGFloat, CGFloat), (CGFloat, CGFloat), (CGFloat, CGFloat), (CGFloat, CGFloat)),
+        homeScreen: ((CGFloat, CGFloat), (CGFloat, CGFloat), (CGFloat, CGFloat), (CGFloat, CGFloat))
+    ) -> [WidgetFrameSet] {
+        [(WidgetTarget.designCanvas, canvas), (.homeScreen, homeScreen)].map { target, sizes in
+            WidgetFrameSet(
+                platform: .pad,
+                minMajorOSVersion: 15,
+                placement: .homeScreen,
+                screenSize: screenSize,
+                displayScale: nil,
+                target: target,
+                frames: [
+                    .small: sizes.0,
+                    .medium: sizes.1,
+                    .large: sizes.2,
+                    .extraLarge: sizes.3
+                ]
+            )
+        }
+    }
+
 
     /// iPad Lock Screen frames, measured rather than published. Apple's table has no accessory row for iPad at all.
     ///
@@ -112,99 +205,17 @@ extension WidgetFrameSet {
         // Measured on iPad Air 11-inch M2 (iPad14,9), iPadOS 18.6 and 26.5
         WidgetFrameSet(
             platform: .pad,
-            screenSize: CGSize(width: 820, height: 1180),
             minMajorOSVersion: 18,
             placement: .lockScreen,
+            screenSize: (820, 1180),
+            displayScale: nil,
             target: .designCanvas,
-            frames: framesFromPoints([
+            frames: [
                 .small: (152, 152),
                 .accessoryCircular: (63, 63),
                 .accessoryRectangular: (152, 63),
                 .accessoryInline: (372, 36)
-            ])
+            ]
         )
     ]
-
-    /// Builds the design canvas and Home Screen sets for one iPad screen size.
-    private static func iPadRow(
-        _ screenSize: (CGFloat, CGFloat),
-        canvas: ((CGFloat, CGFloat), (CGFloat, CGFloat), (CGFloat, CGFloat), (CGFloat, CGFloat)),
-        homeScreen: ((CGFloat, CGFloat), (CGFloat, CGFloat), (CGFloat, CGFloat), (CGFloat, CGFloat))
-    ) -> [WidgetFrameSet] {
-        [(WidgetTarget.designCanvas, canvas), (.homeScreen, homeScreen)].map { target, sizes in
-            WidgetFrameSet(
-                platform: .pad,
-                screenSize: CGSize(width: screenSize.0, height: screenSize.1),
-                minMajorOSVersion: 15,
-                placement: .homeScreen,
-                target: target,
-                frames: framesFromPoints([
-                    .small: sizes.0,
-                    .medium: sizes.1,
-                    .large: sizes.2,
-                    .extraLarge: sizes.3
-                ])
-            )
-        }
-    }
-
-    private static func iPhoneiOS15(
-        screenSize: (CGFloat, CGFloat),
-        small: (CGFloat, CGFloat),
-        medium: (CGFloat, CGFloat),
-        large: (CGFloat, CGFloat)
-    ) -> WidgetFrameSet {
-        WidgetFrameSet(
-            platform: .phone,
-            screenSize: CGSize(width: screenSize.0, height: screenSize.1),
-            /// FrameUp supports iOS 15 and later, so the published values are treated as applying from there.
-            minMajorOSVersion: 15,
-            placement: .homeScreen,
-            frames: framesFromPoints([
-                .small: small,
-                .medium: medium,
-                .large: large
-            ])
-        )
-    }
-
-    /// The accessory frames from the same published row, recorded against the Lock Screen where they actually appear.
-    private static func iPhoneiOS15Lock(
-        screenSize: (CGFloat, CGFloat),
-        circular: (CGFloat, CGFloat),
-        rectangular: (CGFloat, CGFloat),
-        inline: (CGFloat, CGFloat)
-    ) -> WidgetFrameSet {
-        WidgetFrameSet(
-            platform: .phone,
-            screenSize: CGSize(width: screenSize.0, height: screenSize.1),
-            minMajorOSVersion: 16,
-            placement: .lockScreen,
-            frames: framesFromPoints([
-                .accessoryCircular: circular,
-                .accessoryRectangular: rectangular,
-                .accessoryInline: inline
-            ])
-        )
-    }
-
-    private static func iPhoneiOS26(
-        screenSize: (CGFloat, CGFloat),
-        displayScale: CGFloat,
-        small: (CGFloat, CGFloat),
-        medium: (CGFloat, CGFloat),
-        large: (CGFloat, CGFloat)
-    ) -> WidgetFrameSet {
-        WidgetFrameSet(
-            platform: .phone,
-            screenSize: CGSize(width: screenSize.0, height: screenSize.1),
-            minMajorOSVersion: 26,
-            displayScale: displayScale,
-            frames: framesFromPixels(displayScale: displayScale, [
-                .small: small,
-                .medium: medium,
-                .large: large
-            ])
-        )
-    }
 }
