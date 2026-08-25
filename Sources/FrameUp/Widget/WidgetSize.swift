@@ -78,15 +78,18 @@ public extension WidgetSize {
     /// > Note: `extraLargePortrait` is supported on iPhone from iOS 27 but has no frame here yet, so it is omitted from the dictionary. The accessory sizes have not been measured on iOS 26 yet, so those frames are the published iOS 18 values and may be out of date.
     /// - Parameter screenSize: iPhone screen size ignoring orientation.
     /// - Parameter majorOSVersion: Major iOS version to look up frames for. Nil uses the version currently running.
+    /// - Parameter displayScale: Pixels per point on the display, matching SwiftUI's `displayScale` environment value. Only needed for a 414x896 screen, which is 2x on an iPhone 11 and 3x on an iPhone 11 Pro Max and from iOS 26 gives different frames for each. Nil still returns a stable answer, preferring the 2x frames for that screen size.
     /// - Returns: A dictionary of sizes based on widget size. Sizes with no known frame are omitted.
     static func sizesForiPhone(
         screenSize: CGSize,
-        majorOSVersion: Int? = nil
+        majorOSVersion: Int? = nil,
+        displayScale: CGFloat? = nil
     ) -> [WidgetSize: CGSize] {
         WidgetFrameSet.frames(
             platform: .phone,
             screenSize: screenSize,
-            majorOSVersion: majorOSVersion ?? WidgetFrameSet.currentMajorOSVersion
+            majorOSVersion: majorOSVersion ?? WidgetFrameSet.currentMajorOSVersion,
+            displayScale: displayScale
         )
     }
 
@@ -239,9 +242,14 @@ public extension WidgetSize {
     /// - Returns: Size for this widget. Nil if no frame is known, either because the platform does not support this widget size or because the frame has not been added to FrameUp yet.
     func sizeForiPhone(
         screenSize: CGSize,
-        majorOSVersion: Int? = nil
+        majorOSVersion: Int? = nil,
+        displayScale: CGFloat? = nil
     ) -> CGSize? {
-        Self.sizesForiPhone(screenSize: screenSize, majorOSVersion: majorOSVersion)[self]
+        Self.sizesForiPhone(
+            screenSize: screenSize,
+            majorOSVersion: majorOSVersion,
+            displayScale: displayScale
+        )[self]
     }
     
     /// Size for this widget on an iPad with the specified screen size.

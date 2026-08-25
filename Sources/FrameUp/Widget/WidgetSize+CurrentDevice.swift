@@ -113,6 +113,13 @@ public extension WidgetSize {
     /// The current device.
     @MainActor
     private static let currentDevice = UIDevice.current.userInterfaceIdiom
+
+    /// Pixels per point on the current display.
+    ///
+    /// Needed because a 414x896 screen is 2x on an iPhone 11 and 3x on an iPhone 11 Pro Max, and from iOS 26 those report different widget frames.
+    @available(iOS, deprecated: 26)
+    @MainActor
+    private static let currentDisplayScale = UIScreen.main.scale
     
     /// Find the supported sizes for a specified device
     /// - Parameter device: iPhone or iPad
@@ -150,7 +157,7 @@ public extension WidgetSize {
     func sizeForCurrentDevice(iPadTarget: WidgetTarget) -> CGSize? {
         switch Platform.current {
         case .phone:
-            sizeForiPhone(screenSize: Self.currentScreenSize)
+            sizeForiPhone(screenSize: Self.currentScreenSize, displayScale: Self.currentDisplayScale)
         case .pad:
             sizeForiPad(screenSize: Self.currentScreenSize, target: iPadTarget)
         case .macCatalyst:

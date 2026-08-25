@@ -14,20 +14,23 @@ struct WidgetFrameSetTests {
     struct Expectation: Sendable, CustomStringConvertible {
         let screenSize: CGSize
         let majorOSVersion: Int
+        let displayScale: CGFloat?
         let small: CGSize
         let medium: CGSize
         let large: CGSize
 
-        init(_ width: CGFloat, _ height: CGFloat, os majorOSVersion: Int, small: CGSize, medium: CGSize, large: CGSize) {
+        init(_ width: CGFloat, _ height: CGFloat, os majorOSVersion: Int, displayScale: CGFloat? = nil, small: CGSize, medium: CGSize, large: CGSize) {
             self.screenSize = CGSize(width: width, height: height)
             self.majorOSVersion = majorOSVersion
+            self.displayScale = displayScale
             self.small = small
             self.medium = medium
             self.large = large
         }
 
         var description: String {
-            "\(Int(screenSize.width))x\(Int(screenSize.height)) on iOS \(majorOSVersion)"
+            let scale = displayScale.map { " @\(Int($0))x" } ?? ""
+            return "\(Int(screenSize.width))x\(Int(screenSize.height))\(scale) on iOS \(majorOSVersion)"
         }
     }
 
@@ -55,7 +58,8 @@ struct WidgetFrameSetTests {
         .init(430, 932, os: 26, small: size(524/3, 524/3), medium: size(1116/3, 524/3), large: size(1116/3, 1164/3)),
         .init(428, 926, os: 26, small: size(523/3, 523/3), medium: size(1115/3, 523/3), large: size(1115/3, 1161/3)),
         .init(420, 912, os: 26, small: size(518/3, 518/3), medium: size(1100/3, 518/3), large: size(1100/3, 1146/3)),
-        .init(414, 896, os: 26, small: size(333/2, 333/2), medium: size(712/2, 333/2), large: size(712/2, 743/2)),
+        .init(414, 896, os: 26, displayScale: 2, small: size(333/2, 333/2), medium: size(712/2, 333/2), large: size(712/2, 743/2)),
+        .init(414, 896, os: 26, displayScale: 3, small: size(514/3, 514/3), medium: size(1088/3, 514/3), large: size(1088/3, 1134/3)),
         .init(402, 874, os: 26, small: size(493/3, 493/3), medium: size(1049/3, 493/3), large: size(1049/3, 1095/3)),
         .init(393, 852, os: 26, small: size(488/3, 488/3), medium: size(1034/3, 488/3), large: size(1034/3, 1080/3)),
         .init(390, 844, os: 26, small: size(486/3, 486/3), medium: size(1026/3, 486/3), large: size(1026/3, 1074/3)),
@@ -67,7 +71,8 @@ struct WidgetFrameSetTests {
     func systemFramesMatchTheTable(expectation: Expectation) throws {
         let frames = WidgetSize.sizesForiPhone(
             screenSize: expectation.screenSize,
-            majorOSVersion: expectation.majorOSVersion
+            majorOSVersion: expectation.majorOSVersion,
+            displayScale: expectation.displayScale
         )
         #expect(try #require(frames[.small]) == expectation.small)
         #expect(try #require(frames[.medium]) == expectation.medium)
@@ -122,7 +127,8 @@ struct WidgetFrameSetTests {
         for set in WidgetFrameSet.all where set.platform == .phone {
             let frames = WidgetSize.sizesForiPhone(
                 screenSize: set.screenSize,
-                majorOSVersion: set.minMajorOSVersion
+                majorOSVersion: set.minMajorOSVersion,
+                displayScale: set.displayScale
             )
             for (widgetSize, frame) in set.frames {
                 #expect(try #require(frames[widgetSize]) == frame, "\(set.screenSize) \(widgetSize)")
@@ -148,9 +154,53 @@ struct WidgetFrameSetTests {
     @Test func noTwoSetsShareTheSameKey() {
         var seen = Set<String>()
         for set in WidgetFrameSet.all {
-            let key = "\(set.platform)-\(set.screenSize)-\(String(describing: set.target))-\(set.minMajorOSVersion)"
+            let key = "\(set.platform)-\(set.screenSize)-\(String(describing: set.displayScale))-\(String(describing: set.target))-\(set.minMajorOSVersion)"
             #expect(seen.contains(key) == false, "duplicate set for \(key)")
             seen.insert(key)
         }
+    }
+
+    /// 414x896 is 2x on an iPhone 11 and 3x on an iPhone 11 Pro Max, and from iOS 26 they report different frames.
+    @Test func displayScaleSplitsOneScreenSize() throws {
+        let screen = CGSize(width: 414, height: 896)
+        let twoX = WidgetSize.sizesForiPhone(screenSize: screen, majorOSVersion: 26, displayScale: 2)
+        let threeX = WidgetSize.sizesForiPhone(screenSize: screen, majorOSVersion: 26, displayScale: 3)
+        #expect(try #require(twoX[.small]).width == 166.5)
+        #expect(try #require(threeX[.small]).width == 514.0 / 3)
+    }
+
+    /// Each of the two frames is a whole number of pixels only at its own scale, which is what identifies them as genuinely different frames rather than a rounding artefact.
+    @Test(arguments: [(CGFloat(2), CGFloat(333)), (CGFloat(3), CGFloat(514))])
+    func eachSplitFrameIsWholePixelsAtItsOwnScale(displayScale: CGFloat, expectedPixels: CGFloat) throws {
+        let frames = WidgetSize.sizesForiPhone(
+            screenSize: CGSize(width: 414, height: 896),
+            majorOSVersion: 26,
+            displayScale: displayScale
+        )
+        let points = try #require(frames[.small]).width
+        #expect(abs(points * displayScale - expectedPixels) < 0.0001)
+        /// The same value at the other scale is a half pixel.
+        let otherScale: CGFloat = displayScale == 2 ? 3 : 2
+        let atOtherScale = points * otherScale
+        #expect(abs(atOtherScale - atOtherScale.rounded()) > 0.0001)
+    }
+
+    /// A caller that cannot know the display scale still gets a stable answer rather than an arbitrary one.
+    @Test func unknownDisplayScaleResolvesDeterministically() throws {
+        let screen = CGSize(width: 414, height: 896)
+        let unknown = WidgetSize.sizesForiPhone(screenSize: screen, majorOSVersion: 26, displayScale: nil)
+        let twoX = WidgetSize.sizesForiPhone(screenSize: screen, majorOSVersion: 26, displayScale: 2)
+        #expect(try #require(unknown[.small]) == #require(twoX[.small]))
+    }
+
+    /// The published sets carry no display scale, so they apply whatever the caller passes.
+    @Test(arguments: [CGFloat(2), CGFloat(3)])
+    func publishedSetsApplyAtAnyDisplayScale(displayScale: CGFloat) throws {
+        let frames = WidgetSize.sizesForiPhone(
+            screenSize: CGSize(width: 414, height: 896),
+            majorOSVersion: 18,
+            displayScale: displayScale
+        )
+        #expect(try #require(frames[.small]) == CGSize(width: 169, height: 169))
     }
 }
