@@ -27,7 +27,7 @@ import SwiftUI
 /// | macOS, Mac Catalyst, CarPlay | every size |
 ///
 /// ``minimumSize`` and ``maximumSize`` always return a value for every case, so they are a useful fallback when no device frame is known.
-public enum WidgetSize: String, Identifiable, CaseIterable {
+public enum WidgetSize: String, Identifiable, CaseIterable, Sendable {
     case small
     case medium
     case large
@@ -46,7 +46,7 @@ extension WidgetSize {
     /// All Apple platforms that support widgets.
     ///
     /// Supporting a widget size does not mean FrameUp has a frame for it. See ``WidgetSize`` for the sizes that are supported but not yet measured.
-    public enum Platform {
+    public enum Platform: Sendable {
         case phone
         case pad
         case mac
@@ -62,7 +62,7 @@ extension WidgetSize {
 /// iPad widget frame target.
 ///
 /// iPad widgets have a design canvas frame used for laying out the content, and a smaller Home Screen frame that the content is scaled to fit. This parameter can be used to specify which size you want.
-public enum WidgetTarget {
+public enum WidgetTarget: Sendable {
     case designCanvas, homeScreen
 }
 
@@ -71,35 +71,23 @@ public extension WidgetSize {
     
     /// Widget sizes for iPhone
     ///
-    /// All sizes are sourced from [Apple Human Interface Guidelines: widget specifications](https://developer.apple.com/design/human-interface-guidelines/widgets#Specifications)
+    /// Frames for iOS 25 and earlier are sourced from [Apple Human Interface Guidelines: widget specifications](https://developer.apple.com/design/human-interface-guidelines/widgets#Specifications). iOS 26 changed the frame of every iPhone widget, and Apple has not updated that table, so frames for iOS 26 and later are measured instead. See ``WidgetFrameSet`` and `Measurements/` in the repository.
     ///
-    /// > Note: `extraLargePortrait` is supported on iPhone from iOS 27 but has no frame here yet, so it is omitted from the dictionary.
+    /// A screen size with no exact entry resolves to the nearest known screen size by width, then by height. Screen sizes that Apple never published a row for, such as the 402 and 440 point wide iPhones, are included.
+    ///
+    /// > Note: `extraLargePortrait` is supported on iPhone from iOS 27 but has no frame here yet, so it is omitted from the dictionary. The accessory sizes have not been measured on iOS 26 yet, so those frames are the published iOS 18 values and may be out of date.
     /// - Parameter screenSize: iPhone screen size ignoring orientation.
+    /// - Parameter majorOSVersion: Major iOS version to look up frames for. Nil uses the version currently running.
     /// - Returns: A dictionary of sizes based on widget size. Sizes with no known frame are omitted.
-    static func sizesForiPhone(screenSize: CGSize) -> [WidgetSize: CGSize] {
-        let widgetSizes: (Size, Size, Size, Size, Size, Size)
-        
-        switch (screenSize.width, screenSize.height) {
-        case (430..., _): widgetSizes = ((170, 170), (364, 170), (364, 382), (76, 76), (172, 76), (257, 26))
-        case (428..., _): widgetSizes = ((170, 170), (364, 170), (364, 382), (76, 76), (172, 76), (257, 26))
-        case (414..., 896...): widgetSizes = ((169, 169), (360, 169), (360, 379), (76, 76), (160, 72), (248, 26))
-        case (414..., _): widgetSizes = ((159, 159), (348, 157), (348, 357), (76, 76), (170, 76), (248, 26))
-        case (393..., _): widgetSizes = ((158, 158), (338, 158), (338, 354), (72, 72), (160, 72), (234, 26))
-        case (390..., _): widgetSizes = ((158, 158), (338, 158), (338, 354), (72, 72), (160, 72), (234, 26))
-        case (375..., 812...): widgetSizes = ((155, 155), (329, 155), (329, 345), (72, 72), (157, 72), (225, 26))
-        case (375..., _): widgetSizes = ((148, 148), (321, 148), (321, 324), (68, 68), (153, 68), (225, 26))
-        case (360..., _): widgetSizes = ((155, 155), (329, 155), (329, 345), (72, 72), (157, 72), (225, 26))
-        default: widgetSizes = ((141, 141), (292, 141), (292, 311), (72, 72), (157, 72), (225, 26))
-        }
-        
-        return [
-            .small: CGSize(width: widgetSizes.0.0, height: widgetSizes.0.1),
-            .medium: CGSize(width: widgetSizes.1.0, height: widgetSizes.1.1),
-            .large: CGSize(width: widgetSizes.2.0, height: widgetSizes.2.1),
-            .accessoryCircular: CGSize(width: widgetSizes.3.0, height: widgetSizes.3.1),
-            .accessoryRectangular: CGSize(width: widgetSizes.4.0, height: widgetSizes.4.1),
-            .accessoryInline: CGSize(width: widgetSizes.5.0, height: widgetSizes.5.1)
-        ]
+    static func sizesForiPhone(
+        screenSize: CGSize,
+        majorOSVersion: Int? = nil
+    ) -> [WidgetSize: CGSize] {
+        WidgetFrameSet.frames(
+            platform: .phone,
+            screenSize: screenSize,
+            majorOSVersion: majorOSVersion ?? WidgetFrameSet.currentMajorOSVersion
+        )
     }
 
     /// Widget sizes for iPad
@@ -249,8 +237,11 @@ public extension WidgetSize {
     /// > Note: `extraLargePortrait` is supported on iPhone from iOS 27 but has no frame here yet, so it returns nil.
     /// - Parameter screenSize: iPhone screen size ignoring orientation.
     /// - Returns: Size for this widget. Nil if no frame is known, either because the platform does not support this widget size or because the frame has not been added to FrameUp yet.
-    func sizeForiPhone(screenSize: CGSize) -> CGSize? {
-        Self.sizesForiPhone(screenSize: screenSize)[self]
+    func sizeForiPhone(
+        screenSize: CGSize,
+        majorOSVersion: Int? = nil
+    ) -> CGSize? {
+        Self.sizesForiPhone(screenSize: screenSize, majorOSVersion: majorOSVersion)[self]
     }
     
     /// Size for this widget on an iPad with the specified screen size.
