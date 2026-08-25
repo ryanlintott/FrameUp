@@ -104,6 +104,25 @@ Apple publishes no row for this family on any platform. Every iPhone screen size
 
 On every device the width is identical to `systemMedium` and `systemLarge`, so this is the same column made taller rather than a differently proportioned frame.
 
+### iPad extraLargePortrait, iPadOS 27
+
+Design canvas frames. Apple publishes no row for this family on any platform.
+
+| Screen | Frame | Pixels |
+| --- | --- | --- |
+| 1032×1376 | 378.5×586.5 | 757×1173 |
+| 1024×1366 | 378.5×586.5 | 757×1173 |
+| 834×1194 | 342×529 | 684×1058 |
+| 820×1180 | 342×529 | 684×1058 |
+| 810×1080 | 320.5×494.5 | 641×989 |
+| 744×1133 | 305.5×470 | 611×940 |
+
+The width is identical to `systemMedium` and `systemLarge` on every iPad, the same rule that holds on iPhone.
+
+`834×1112` and `768×1024` have no entry because iPadOS 27 does not run on any iPad reporting those screen sizes. The Home Screen frame is not measured for any of these, and it cannot be derived from the scale factor of the other sizes because that gives a value which is not a whole number of pixels.
+
+This run also confirmed the published `systemExtraLarge` frames on iPadOS 27, which previously had only been checked on 26.5 and 18.6.
+
 ### iPad Lock Screen, iPadOS 18 and later
 
 Apple's table has no accessory row for iPad. Every value here is measured, all on iPadOS 26.5 except 820×1180 which is also confirmed on 18.6. All are design canvas values at 2x.

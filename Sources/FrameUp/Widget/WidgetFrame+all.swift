@@ -11,7 +11,7 @@ extension WidgetFrame {
     /// Every known set of widget frames.
     ///
     /// iPhone sets from iOS 26 onward were measured with the `WidgetSizeProbe` widget in the example app. Everything else is sourced from [Apple Human Interface Guidelines: widget specifications](https://developer.apple.com/design/human-interface-guidelines/widgets#Specifications), which describes iOS 18 and earlier. Spot checks on iOS 18.6 confirmed the published iPhone values, including the 402 and 440 point wide screens that Apple never published a row for.
-    static let all: [WidgetFrame] = iPhoneiOS15 + iPhoneiOS15LockScreen + iPhoneiOS26 + iPhoneiOS26LockScreen + iPhoneiOS27Portrait + iPad + iPadLockScreen + visionOS + watch
+    static let all: [WidgetFrame] = iPhoneiOS15 + iPhoneiOS15LockScreen + iPhoneiOS26 + iPhoneiOS26LockScreen + iPhoneiOS27Portrait + iPad + iPadPortrait + iPadLockScreen + visionOS + watch
 
     /// iPhone frames for iOS 18 and earlier, as published by Apple.
     ///
@@ -373,6 +373,43 @@ extension WidgetFrame {
         }
     }
 
+
+    /// iPad `extraLargePortrait` frames, measured rather than published. Apple publishes no row for this family on any platform.
+    ///
+    /// On every iPad the width is identical to `systemMedium` and `systemLarge`, the same rule that holds on iPhone, so this is the same column made taller.
+    ///
+    /// > Note: these are design canvas frames only. The smaller Home Screen frame has not been measured, and it cannot be derived from the scale factor of the other sizes because doing so gives a value that is not a whole number of pixels.
+    ///
+    /// > Note: `834x1112` and `768x1024` have no entry because iPadOS 27 does not run on any iPad reporting those screen sizes.
+    private static let iPadPortrait: [WidgetFrame] = [
+        // Measured on iPad Pro 13-inch M4, iPadOS 27.0
+        iPadPortrait(screenSize: (1032, 1376), portrait: (757, 1173)),
+        // Measured on iPad Pro 12.9-inch 6th generation, iPadOS 27.0
+        iPadPortrait(screenSize: (1024, 1366), portrait: (757, 1173)),
+        // Measured on iPad Pro 11-inch 4th generation, iPadOS 27.0
+        iPadPortrait(screenSize: (834, 1194), portrait: (684, 1058)),
+        // Measured on iPad Air 11-inch M2, iPadOS 27.0
+        iPadPortrait(screenSize: (820, 1180), portrait: (684, 1058)),
+        // Measured on iPad 9th generation, iPadOS 27.0
+        iPadPortrait(screenSize: (810, 1080), portrait: (641, 989)),
+        // Measured on iPad mini 6th generation, iPadOS 27.0
+        iPadPortrait(screenSize: (744, 1133), portrait: (611, 940))
+    ].flatMap { $0 }
+
+    private static func iPadPortrait(
+        screenSize: (CGFloat, CGFloat),
+        portrait: (CGFloat, CGFloat)
+    ) -> [WidgetFrame] {
+        group(
+            platform: .pad,
+            minMajorOSVersion: 27,
+            placement: .homeScreen,
+            screenSize: screenSize,
+            displayScale: nil,
+            target: .designCanvas,
+            frames: framesFromPixels(displayScale: 2, [.extraLargePortrait: portrait])
+        )
+    }
 
     /// iPad Lock Screen frames, measured rather than published. Apple's table has no accessory row for iPad at all.
     ///
