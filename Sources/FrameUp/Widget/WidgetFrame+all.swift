@@ -11,7 +11,7 @@ extension WidgetFrame {
     /// Every known set of widget frames.
     ///
     /// iPhone sets from iOS 26 onward were measured with the `WidgetSizeProbe` widget in the example app. Everything else is sourced from [Apple Human Interface Guidelines: widget specifications](https://developer.apple.com/design/human-interface-guidelines/widgets#Specifications), which describes iOS 18 and earlier. Spot checks on iOS 18.6 confirmed the published iPhone values, including the 402 and 440 point wide screens that Apple never published a row for.
-    static let all: [WidgetFrame] = iPhoneiOS15 + iPhoneiOS15LockScreen + iPhoneiOS26 + iPhoneiOS26LockScreen + iPad + iPadLockScreen
+    static let all: [WidgetFrame] = iPhoneiOS15 + iPhoneiOS15LockScreen + iPhoneiOS26 + iPhoneiOS26LockScreen + iPad + iPadLockScreen + visionOS + watch
 
     /// iPhone frames for iOS 18 and earlier, as published by Apple.
     ///
@@ -210,6 +210,61 @@ extension WidgetFrame {
                 .accessoryRectangular: rectangular,
                 .accessoryInline: inline
             ])
+        )
+    }
+
+    /// visionOS frames, as published by Apple.
+    ///
+    /// visionOS widgets are placed on real surfaces rather than a screen, so there is no screen size to key on and one group covers every device. The screen size is a placeholder that any lookup matches.
+    ///
+    /// > Note: `accessoryCircular` and `accessoryRectangular` are supported from visionOS 27 but have no frame here yet, so they are omitted.
+    private static let visionOS: [WidgetFrame] = group(
+        platform: .vision,
+        minMajorOSVersion: 1,
+        placement: .homeScreen,
+        screenSize: (0, 0),
+        displayScale: nil,
+        target: nil,
+        frames: [
+            .small: (158, 158),
+            .medium: (338, 158),
+            .large: (338, 354),
+            .extraLarge: (450, 338),
+            .extraLargePortrait: (338, 450)
+        ]
+    )
+
+    /// Apple Watch Smart Stack frames, as published by Apple.
+    ///
+    /// Apple publishes these against the case size in millimetres. They are stored against the screen size each case reports so that a watch released after this table was written resolves to the nearest known one rather than to nothing, which is what the previous lookup returned.
+    ///
+    /// > Note: `accessoryCircular` and `accessoryInline` are supported on Apple Watch but have no frame here yet, so they are omitted. `accessoryCorner` is supported too but has no ``WidgetSize`` case.
+    private static let watch: [WidgetFrame] = [
+        watchFrames(screenSize: (136, 170), rectangular: (152, 69.5)),   // 38mm
+        watchFrames(screenSize: (162, 197), rectangular: (152, 69.5)),   // 40mm
+        watchFrames(screenSize: (156, 195), rectangular: (165, 72.5)),   // 42mm, Series 1 to 3
+        watchFrames(screenSize: (176, 215), rectangular: (165, 72.5)),   // 41mm
+        watchFrames(screenSize: (187, 223), rectangular: (165, 72.5)),   // 42mm, Series 10 and 11
+        watchFrames(screenSize: (184, 224), rectangular: (173, 76.5)),   // 44mm
+        watchFrames(screenSize: (198, 242), rectangular: (184, 80.5)),   // 45mm
+        watchFrames(screenSize: (208, 248), rectangular: (184, 80.5)),   // 46mm, Series 10 and 11
+        watchFrames(screenSize: (205, 251), rectangular: (191, 81.5)),   // 49mm, Ultra and Ultra 2
+        watchFrames(screenSize: (211, 257), rectangular: (191, 81.5))    // 49mm, Ultra 3
+    ].flatMap { $0 }
+
+    private static func watchFrames(
+        screenSize: (CGFloat, CGFloat),
+        rectangular: (CGFloat, CGFloat)
+    ) -> [WidgetFrame] {
+        group(
+            platform: .watch,
+            /// FrameUp supports watchOS 9 and later, which is also where widgets in the Smart Stack arrived.
+            minMajorOSVersion: 9,
+            placement: .smartStack,
+            screenSize: screenSize,
+            displayScale: nil,
+            target: nil,
+            frames: [.accessoryRectangular: rectangular]
         )
     }
 

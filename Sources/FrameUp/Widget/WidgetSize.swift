@@ -130,15 +130,14 @@ public extension WidgetSize {
     /// > Note: `accessoryCircular` and `accessoryRectangular` are supported from visionOS 27 but have no frame here yet, so they are omitted from the dictionary.
     /// - Returns: A dictionary of sizes based on widget size. Sizes with no known frame are omitted.
     static func sizesForVisionOS() -> [WidgetSize: CGSize] {
-        [
-            .small: CGSize(width: 158, height: 158),
-            .medium: CGSize(width: 338, height: 158),
-            .large: CGSize(width: 338, height: 354),
-            .extraLarge: CGSize(width: 450, height: 338),
-            .extraLargePortrait: CGSize(width: 338, height: 450)
-        ]
+        WidgetFrame.frames(
+            platform: .vision,
+            /// visionOS widgets are placed on surfaces rather than a screen, so there is no screen size to look up.
+            screenSize: .zero,
+            majorOSVersion: WidgetFrame.currentMajorOSVersion
+        )
     }
-    
+
     /// Apple Watch case size in mm for the supplied screen size.
     internal static func watchSize(screenSize: CGSize) -> CGFloat? {
         switch (screenSize.width, screenSize.height) {
@@ -162,8 +161,11 @@ public extension WidgetSize {
     /// - Parameter screenSize: Apple Watch screen size in points.
     /// - Returns: A dictionary of sizes based on widget size. Sizes with no known frame are omitted. Empty if the screen size does not match a known Apple Watch, which will be the case for any watch released after this table was last updated.
     static func sizesForWatch(screenSize: CGSize) -> [WidgetSize: CGSize] {
-        guard let watchSize = watchSize(screenSize: screenSize) else { return [:] }
-        return sizesForWatch(watchSize: watchSize)
+        WidgetFrame.frames(
+            platform: .watch,
+            screenSize: screenSize,
+            majorOSVersion: WidgetFrame.currentMajorOSVersion
+        )
     }
     
     /// Sizes of widgets in smart stack for Apple Watch.
@@ -174,17 +176,23 @@ public extension WidgetSize {
     /// - Parameter watchSize: Apple Watch size in mm.
     /// - Returns: A dictionary of sizes based on widget size. Sizes with no known frame are omitted.
     static func sizesForWatch(watchSize: CGFloat) -> [WidgetSize: CGSize] {
-        let size: (CGFloat, CGFloat)
-        
+        guard let screenSize = screenSize(watchSize: watchSize) else { return [:] }
+        return sizesForWatch(screenSize: screenSize)
+    }
+
+    /// A screen size reported by a watch of the supplied case size, used to look up frames keyed on screen size.
+    ///
+    /// Several cases report more than one screen size across generations. Any of them resolves to the same frame, so the largest is used.
+    internal static func screenSize(watchSize: CGFloat) -> CGSize? {
         switch watchSize {
-        case 49...: size = (191, 81.5)
-        case 45...: size = (184, 80.5)
-        case 44...: size = (173, 76.5)
-        case 41...: size = (165, 72.5)
-        default: size = (152, 69.5)
+        case 49...: CGSize(width: 211, height: 257)
+        case 46...: CGSize(width: 208, height: 248)
+        case 45...: CGSize(width: 198, height: 242)
+        case 44...: CGSize(width: 184, height: 224)
+        case 41...: CGSize(width: 176, height: 215)
+        case 38...: CGSize(width: 162, height: 197)
+        default: nil
         }
-        
-        return [.accessoryRectangular: .init(width: size.0, height: size.1)]
     }
     
     /// Smallest size for this widget size across every device that supports it.
