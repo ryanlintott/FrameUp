@@ -98,44 +98,29 @@ public extension WidgetSize {
 
     /// Widget sizes for iPad
     ///
-    /// All sizes are sourced from [Apple Human Interface Guidelines: widget specifications](https://developer.apple.com/design/human-interface-guidelines/widgets#Specifications)
+    /// Frames are sourced from [Apple Human Interface Guidelines: widget specifications](https://developer.apple.com/design/human-interface-guidelines/widgets#Specifications), with the 820x1180 values confirmed by measurement. Unlike iPhone, iPad frames did not change in iOS 26.
     ///
-    /// > Note: `extraLargePortrait` and the accessory sizes are supported on iPad but have no frame here yet, so they are omitted from the dictionary.
+    /// A screen size with no exact entry resolves to the nearest known screen size by width, then by height.
+    ///
+    /// > Note: `extraLargePortrait` is supported on iPad from iOS 27 but has no frame here yet, so it is omitted. The accessory sizes and the smaller Lock Screen `small` frame are only known for a 820x1180 iPad and only for the design canvas target.
     /// - Parameter screenSize: iPad screen size ignoring orientation.
     /// - Parameter target: Widget frame target. iPad widgets have a design canvas frame used for laying out the content, and a smaller Home Screen frame that the content is scaled to fit.
+    /// - Parameter majorOSVersion: Major iPadOS version to look up frames for. Nil uses the version currently running.
+    /// - Parameter placement: Where the widget appears. Nil reports Home Screen frames for the system sizes and Lock Screen frames for the accessory sizes, which is where each of them actually appears.
     /// - Returns: A dictionary of sizes based on widget size. Sizes with no known frame are omitted.
-    static func sizesForiPad(screenSize: CGSize, target: WidgetTarget) -> [WidgetSize: CGSize] {
-        let widgetSizes: ((CGFloat, CGFloat), (CGFloat, CGFloat), (CGFloat, CGFloat), (CGFloat, CGFloat))
-        
-        switch (screenSize.width, screenSize.height, target) {
-        case (1192..., _, .designCanvas): widgetSizes = ((188, 188), (412, 188), (412, 412), (860, 412))
-        case (1192..., _, .homeScreen): widgetSizes = ((188, 188), (412, 188), (412, 412), (860, 412))
-        case (1024..., _, .designCanvas): widgetSizes = ((170, 170), (378.5, 170), (378.5, 378.5), (795, 378.5))
-        case (1024..., _, .homeScreen): widgetSizes = ((160, 160), (356, 160), (356, 356), (748, 356))
-        case (970..., _, .designCanvas): widgetSizes = ((162, 162), (350, 162), (350, 350), (726, 350))
-        case (970..., _, .homeScreen): widgetSizes = ((162, 162), (350, 162), (350, 350), (726, 350))
-        case (954..., _, .designCanvas): widgetSizes = ((162, 162), (350, 162), (350, 350), (726, 350))
-        case (954..., _, .homeScreen): widgetSizes = ((162, 162), (350, 162), (350, 350), (726, 350))
-        case (834..., 1194..., .designCanvas): widgetSizes = ((155, 155), (342, 155), (342, 342), (715.5, 342))
-        case (834..., 1194..., .homeScreen): widgetSizes = ((136, 136), (300, 136), (300, 300), (628, 300))
-        case (834..., _, .designCanvas): widgetSizes = ((150, 150), (327.5, 150), (327.5, 327.5), (682, 327.5))
-        case (834..., _, .homeScreen): widgetSizes = ((132, 132), (288, 132), (288, 288), (600, 288))
-        case (820..., _, .designCanvas): widgetSizes = ((155, 155), (342, 155), (342, 342), (715.5, 342))
-        case (820..., _, .homeScreen): widgetSizes = ((136, 136), (300, 136), (300, 300), (628, 300))
-        case (810..., _, .designCanvas): widgetSizes = ((146, 146), (320.5, 146), (320.5, 320.5), (669, 320.5))
-        case (810..., _, .homeScreen): widgetSizes = ((124, 124), (272, 124), (272, 272), (568, 272))
-        case (768..., _, .designCanvas): widgetSizes = ((141, 141), (305.5, 141), (305.5, 305.5), (634.5, 305.5))
-        case (768..., _, .homeScreen): widgetSizes = ((120, 120), (260, 120), (260, 260), (540, 260))
-        case (_, _, .designCanvas): widgetSizes = ((141, 141), (305.5, 141), (305.5, 305.5), (634.5, 305.5))
-        case (_, _, .homeScreen): widgetSizes = ((120, 120), (260, 120), (260, 260), (540, 260))
-        }
-        
-        return [
-            .small: CGSize(width: widgetSizes.0.0, height: widgetSizes.0.1),
-            .medium: CGSize(width: widgetSizes.1.0, height: widgetSizes.1.1),
-            .large: CGSize(width: widgetSizes.2.0, height: widgetSizes.2.1),
-            .extraLarge: CGSize(width: widgetSizes.3.0, height: widgetSizes.3.1)
-        ]
+    static func sizesForiPad(
+        screenSize: CGSize,
+        target: WidgetTarget,
+        majorOSVersion: Int? = nil,
+        placement: WidgetPlacement? = nil
+    ) -> [WidgetSize: CGSize] {
+        WidgetFrameSet.frames(
+            platform: .pad,
+            screenSize: screenSize,
+            majorOSVersion: majorOSVersion ?? WidgetFrameSet.currentMajorOSVersion,
+            placement: placement,
+            target: target
+        )
     }
 
     /// Widget sizes for visionOS.
@@ -263,8 +248,18 @@ public extension WidgetSize {
     /// - Parameter screenSize: iPad screen size ignoring orientation.
     /// - Parameter target: Widget frame target. iPad widgets have a design canvas frame used for laying out the content, and a smaller Home Screen frame that the content is scaled to fit.
     /// - Returns: Size for this widget. Nil if no frame is known, either because the platform does not support this widget size or because the frame has not been added to FrameUp yet.
-    func sizeForiPad(screenSize: CGSize, target: WidgetTarget) -> CGSize? {
-        Self.sizesForiPad(screenSize: screenSize, target: target)[self]
+    func sizeForiPad(
+        screenSize: CGSize,
+        target: WidgetTarget,
+        majorOSVersion: Int? = nil,
+        placement: WidgetPlacement? = nil
+    ) -> CGSize? {
+        Self.sizesForiPad(
+            screenSize: screenSize,
+            target: target,
+            majorOSVersion: majorOSVersion,
+            placement: placement
+        )[self]
     }
 
     /// Size for this widget on visionOS.

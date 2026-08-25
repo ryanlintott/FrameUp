@@ -11,7 +11,7 @@ extension WidgetFrameSet {
     /// Every known set of widget frames.
     ///
     /// iPhone sets from iOS 26 onward were measured with the `WidgetSizeProbe` widget in the example app. Everything else is sourced from [Apple Human Interface Guidelines: widget specifications](https://developer.apple.com/design/human-interface-guidelines/widgets#Specifications), which describes iOS 18 and earlier. Spot checks on iOS 18.6 confirmed the published iPhone values, including the 402 and 440 point wide screens that Apple never published a row for.
-    static let all: [WidgetFrameSet] = iPhoneiOS15 + iPhoneiOS15LockScreen + iPhoneiOS26
+    static let all: [WidgetFrameSet] = iPhoneiOS15 + iPhoneiOS15LockScreen + iPhoneiOS26 + iPad + iPadLockScreen
 
     /// iPhone frames for iOS 18 and earlier, as published by Apple.
     ///
@@ -82,6 +82,71 @@ extension WidgetFrameSet {
         // Measured on iPhone SE 3rd generation (iPhone14,6), iOS 26.5
         iPhoneiOS26(screenSize: (375, 667), displayScale: 2, small: (292, 292), medium: (638, 292), large: (638, 636))
     ]
+
+    /// iPad frames, as published by Apple.
+    ///
+    /// Each screen size contributes two sets, one for the design canvas the content is laid out in and one for the smaller Home Screen frame the canvas is scaled into. The 820x1180 canvas values are confirmed by measurement on iPadOS 18.6, 26.5 and 27.0, and its Home Screen value of 136 points is confirmed by measuring a placed widget on screen. iPad frames did not change in iOS 26, so unlike iPhone these apply from iOS 15 with no later set.
+    ///
+    /// > Note: `extraLargePortrait` is supported on iPad from iOS 27 but has no frame here yet, so it is omitted.
+    private static let iPad: [WidgetFrameSet] = [
+        iPadRow((1192, 1590), canvas: ((188, 188), (412, 188), (412, 412), (860, 412)), homeScreen: ((188, 188), (412, 188), (412, 412), (860, 412))),
+        iPadRow((1024, 1366), canvas: ((170, 170), (378.5, 170), (378.5, 378.5), (795, 378.5)), homeScreen: ((160, 160), (356, 160), (356, 356), (748, 356))),
+        iPadRow((970, 1389), canvas: ((162, 162), (350, 162), (350, 350), (726, 350)), homeScreen: ((162, 162), (350, 162), (350, 350), (726, 350))),
+        iPadRow((954, 1373), canvas: ((162, 162), (350, 162), (350, 350), (726, 350)), homeScreen: ((162, 162), (350, 162), (350, 350), (726, 350))),
+        iPadRow((834, 1194), canvas: ((155, 155), (342, 155), (342, 342), (715.5, 342)), homeScreen: ((136, 136), (300, 136), (300, 300), (628, 300))),
+        iPadRow((834, 1112), canvas: ((150, 150), (327.5, 150), (327.5, 327.5), (682, 327.5)), homeScreen: ((132, 132), (288, 132), (288, 288), (600, 288))),
+        // Canvas values confirmed on iPad Air 11-inch M2 (iPad14,9) on iPadOS 18.6 and 26.5, and iPad A16 (iPad15,7) on 27.0. The 136 point Home Screen frame confirmed by measuring a placed widget at 272 pixels.
+        iPadRow((820, 1180), canvas: ((155, 155), (342, 155), (342, 342), (715.5, 342)), homeScreen: ((136, 136), (300, 136), (300, 300), (628, 300))),
+        iPadRow((810, 1080), canvas: ((146, 146), (320.5, 146), (320.5, 320.5), (669, 320.5)), homeScreen: ((124, 124), (272, 124), (272, 272), (568, 272))),
+        iPadRow((768, 1024), canvas: ((141, 141), (305.5, 141), (305.5, 305.5), (634.5, 305.5)), homeScreen: ((120, 120), (260, 120), (260, 260), (540, 260))),
+        // Published by Apple with the same values as 768x1024. The switch this table replaced had no row for it and reached the same values through its default arm.
+        iPadRow((744, 1133), canvas: ((141, 141), (305.5, 141), (305.5, 305.5), (634.5, 305.5)), homeScreen: ((120, 120), (260, 120), (260, 260), (540, 260)))
+    ].flatMap { $0 }
+
+    /// iPad Lock Screen frames, measured rather than published. Apple's table has no accessory row for iPad at all.
+    ///
+    /// A `systemSmall` on the iPad Lock Screen is 152x152 rather than the 155x155 it is on the Home Screen. 152 points is also the width of `accessoryRectangular`, so the Lock Screen widget column appears to be 152 points wide with a system small sized to fit it.
+    ///
+    /// > Note: only one iPad screen size has been measured. Every other iPad resolves to these values by nearest width, which is unverified. iPad Lock Screen widgets arrived in iPadOS 17 but the earliest measurement is on 18.6, so these apply from 18.
+    private static let iPadLockScreen: [WidgetFrameSet] = [
+        // Measured on iPad Air 11-inch M2 (iPad14,9), iPadOS 18.6 and 26.5
+        WidgetFrameSet(
+            platform: .pad,
+            screenSize: CGSize(width: 820, height: 1180),
+            minMajorOSVersion: 18,
+            placement: .lockScreen,
+            target: .designCanvas,
+            frames: framesFromPoints([
+                .small: (152, 152),
+                .accessoryCircular: (63, 63),
+                .accessoryRectangular: (152, 63),
+                .accessoryInline: (372, 36)
+            ])
+        )
+    ]
+
+    /// Builds the design canvas and Home Screen sets for one iPad screen size.
+    private static func iPadRow(
+        _ screenSize: (CGFloat, CGFloat),
+        canvas: ((CGFloat, CGFloat), (CGFloat, CGFloat), (CGFloat, CGFloat), (CGFloat, CGFloat)),
+        homeScreen: ((CGFloat, CGFloat), (CGFloat, CGFloat), (CGFloat, CGFloat), (CGFloat, CGFloat))
+    ) -> [WidgetFrameSet] {
+        [(WidgetTarget.designCanvas, canvas), (.homeScreen, homeScreen)].map { target, sizes in
+            WidgetFrameSet(
+                platform: .pad,
+                screenSize: CGSize(width: screenSize.0, height: screenSize.1),
+                minMajorOSVersion: 15,
+                placement: .homeScreen,
+                target: target,
+                frames: framesFromPoints([
+                    .small: sizes.0,
+                    .medium: sizes.1,
+                    .large: sizes.2,
+                    .extraLarge: sizes.3
+                ])
+            )
+        }
+    }
 
     private static func iPhoneiOS15(
         screenSize: (CGFloat, CGFloat),
