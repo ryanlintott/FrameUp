@@ -25,6 +25,8 @@ struct WidgetFrameSet: Sendable {
     let displayScale: CGFloat?
     /// Lowest major OS version these frames apply to. A later set for the same screen size supersedes this one.
     let minMajorOSVersion: Int
+    /// Where these frames apply. A widget size can have a different frame in different places on the same device.
+    let placement: WidgetPlacement
     /// Widget frame target. Only iPad distinguishes a design canvas from the smaller Home Screen frame, so this is nil on every other platform.
     let target: WidgetTarget?
     /// Frames by widget size. Sizes with no known frame are omitted rather than guessed.
@@ -35,12 +37,14 @@ struct WidgetFrameSet: Sendable {
         screenSize: CGSize,
         minMajorOSVersion: Int,
         displayScale: CGFloat? = nil,
+        placement: WidgetPlacement = .homeScreen,
         target: WidgetTarget? = nil,
         frames: [WidgetSize: CGSize]
     ) {
         self.platform = platform
         self.screenSize = screenSize
         self.displayScale = displayScale
+        self.placement = placement
         self.minMajorOSVersion = minMajorOSVersion
         self.target = target
         self.frames = frames
@@ -79,6 +83,7 @@ extension WidgetFrameSet {
     ///   - screenSize: Screen size in points, ignoring orientation.
     ///   - majorOSVersion: Major OS version to look up frames for.
     ///   - displayScale: Pixels per point on the display. Only 414x896 is known to need this, where a 2x iPhone 11 and a 3x iPhone 11 Pro Max report different frames from iOS 26. Nil resolves deterministically, preferring a set that applies at any scale and otherwise the lowest scale, so a caller that cannot know the scale still gets a stable answer.
+    ///   - placement: Where the widget appears. Nil merges every placement using ``WidgetPlacement/defaultResolutionOrder``, so a widget size that has a Home Screen frame reports that one and a size that only appears elsewhere, such as an accessory widget on the Lock Screen, reports the frame from where it does appear.
     ///   - target: Widget frame target. Only used on iPad.
     /// - Returns: Frames by widget size in points. Empty if no frames are known for this platform.
     static func frames(
@@ -86,6 +91,7 @@ extension WidgetFrameSet {
         screenSize: CGSize,
         majorOSVersion: Int,
         displayScale: CGFloat? = nil,
+        placement: WidgetPlacement? = nil,
         target: WidgetTarget? = nil
     ) -> [WidgetSize: CGSize] {
         let candidates = all.filter { set in
@@ -93,6 +99,7 @@ extension WidgetFrameSet {
                   set.target == target,
                   set.minMajorOSVersion <= majorOSVersion
             else { return false }
+            if let placement, set.placement != placement { return false }
             /// A set with no display scale applies at every scale. A set with one only applies when the caller knows the scale and it matches.
             guard let setScale = set.displayScale else { return true }
             guard let displayScale else { return true }
@@ -110,16 +117,21 @@ extension WidgetFrameSet {
         }) else { return [:] }
 
         let matching = candidates.filter { $0.screenSize == nearest }
-        let byVersion = Dictionary(grouping: matching, by: \.minMajorOSVersion)
-        return byVersion.keys.sorted().reduce(into: [WidgetSize: CGSize]()) { result, version in
-            guard let sets = byVersion[version],
-                  let set = resolve(sets, displayScale: displayScale)
-            else { return }
-            result.merge(set.frames) { _, newer in newer }
+        /// Placements are applied in a fixed order with the Home Screen last so it wins wherever a size appears in more than one place. Within a placement, newer OS versions are applied over older ones.
+        let placementOrder = placement.map { [$0] } ?? WidgetPlacement.defaultResolutionOrder
+        return placementOrder.reduce(into: [WidgetSize: CGSize]()) { result, place in
+            let forPlacement = matching.filter { $0.placement == place }
+            let byVersion = Dictionary(grouping: forPlacement, by: \.minMajorOSVersion)
+            for version in byVersion.keys.sorted() {
+                guard let sets = byVersion[version],
+                      let set = resolve(sets, displayScale: displayScale)
+                else { continue }
+                result.merge(set.frames) { _, newer in newer }
+            }
         }
     }
 
-    /// Chooses one set from several that share a screen size and OS version but differ by display scale.
+    /// Chooses one set from several that share a screen size, placement and OS version but differ by display scale.
     private static func resolve(_ sets: [WidgetFrameSet], displayScale: CGFloat?) -> WidgetFrameSet? {
         if let displayScale, let exact = sets.first(where: { $0.displayScale == displayScale }) {
             return exact

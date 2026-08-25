@@ -128,7 +128,8 @@ struct WidgetFrameSetTests {
             let frames = WidgetSize.sizesForiPhone(
                 screenSize: set.screenSize,
                 majorOSVersion: set.minMajorOSVersion,
-                displayScale: set.displayScale
+                displayScale: set.displayScale,
+                placement: set.placement
             )
             for (widgetSize, frame) in set.frames {
                 #expect(try #require(frames[widgetSize]) == frame, "\(set.screenSize) \(widgetSize)")
@@ -154,7 +155,7 @@ struct WidgetFrameSetTests {
     @Test func noTwoSetsShareTheSameKey() {
         var seen = Set<String>()
         for set in WidgetFrameSet.all {
-            let key = "\(set.platform)-\(set.screenSize)-\(String(describing: set.displayScale))-\(String(describing: set.target))-\(set.minMajorOSVersion)"
+            let key = "\(set.platform)-\(set.screenSize)-\(String(describing: set.displayScale))-\(set.placement)-\(String(describing: set.target))-\(set.minMajorOSVersion)"
             #expect(seen.contains(key) == false, "duplicate set for \(key)")
             seen.insert(key)
         }
@@ -202,5 +203,38 @@ struct WidgetFrameSetTests {
             displayScale: displayScale
         )
         #expect(try #require(frames[.small]) == CGSize(width: 169, height: 169))
+    }
+
+    /// Accessory widgets appear on the Lock Screen, so their frames are stored against that placement, but a lookup that does not name a placement still reports them.
+    @Test func accessoryFramesComeFromTheLockScreenByDefault() throws {
+        let screen = CGSize(width: 390, height: 844)
+        let merged = WidgetSize.sizesForiPhone(screenSize: screen, majorOSVersion: 26)
+        let lock = WidgetSize.sizesForiPhone(screenSize: screen, majorOSVersion: 26, placement: .lockScreen)
+        #expect(try #require(merged[.accessoryCircular]) == #require(lock[.accessoryCircular]))
+        #expect(try #require(merged[.accessoryInline]) == #require(lock[.accessoryInline]))
+    }
+
+    /// The Home Screen wins for a size that appears in more than one place.
+    @Test func homeScreenWinsForSizesThatAppearInBothPlaces() throws {
+        let screen = CGSize(width: 390, height: 844)
+        let merged = WidgetSize.sizesForiPhone(screenSize: screen, majorOSVersion: 26)
+        let home = WidgetSize.sizesForiPhone(screenSize: screen, majorOSVersion: 26, placement: .homeScreen)
+        #expect(try #require(merged[.small]) == #require(home[.small]))
+    }
+
+    /// Naming a placement returns only what appears there.
+    @Test func namingAPlacementExcludesOtherPlacements() {
+        let screen = CGSize(width: 390, height: 844)
+        let home = WidgetSize.sizesForiPhone(screenSize: screen, majorOSVersion: 26, placement: .homeScreen)
+        let lock = WidgetSize.sizesForiPhone(screenSize: screen, majorOSVersion: 26, placement: .lockScreen)
+        #expect(home[.accessoryCircular] == nil)
+        #expect(lock[.small] == nil)
+    }
+
+    /// Accessory widgets arrived in iOS 16, so an iOS 15 lookup has no accessory frames.
+    @Test func accessoryFramesStartAtiOS16() {
+        let frames = WidgetSize.sizesForiPhone(screenSize: CGSize(width: 390, height: 844), majorOSVersion: 15)
+        #expect(frames[.accessoryCircular] == nil)
+        #expect(frames[.small] == CGSize(width: 158, height: 158))
     }
 }

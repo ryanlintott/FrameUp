@@ -11,7 +11,7 @@ extension WidgetFrameSet {
     /// Every known set of widget frames.
     ///
     /// iPhone sets from iOS 26 onward were measured with the `WidgetSizeProbe` widget in the example app. Everything else is sourced from [Apple Human Interface Guidelines: widget specifications](https://developer.apple.com/design/human-interface-guidelines/widgets#Specifications), which describes iOS 18 and earlier. Spot checks on iOS 18.6 confirmed the published iPhone values, including the 402 and 440 point wide screens that Apple never published a row for.
-    static let all: [WidgetFrameSet] = iPhoneiOS15 + iPhoneiOS26
+    static let all: [WidgetFrameSet] = iPhoneiOS15 + iPhoneiOS15LockScreen + iPhoneiOS26
 
     /// iPhone frames for iOS 18 and earlier, as published by Apple.
     ///
@@ -20,19 +20,37 @@ extension WidgetFrameSet {
     /// > Note: `extraLargePortrait` is supported on iPhone from iOS 27 but has no frame here yet, so it is omitted.
     private static let iPhoneiOS15: [WidgetFrameSet] = [
         // Confirmed on iPhone 16 Pro Max (iPhone17,2), iOS 18.6, which reports a 440x956 screen and resolves here by nearest width
-        iPhoneiOS15(screenSize: (430, 932), small: (170, 170), medium: (364, 170), large: (364, 382), circular: (76, 76), rectangular: (172, 76), inline: (257, 26)),
-        iPhoneiOS15(screenSize: (428, 926), small: (170, 170), medium: (364, 170), large: (364, 382), circular: (76, 76), rectangular: (172, 76), inline: (257, 26)),
-        iPhoneiOS15(screenSize: (414, 896), small: (169, 169), medium: (360, 169), large: (360, 379), circular: (76, 76), rectangular: (160, 72), inline: (248, 26)),
-        iPhoneiOS15(screenSize: (414, 736), small: (159, 159), medium: (348, 157), large: (348, 357), circular: (76, 76), rectangular: (170, 76), inline: (248, 26)),
+        iPhoneiOS15(screenSize: (430, 932), small: (170, 170), medium: (364, 170), large: (364, 382)),
+        iPhoneiOS15(screenSize: (428, 926), small: (170, 170), medium: (364, 170), large: (364, 382)),
+        iPhoneiOS15(screenSize: (414, 896), small: (169, 169), medium: (360, 169), large: (360, 379)),
+        iPhoneiOS15(screenSize: (414, 736), small: (159, 159), medium: (348, 157), large: (348, 357)),
         // Confirmed on iPhone 16 Pro (iPhone17,1), iOS 18.6, which reports a 402x874 screen and resolves here by nearest width
-        iPhoneiOS15(screenSize: (393, 852), small: (158, 158), medium: (338, 158), large: (338, 354), circular: (72, 72), rectangular: (160, 72), inline: (234, 26)),
+        iPhoneiOS15(screenSize: (393, 852), small: (158, 158), medium: (338, 158), large: (338, 354)),
         // Confirmed on iPhone 13 (iPhone14,5), iOS 18.6
-        iPhoneiOS15(screenSize: (390, 844), small: (158, 158), medium: (338, 158), large: (338, 354), circular: (72, 72), rectangular: (160, 72), inline: (234, 26)),
-        iPhoneiOS15(screenSize: (375, 812), small: (155, 155), medium: (329, 155), large: (329, 345), circular: (72, 72), rectangular: (157, 72), inline: (225, 26)),
-        iPhoneiOS15(screenSize: (375, 667), small: (148, 148), medium: (321, 148), large: (321, 324), circular: (68, 68), rectangular: (153, 68), inline: (225, 26)),
+        iPhoneiOS15(screenSize: (390, 844), small: (158, 158), medium: (338, 158), large: (338, 354)),
+        iPhoneiOS15(screenSize: (375, 812), small: (155, 155), medium: (329, 155), large: (329, 345)),
+        iPhoneiOS15(screenSize: (375, 667), small: (148, 148), medium: (321, 148), large: (321, 324)),
         // No device has been observed reporting this screen size. It is likely a Display Zoom mode rather than a device's native size.
-        iPhoneiOS15(screenSize: (360, 780), small: (155, 155), medium: (329, 155), large: (329, 345), circular: (72, 72), rectangular: (157, 72), inline: (225, 26)),
-        iPhoneiOS15(screenSize: (320, 568), small: (141, 141), medium: (292, 141), large: (292, 311), circular: (72, 72), rectangular: (157, 72), inline: (225, 26))
+        iPhoneiOS15(screenSize: (360, 780), small: (155, 155), medium: (329, 155), large: (329, 345)),
+        iPhoneiOS15(screenSize: (320, 568), small: (141, 141), medium: (292, 141), large: (292, 311))
+    ]
+
+    /// iPhone accessory frames for iOS 18 and earlier, as published by Apple.
+    ///
+    /// These are the accessory columns of the same published table, separated because accessory widgets appear on the Lock Screen rather than the Home Screen. Accessory widgets arrived in iOS 16, so these apply from there rather than from 15.
+    ///
+    /// > Note: these have not been measured on iOS 26. The system frames on that OS all changed, so these may be out of date.
+    private static let iPhoneiOS15LockScreen: [WidgetFrameSet] = [
+        iPhoneiOS15Lock(screenSize: (430, 932), circular: (76, 76), rectangular: (172, 76), inline: (257, 26)),
+        iPhoneiOS15Lock(screenSize: (428, 926), circular: (76, 76), rectangular: (172, 76), inline: (257, 26)),
+        iPhoneiOS15Lock(screenSize: (414, 896), circular: (76, 76), rectangular: (160, 72), inline: (248, 26)),
+        iPhoneiOS15Lock(screenSize: (414, 736), circular: (76, 76), rectangular: (170, 76), inline: (248, 26)),
+        iPhoneiOS15Lock(screenSize: (393, 852), circular: (72, 72), rectangular: (160, 72), inline: (234, 26)),
+        iPhoneiOS15Lock(screenSize: (390, 844), circular: (72, 72), rectangular: (160, 72), inline: (234, 26)),
+        iPhoneiOS15Lock(screenSize: (375, 812), circular: (72, 72), rectangular: (157, 72), inline: (225, 26)),
+        iPhoneiOS15Lock(screenSize: (375, 667), circular: (68, 68), rectangular: (153, 68), inline: (225, 26)),
+        iPhoneiOS15Lock(screenSize: (360, 780), circular: (72, 72), rectangular: (157, 72), inline: (225, 26)),
+        iPhoneiOS15Lock(screenSize: (320, 568), circular: (72, 72), rectangular: (157, 72), inline: (225, 26))
     ]
 
     /// iPhone frames for iOS 26 and later, measured rather than published.
@@ -69,7 +87,25 @@ extension WidgetFrameSet {
         screenSize: (CGFloat, CGFloat),
         small: (CGFloat, CGFloat),
         medium: (CGFloat, CGFloat),
-        large: (CGFloat, CGFloat),
+        large: (CGFloat, CGFloat)
+    ) -> WidgetFrameSet {
+        WidgetFrameSet(
+            platform: .phone,
+            screenSize: CGSize(width: screenSize.0, height: screenSize.1),
+            /// FrameUp supports iOS 15 and later, so the published values are treated as applying from there.
+            minMajorOSVersion: 15,
+            placement: .homeScreen,
+            frames: framesFromPoints([
+                .small: small,
+                .medium: medium,
+                .large: large
+            ])
+        )
+    }
+
+    /// The accessory frames from the same published row, recorded against the Lock Screen where they actually appear.
+    private static func iPhoneiOS15Lock(
+        screenSize: (CGFloat, CGFloat),
         circular: (CGFloat, CGFloat),
         rectangular: (CGFloat, CGFloat),
         inline: (CGFloat, CGFloat)
@@ -77,12 +113,9 @@ extension WidgetFrameSet {
         WidgetFrameSet(
             platform: .phone,
             screenSize: CGSize(width: screenSize.0, height: screenSize.1),
-            /// FrameUp supports iOS 15 and later, so the published values are treated as applying from there.
-            minMajorOSVersion: 15,
+            minMajorOSVersion: 16,
+            placement: .lockScreen,
             frames: framesFromPoints([
-                .small: small,
-                .medium: medium,
-                .large: large,
                 .accessoryCircular: circular,
                 .accessoryRectangular: rectangular,
                 .accessoryInline: inline

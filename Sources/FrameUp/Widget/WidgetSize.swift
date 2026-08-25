@@ -79,17 +79,20 @@ public extension WidgetSize {
     /// - Parameter screenSize: iPhone screen size ignoring orientation.
     /// - Parameter majorOSVersion: Major iOS version to look up frames for. Nil uses the version currently running.
     /// - Parameter displayScale: Pixels per point on the display, matching SwiftUI's `displayScale` environment value. Only needed for a 414x896 screen, which is 2x on an iPhone 11 and 3x on an iPhone 11 Pro Max and from iOS 26 gives different frames for each. Nil still returns a stable answer, preferring the 2x frames for that screen size.
+    /// - Parameter placement: Where the widget appears. Nil reports Home Screen frames for the system sizes and Lock Screen frames for the accessory sizes, which is where each of them actually appears.
     /// - Returns: A dictionary of sizes based on widget size. Sizes with no known frame are omitted.
     static func sizesForiPhone(
         screenSize: CGSize,
         majorOSVersion: Int? = nil,
-        displayScale: CGFloat? = nil
+        displayScale: CGFloat? = nil,
+        placement: WidgetPlacement? = nil
     ) -> [WidgetSize: CGSize] {
         WidgetFrameSet.frames(
             platform: .phone,
             screenSize: screenSize,
             majorOSVersion: majorOSVersion ?? WidgetFrameSet.currentMajorOSVersion,
-            displayScale: displayScale
+            displayScale: displayScale,
+            placement: placement
         )
     }
 
@@ -243,12 +246,14 @@ public extension WidgetSize {
     func sizeForiPhone(
         screenSize: CGSize,
         majorOSVersion: Int? = nil,
-        displayScale: CGFloat? = nil
+        displayScale: CGFloat? = nil,
+        placement: WidgetPlacement? = nil
     ) -> CGSize? {
         Self.sizesForiPhone(
             screenSize: screenSize,
             majorOSVersion: majorOSVersion,
-            displayScale: displayScale
+            displayScale: displayScale,
+            placement: placement
         )[self]
     }
     
