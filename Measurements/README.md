@@ -46,7 +46,8 @@ Every value here is a measurement, not a published figure. Apple's table has no 
 | 430×932 | 174.67 | 372×174.67 | 372×388 | iPhone 15/16 Pro Max, 14/15/16 Plus |
 | 428×926 | 174.33 | 371.67×174.33 | 371.67×387 | iPhone 12/13/14 Pro Max |
 | 420×912 | 172.67 | 366.67×172.67 | 366.67×382 | iPhone Air |
-| 414×896 | 166.5 | 356×166.5 | 356×371.5 | iPhone 11, XR |
+| 414×896 @2x | 166.5 | 356×166.5 | 356×371.5 | iPhone 11, XR |
+| 414×896 @3x | 171.33 | 362.67×171.33 | 362.67×378 | iPhone 11 Pro Max, XS Max |
 | 402×874 | 164.33 | 349.67×164.33 | 349.67×365 | iPhone 16/17 Pro, iPhone 17 |
 | 393×852 | 162.67 | 344.67×162.67 | 344.67×360 | iPhone 14 Pro, 15, 16 |
 | 390×844 | 162 | 342×162 | 342×358 | iPhone 12, 13, 14, 17e |
@@ -90,6 +91,10 @@ Spot checks confirming Apple's published values, including two screen sizes Appl
 **Placed widgets report the same frame as gallery previews.** A `systemSmall` widget placed on the Home Screen of an iPhone 17 reports 164.333×164.333, identical to what the gallery reported for the same device. Measuring the placed widget's rendered pixels on a screenshot gives 493 px wide at @3x, which is exactly 164.333 pt. Reading sizes from the gallery is therefore a valid shortcut, and no widget needs to be placed to collect a measurement.
 
 Records with `"stage": "timeline"` come from a placed widget. Gallery reads produce only `placeholder` and `snapshot` stages, so `stage` distinguishes the two contexts where `isPreview` does not.
+
+**Screen size alone is not always enough. Scale can split a row.** 414×896 exists at both 2x (iPhone XR, 11) and 3x (iPhone XS Max, 11 Pro Max). On iOS 26 those two report different frames: 166.5 versus 171.33 points, a difference of 4.83 points. Both are whole pixels at their own scale — 333 px and 514 px — and neither value is a whole pixel at the other scale. A lookup keyed on screen size alone cannot serve both, so the display scale belongs in the key.
+
+This is the only screen size known to split. It was found by noticing that 166.5 points is not a whole number of pixels at 3x, which is what prompted measuring the 3x device.
 
 **Two devices sharing a screen size report identical frames.** iPhone 11 Pro and iPhone 13 mini both report 375×812 and both give 159 / 333.67×159 / 333.67×349. Combined with the iPhone 13 and 17e agreeing at 390×844, screen size plus OS is enough to determine the frame.
 
