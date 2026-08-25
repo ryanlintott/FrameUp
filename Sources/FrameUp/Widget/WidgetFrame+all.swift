@@ -234,37 +234,54 @@ extension WidgetFrame {
         ]
     )
 
-    /// Apple Watch Smart Stack frames, as published by Apple.
+    /// Screen size and case size in millimetres for every Apple Watch.
     ///
-    /// Apple publishes these against the case size in millimetres. They are stored against the screen size each case reports so that a watch released after this table was written resolves to the nearest known one rather than to nothing, which is what the previous lookup returned.
+    /// The one place either fact is written down. The frames below and ``WidgetSize/watchSize(screenSize:)`` both read it.
+    static let watchDevices: [(screenSize: CGSize, caseSize: CGFloat)] = [
+        (CGSize(width: 136, height: 170), 38),
+        (CGSize(width: 156, height: 195), 42),   // Series 1 to 3
+        (CGSize(width: 162, height: 197), 40),
+        (CGSize(width: 176, height: 215), 41),
+        (CGSize(width: 184, height: 224), 44),
+        (CGSize(width: 187, height: 223), 42),   // Series 10 and 11
+        (CGSize(width: 198, height: 242), 45),
+        (CGSize(width: 205, height: 251), 49),   // Ultra and Ultra 2
+        (CGSize(width: 208, height: 248), 46),   // Series 10 and 11
+        (CGSize(width: 211, height: 257), 49)    // Ultra 3
+    ]
+
+    /// Apple Watch Smart Stack frames, as published by Apple, keyed on case size the way Apple publishes them.
+    ///
+    /// Each entry applies from its case size upward, so a case size larger than any Apple Watch yet released takes the largest frame.
     ///
     /// > Note: `accessoryCircular` and `accessoryInline` are supported on Apple Watch but have no frame here yet, so they are omitted. `accessoryCorner` is supported too but has no ``WidgetSize`` case.
-    private static let watch: [WidgetFrame] = [
-        watchFrames(screenSize: (136, 170), rectangular: (152, 69.5)),   // 38mm
-        watchFrames(screenSize: (162, 197), rectangular: (152, 69.5)),   // 40mm
-        watchFrames(screenSize: (156, 195), rectangular: (165, 72.5)),   // 42mm, Series 1 to 3
-        watchFrames(screenSize: (176, 215), rectangular: (165, 72.5)),   // 41mm
-        watchFrames(screenSize: (187, 223), rectangular: (165, 72.5)),   // 42mm, Series 10 and 11
-        watchFrames(screenSize: (184, 224), rectangular: (173, 76.5)),   // 44mm
-        watchFrames(screenSize: (198, 242), rectangular: (184, 80.5)),   // 45mm
-        watchFrames(screenSize: (208, 248), rectangular: (184, 80.5)),   // 46mm, Series 10 and 11
-        watchFrames(screenSize: (205, 251), rectangular: (191, 81.5)),   // 49mm, Ultra and Ultra 2
-        watchFrames(screenSize: (211, 257), rectangular: (191, 81.5))    // 49mm, Ultra 3
-    ].flatMap { $0 }
+    static let watchRectangularByCaseSize: [(minCaseSize: CGFloat, frame: CGSize)] = [
+        (49, CGSize(width: 191, height: 81.5)),
+        (45, CGSize(width: 184, height: 80.5)),
+        (44, CGSize(width: 173, height: 76.5)),
+        (41, CGSize(width: 165, height: 72.5)),
+        (0, CGSize(width: 152, height: 69.5))
+    ]
 
-    private static func watchFrames(
-        screenSize: (CGFloat, CGFloat),
-        rectangular: (CGFloat, CGFloat)
-    ) -> [WidgetFrame] {
-        group(
+    /// The Smart Stack frame for a case size in millimetres.
+    static func watchRectangular(caseSize: CGFloat) -> CGSize? {
+        watchRectangularByCaseSize.first { caseSize >= $0.minCaseSize }?.frame
+    }
+
+    /// Apple Watch frames, derived by giving each watch the frame published for its case size.
+    ///
+    /// Storing them against screen size means a watch released after ``watchDevices`` was last updated resolves to the nearest known one rather than to nothing.
+    private static let watch: [WidgetFrame] = watchDevices.flatMap { device -> [WidgetFrame] in
+        guard let frame = watchRectangular(caseSize: device.caseSize) else { return [] }
+        return group(
             platform: .watch,
             /// FrameUp supports watchOS 9 and later, which is also where widgets in the Smart Stack arrived.
             minMajorOSVersion: 9,
             placement: .smartStack,
-            screenSize: screenSize,
+            screenSize: (device.screenSize.width, device.screenSize.height),
             displayScale: nil,
             target: nil,
-            frames: [.accessoryRectangular: rectangular]
+            frames: [.accessoryRectangular: (frame.width, frame.height)]
         )
     }
 

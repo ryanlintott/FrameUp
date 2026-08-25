@@ -140,19 +140,7 @@ public extension WidgetSize {
 
     /// Apple Watch case size in mm for the supplied screen size.
     internal static func watchSize(screenSize: CGSize) -> CGFloat? {
-        switch (screenSize.width, screenSize.height) {
-        case (136, 170): 38
-        case (156, 195): 42   // Series 1–3
-        case (162, 197): 40
-        case (176, 215): 41
-        case (184, 224): 44
-        case (187, 223): 42   // Series 10/11
-        case (198, 242): 45
-        case (205, 251): 49   // Ultra, Ultra 2
-        case (208, 248): 46   // Series 10/11
-        case (211, 257): 49   // Ultra 3
-        default: nil
-        }
+        WidgetFrame.watchDevices.first { $0.screenSize == screenSize }?.caseSize
     }
     
     /// Sizes of widgets in smart stack for Apple Watch.
@@ -176,23 +164,8 @@ public extension WidgetSize {
     /// - Parameter watchSize: Apple Watch size in mm.
     /// - Returns: A dictionary of sizes based on widget size. Sizes with no known frame are omitted.
     static func sizesForWatch(watchSize: CGFloat) -> [WidgetSize: CGSize] {
-        guard let screenSize = screenSize(watchSize: watchSize) else { return [:] }
-        return sizesForWatch(screenSize: screenSize)
-    }
-
-    /// A screen size reported by a watch of the supplied case size, used to look up frames keyed on screen size.
-    ///
-    /// Several cases report more than one screen size across generations. Any of them resolves to the same frame, so the largest is used.
-    internal static func screenSize(watchSize: CGFloat) -> CGSize? {
-        switch watchSize {
-        case 49...: CGSize(width: 211, height: 257)
-        case 46...: CGSize(width: 208, height: 248)
-        case 45...: CGSize(width: 198, height: 242)
-        case 44...: CGSize(width: 184, height: 224)
-        case 41...: CGSize(width: 176, height: 215)
-        case 38...: CGSize(width: 162, height: 197)
-        default: nil
-        }
+        guard let frame = WidgetFrame.watchRectangular(caseSize: watchSize) else { return [:] }
+        return [.accessoryRectangular: frame]
     }
     
     /// Smallest size for this widget size across every device that supports it.
