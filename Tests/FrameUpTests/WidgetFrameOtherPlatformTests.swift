@@ -108,3 +108,60 @@ struct WidgetFrameWatchTests {
         #expect(published == [40, 41, 44, 45, 49])
     }
 }
+
+struct WidgetFrameMacTests {
+    @Test(arguments: [
+        (WidgetSize.small, CGSize(width: 164, height: 164)),
+        (WidgetSize.medium, CGSize(width: 344, height: 164)),
+        (WidgetSize.large, CGSize(width: 344, height: 344)),
+        (WidgetSize.extraLarge, CGSize(width: 704, height: 344))
+    ])
+    func measuredFrames(widgetSize: WidgetSize, expected: CGSize) throws {
+        #expect(try #require(WidgetSize.sizesForMac(majorOSVersion: 26)[widgetSize]) == expected)
+    }
+
+    /// Widgets in a Mac Catalyst app are hosted by macOS, so a Catalyst lookup returns the macOS frames.
+    @Test func macCatalystUsesTheSameFrames() throws {
+        let mac = WidgetFrame.frames(platform: .mac, screenSize: .zero, majorOSVersion: 26)
+        let catalyst = WidgetFrame.frames(platform: .macCatalyst, screenSize: .zero, majorOSVersion: 26)
+        #expect(catalyst.isEmpty == false)
+        for (widgetSize, frame) in mac {
+            #expect(try #require(catalyst[widgetSize]) == frame, "\(widgetSize)")
+        }
+    }
+
+    /// The frames form a grid with a 16 point gutter.
+    @Test func theFramesFormAConsistentGrid() throws {
+        let frames = WidgetSize.sizesForMac(majorOSVersion: 26)
+        let small = try #require(frames[.small])
+        let medium = try #require(frames[.medium])
+        let large = try #require(frames[.large])
+        let extraLarge = try #require(frames[.extraLarge])
+        #expect(medium.width == small.width * 2 + 16)
+        #expect(extraLarge.width == large.width * 2 + 16)
+        #expect(medium.height == small.height)
+        #expect(large.width == medium.width)
+    }
+
+    /// Measured on macOS 26, so an earlier version reports no frame rather than a value that may not hold.
+    @Test func earlierVersionsHaveNoFrames() {
+        #expect(WidgetSize.sizesForMac(majorOSVersion: 15).isEmpty)
+    }
+
+    /// macOS has no Lock Screen, so there are no accessory frames, and extraLargePortrait arrives in macOS 27 unmeasured.
+    @Test func absentFamilies() {
+        let frames = WidgetSize.sizesForMac(majorOSVersion: 26)
+        #expect(frames[.accessoryCircular] == nil)
+        #expect(frames[.accessoryRectangular] == nil)
+        #expect(frames[.accessoryInline] == nil)
+        #expect(frames[.extraLargePortrait] == nil)
+    }
+
+    /// A Mac widget is not placed on a screen grid, so the lookup must not depend on a screen size.
+    @Test(arguments: [CGSize.zero, CGSize(width: 2560, height: 1440)])
+    func theLookupIgnoresScreenSize(screenSize: CGSize) throws {
+        let frames = WidgetFrame.frames(platform: .mac, screenSize: screenSize, majorOSVersion: 26)
+        #expect(try #require(frames[.small]) == CGSize(width: 164, height: 164))
+    }
+}
+

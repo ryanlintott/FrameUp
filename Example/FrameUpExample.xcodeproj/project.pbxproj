@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		CFB000000000000000000003 /* WidgetSizeProbeExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = CFB000000000000000000002 /* WidgetSizeProbeExtension.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		CFB000000000000000000003 /* WidgetSizeProbeExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = CFB000000000000000000002 /* WidgetSizeProbeExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		CFB000000000000000000008 /* FrameUp in Frameworks */ = {isa = PBXBuildFile; productRef = CFB000000000000000000007 /* FrameUp */; };
 		CF1AB2B22CB5BF530049E553 /* FrameUp in Frameworks */ = {isa = PBXBuildFile; productRef = CF1AB2B12CB5BF530049E553 /* FrameUp */; };
 		CF1EEF3E274D4C4D00987595 /* WidgetFrameWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = CF1EEF2D274D4C4C00987595 /* WidgetFrameWidgetExtension.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -385,7 +385,6 @@
 /* Begin PBXTargetDependency section */
 		CFB000000000000000000011 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			platformFilter = ios;
 			target = CFB000000000000000000009 /* WidgetSizeProbeExtension */;
 			targetProxy = CFB000000000000000000010 /* PBXContainerItemProxy */;
 		};
@@ -410,10 +409,12 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
+				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = "Entitlements/macOS-widget.entitlements";
 				INFOPLIST_FILE = WidgetSizeProbe/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = WidgetSizeProbe;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -423,7 +424,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.abetterwaytodo.FrameUpExample.WidgetSizeProbe;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
@@ -439,10 +440,12 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
+				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = "Entitlements/macOS-widget.entitlements";
 				INFOPLIST_FILE = WidgetSizeProbe/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = WidgetSizeProbe;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -452,7 +455,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.abetterwaytodo.FrameUpExample.WidgetSizeProbe;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
@@ -680,6 +683,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				MARKETING_VERSION = 1.0;
+				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = "Entitlements/macOS-app.entitlements";
 				PRODUCT_BUNDLE_IDENTIFIER = com.abetterwaytodo.FrameUpExample;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "appletvos appletvsimulator iphoneos iphonesimulator macosx xros xrsimulator";
@@ -720,6 +724,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				MARKETING_VERSION = 1.0;
+				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = "Entitlements/macOS-app.entitlements";
 				PRODUCT_BUNDLE_IDENTIFIER = com.abetterwaytodo.FrameUpExample;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "appletvos appletvsimulator iphoneos iphonesimulator macosx xros xrsimulator";

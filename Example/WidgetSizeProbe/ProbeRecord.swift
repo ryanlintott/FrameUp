@@ -7,8 +7,12 @@
 
 import Foundation
 import os
-import UIKit
 import WidgetKit
+#if canImport(UIKit)
+import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
 
 /// One measurement of the frame WidgetKit provides for a single widget family on a single device.
 ///
@@ -75,17 +79,32 @@ extension ProbeRecord {
     /// `UIScreen` is main actor isolated but `TimelineProvider` callbacks make no promise about which thread they run on, so this returns nil rather than hopping actors. A run where this is always nil tells us the provider does not run on the main thread.
     static var screenSize: CGSize? {
         guard Thread.isMainThread else { return nil }
+        #if canImport(UIKit)
         return MainActor.assumeIsolated { UIScreen.main.fixedCoordinateSpace.bounds.size }
+        #elseif canImport(AppKit)
+        return MainActor.assumeIsolated { NSScreen.main?.frame.size }
+        #else
+        return nil
+        #endif
     }
 
     /// Pixels per point on the display. Nil when not read from the main thread, see ``ProbeRecord/screenSize``.
+    ///
+    /// Recorded rather than inferred. A screen size in points does not imply a scale, and a frame that happens to be a whole number of points is a whole number of pixels at both 2x and 3x, so the scale cannot be recovered from the frame afterwards.
     static var displayScale: CGFloat? {
         guard Thread.isMainThread else { return nil }
+        #if canImport(UIKit)
         return MainActor.assumeIsolated { UIScreen.main.scale }
+        #elseif canImport(AppKit)
+        return MainActor.assumeIsolated { NSScreen.main?.backingScaleFactor }
+        #else
+        return nil
+        #endif
     }
 
     /// User interface idiom as a string. Nil when not read from the main thread, see ``ProbeRecord/screenSize``.
     static var idiom: String? {
+        #if canImport(UIKit)
         guard Thread.isMainThread else { return nil }
         return MainActor.assumeIsolated {
             switch UIDevice.current.userInterfaceIdiom {
@@ -98,6 +117,11 @@ extension ProbeRecord {
             default: "unspecified"
             }
         }
+        #elseif canImport(AppKit)
+        return "mac"
+        #else
+        return nil
+        #endif
     }
 }
 

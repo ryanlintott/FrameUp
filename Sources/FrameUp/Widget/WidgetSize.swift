@@ -123,6 +123,22 @@ public extension WidgetSize {
         )
     }
 
+    /// Widget sizes for macOS and Mac Catalyst.
+    ///
+    /// Apple publishes no widget specifications for macOS, so these are measured. Widgets in a Mac Catalyst app are hosted by macOS and use the same frames.
+    ///
+    /// > Note: measured on macOS 26 and applying from there. Earlier versions report no frame. `extraLargePortrait` arrives in macOS 27 and has no frame here yet. The accessory sizes do not exist on macOS.
+    /// - Parameter majorOSVersion: Major macOS version to look up frames for. Nil uses the version currently running.
+    /// - Returns: A dictionary of sizes based on widget size. Sizes with no known frame are omitted.
+    static func sizesForMac(majorOSVersion: Int? = nil) -> [WidgetSize: CGSize] {
+        WidgetFrame.frames(
+            platform: .mac,
+            /// A Mac widget is not placed on a screen grid, so there is no screen size to look up.
+            screenSize: .zero,
+            majorOSVersion: majorOSVersion ?? WidgetFrame.currentMajorOSVersion
+        )
+    }
+
     /// Widget sizes for visionOS.
     ///
     /// All sizes are sourced from [Apple Human Interface Guidelines: widget specifications](https://developer.apple.com/design/human-interface-guidelines/widgets#Specifications)
@@ -241,6 +257,15 @@ public extension WidgetSize {
             majorOSVersion: majorOSVersion,
             placement: placement
         )[self]
+    }
+
+    /// Size for this widget on macOS or Mac Catalyst.
+    ///
+    /// > Note: measured on macOS 26 and applying from there. Earlier versions return nil, as does `extraLargePortrait`, which arrives in macOS 27 and has no frame here yet.
+    /// - Parameter majorOSVersion: Major macOS version to look up frames for. Nil uses the version currently running.
+    /// - Returns: Size for this widget. Nil if no frame is known.
+    func sizeForMac(majorOSVersion: Int? = nil) -> CGSize? {
+        Self.sizesForMac(majorOSVersion: majorOSVersion)[self]
     }
 
     /// Size for this widget on visionOS.

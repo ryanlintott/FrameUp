@@ -97,6 +97,8 @@ extension WidgetFrame {
         placement: WidgetPlacement? = nil,
         target: WidgetTarget? = nil
     ) -> [WidgetSize: CGSize] {
+        /// Widgets in a Mac Catalyst app are hosted by macOS, so they use the same frames.
+        let platform = platform == .macCatalyst ? .mac : platform
         let candidates = all.filter { candidate in
             guard candidate.platform == platform,
                   candidate.target == target,

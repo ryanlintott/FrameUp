@@ -34,6 +34,7 @@ Before upgrading, resolve any deprecation warnings from `0.9.11` — `HFlowLegac
 - `WidgetSize.sizesForWatch(screenSize:)` and `sizeForWatch(screenSize:)`, which find the Apple Watch case size from the screen size before looking up the frame.
 - `WidgetSize.sizeForCurrentDevice()` on visionOS and watchOS, alongside the existing iOS `sizeForCurrentDevice(iPadTarget:)`.
 - `WidgetSize.supportedSizesForCurrentDevice` now works on macOS, watchOS, visionOS, Mac Catalyst, and CarPlay instead of iOS only.
+- `WidgetSize.sizesForMac(majorOSVersion:)` and `sizeForMac(majorOSVersion:)`, the first widget frames FrameUp has had for macOS. Apple publishes no widget specifications for macOS at all, so these are measured. A Mac Catalyst lookup resolves to the same frames, since widgets there are hosted by macOS.
 - `WidgetPlacement`, an enum of the places a widget can appear. It mirrors `WidgetKit.WidgetLocation`, which cannot be used here because it is unavailable on macOS, tvOS, and visionOS and requires iOS 17.
 - `majorOSVersion` and `displayScale` parameters on `sizesForiPhone`/`sizeForiPhone`, and `majorOSVersion` on `sizesForiPad`/`sizeForiPad`, along with a `placement` parameter on all four. Every one defaults to the running device, so existing call sites are unaffected.
 - Frames for the screen sizes Apple has never published a row for: the 402, 420, and 440 point wide iPhones, and the 1032x1376 iPad that every M4 and M5 13-inch iPad Pro reports.

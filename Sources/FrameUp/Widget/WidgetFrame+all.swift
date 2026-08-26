@@ -11,7 +11,7 @@ extension WidgetFrame {
     /// Every known set of widget frames.
     ///
     /// iPhone sets from iOS 26 onward were measured with the `WidgetSizeProbe` widget in the example app. Everything else is sourced from [Apple Human Interface Guidelines: widget specifications](https://developer.apple.com/design/human-interface-guidelines/widgets#Specifications), which describes iOS 18 and earlier. Spot checks on iOS 18.6 confirmed the published iPhone values, including the 402 and 440 point wide screens that Apple never published a row for.
-    static let all: [WidgetFrame] = iPhoneiOS15 + iPhoneiOS15LockScreen + iPhoneiOS26 + iPhoneiOS26LockScreen + iPhoneiOS27Portrait + iPad + iPadPortrait + iPadLockScreen + visionOS + watch
+    static let all: [WidgetFrame] = iPhoneiOS15 + iPhoneiOS15LockScreen + iPhoneiOS26 + iPhoneiOS26LockScreen + iPhoneiOS27Portrait + iPad + iPadPortrait + iPadLockScreen + visionOS + watch + mac
 
     /// iPhone frames for iOS 18 and earlier, as published by Apple.
     ///
@@ -267,6 +267,28 @@ extension WidgetFrame {
             .large: (338, 354),
             .extraLarge: (450, 338),
             .extraLargePortrait: (338, 450)
+        ]
+    )
+
+    /// macOS frames, measured rather than published. Apple publishes no widget specifications for macOS at all.
+    ///
+    /// Measured on macOS 26.6 with the widget in Notification Center. A Mac widget is not placed on a screen grid the way an iPhone widget is, so like visionOS there is no screen size to key on and the screen size is a placeholder that any lookup matches.
+    ///
+    /// The frames form a clean grid with a 16 point gutter: `medium` is two `small` plus a gutter, and `extraLarge` is two `large` plus a gutter.
+    ///
+    /// > Note: measured on macOS 26 only, so they apply from there. Earlier versions report no frame rather than a value that may not hold, since iOS frames are known to have changed in its version 26. `extraLargePortrait` arrives in macOS 27 and has not been measured. The accessory sizes do not exist on macOS.
+    private static let mac: [WidgetFrame] = group(
+        platform: .mac,
+        minMajorOSVersion: 26,
+        placement: .homeScreen,
+        screenSize: (0, 0),
+        displayScale: nil,
+        target: nil,
+        frames: [
+            .small: (164, 164),
+            .medium: (344, 164),
+            .large: (344, 344),
+            .extraLarge: (704, 344)
         ]
     )
 

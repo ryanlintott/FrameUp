@@ -99,12 +99,13 @@ struct WidgetSizeProbe: Widget {
             .systemSmall,
             .systemMedium,
             .systemLarge,
-            .systemExtraLarge,
-            .accessoryCircular,
-            .accessoryRectangular,
-            .accessoryInline
+            .systemExtraLarge
         ]
-        if #available(iOS 27, *) {
+        /// The accessory families are Lock Screen and watch only, and macOS has no Lock Screen.
+        #if !os(macOS)
+        families += [.accessoryCircular, .accessoryRectangular, .accessoryInline]
+        #endif
+        if #available(iOS 27, macOS 27, *) {
             families.append(.systemExtraLargePortrait)
         }
         return families
@@ -125,7 +126,7 @@ struct WidgetSizeProbe: Widget {
 extension View {
     @ViewBuilder
     func probeContainerBackground() -> some View {
-        if #available(iOS 17.0, *) {
+        if #available(iOS 17.0, macOS 14.0, *) {
             containerBackground(.fill.tertiary, for: .widget)
         } else {
             self

@@ -142,6 +142,31 @@ On every iPad the Lock Screen `systemSmall` is exactly as wide as `accessoryRect
 
 `1032×1376` has no row in `WidgetSize` at all. Every M4 and M5 13-inch iPad Pro reports it. Its design canvas system frames were measured and are identical to those of 1024×1366, so the nearest width fallback already gives the right answer for those, but its Lock Screen frames differ and now have their own row.
 
+### macOS and Mac Catalyst
+
+Measured on macOS 26.6.2 with the widget in Notification Center. Apple publishes no widget specifications for macOS at all, so these values exist nowhere else.
+
+| Family | Frame | Pixels at 2x |
+| --- | --- | --- |
+| `small` | 164×164 | 328×328 |
+| `medium` | 344×164 | 688×328 |
+| `large` | 344×344 | 688×688 |
+| `extraLarge` | 704×344 | 1408×688 |
+
+The frames form a grid with a 16 point gutter: `medium` is two `small` plus a gutter, and `extraLarge` is two `large` plus a gutter.
+
+`extraLargePortrait` did not appear because it arrives in macOS 27 and this Mac runs 26. The accessory sizes do not exist on macOS.
+
+A Mac widget is not placed on a screen grid the way an iPhone widget is, so there is no screen size to key on, and the lookup ignores the screen size passed to it. Whether the frames change on a display of a different scale has not been tested.
+
+Widgets in a Mac Catalyst app are hosted by macOS, so the lookup resolves Catalyst to these same frames rather than storing them twice.
+
+#### Capturing on macOS
+
+macOS needs more setup than a simulator. The widget extension has to build for macOS, which means gating the UIKit access, and both the app and the extension need the App Sandbox entitlement or the system will not register the extension at all. The extension's embed phase and target dependency also carry `platformFilter = ios` by default, which silently skips embedding it on macOS.
+
+The probe's unified log output did not appear on macOS and the reason is not yet understood, so these frames were read off the widgets on screen, which the probe view displays for exactly this reason.
+
 ### iPad
 
 All at 820×1180 @2x, and identical on iPadOS 18.6, 26.5 and 27.0. `displaySize` reports the design canvas, not the Home Screen frame.
