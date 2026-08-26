@@ -4,6 +4,14 @@ Frame sizes reported by WidgetKit on real devices and simulators, captured with 
 
 These are the raw measurements behind the `WidgetSize` lookup tables. Apple does not publish a frame for every widget family on every platform, and the published tables lag new devices and OS betas, so measuring is the only way to fill the gaps.
 
+## What cannot be captured in a simulator
+
+**Use the Simulator app from Xcode 26.6, not Xcode 27.** Xcode 27 ships no `Simulator.app` at all; it is replaced by Device Hub, which does not accept injected touch events and has a reduced Settings app. Everything below was retested under the Xcode 26.6 Simulator before being called impossible.
+
+**StandBy.** StandBy needs the device locked, charging and in landscape at once. `simctl status_bar override --batteryState charging` only changes what the status bar draws, not what the system believes about power, so rotating a locked simulator gives a landscape Lock Screen rather than StandBy. `WidgetPlacement.standBy` therefore needs real hardware.
+
+**Widget placement in a preview.** Every `Preview` macro overload takes `as family:` and nothing else, and `WidgetPreviewContext` has one initialiser, `init(family:)`. A preview can choose which family renders but not where, so previews cannot reach StandBy, CarPlay or the Lock Screen.
+
 ## How to capture
 
 1. Build and install the example app on the target device or simulator. The probe extension is embedded in `FrameUpExample`.
