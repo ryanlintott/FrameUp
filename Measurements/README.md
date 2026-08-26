@@ -157,7 +157,7 @@ The frames form a grid with a 16 point gutter: `medium` is two `small` plus a gu
 
 `extraLargePortrait` did not appear because it arrives in macOS 27 and this Mac runs 26. The accessory sizes do not exist on macOS.
 
-A Mac widget is not placed on a screen grid the way an iPhone widget is, so there is no screen size to key on, and the lookup ignores the screen size passed to it. Whether the frames change on a display of a different scale has not been tested.
+A Mac widget is not placed on a screen grid the way an iPhone widget is, so there is no screen size to key on, and the lookup ignores the screen size passed to it. This was checked: the same widgets report the same frames on a 2560×1440 point external display and on a roughly 1728×1117 point built-in one. Both displays are 2x, so a display of a different scale is still untested, though every Mac that runs macOS 26 has a 2x built-in display.
 
 Widgets in a Mac Catalyst app are hosted by macOS, so the lookup resolves Catalyst to these same frames rather than storing them twice.
 

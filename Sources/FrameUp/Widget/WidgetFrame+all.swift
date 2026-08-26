@@ -272,7 +272,7 @@ extension WidgetFrame {
 
     /// macOS frames, measured rather than published. Apple publishes no widget specifications for macOS at all.
     ///
-    /// Measured on macOS 26.6 with the widget in Notification Center. A Mac widget is not placed on a screen grid the way an iPhone widget is, so like visionOS there is no screen size to key on and the screen size is a placeholder that any lookup matches.
+    /// Measured on macOS 26.6 with the widget in Notification Center. A Mac widget is not placed on a screen grid the way an iPhone widget is, so like visionOS there is no screen size to key on and the screen size is a placeholder that any lookup matches. The same widgets were confirmed to report the same frames on two displays of very different point sizes.
     ///
     /// The frames form a clean grid with a 16 point gutter: `medium` is two `small` plus a gutter, and `extraLarge` is two `large` plus a gutter.
     ///
