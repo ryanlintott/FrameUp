@@ -14,6 +14,8 @@ These are the raw measurements behind the `WidgetSize` lookup tables. Apple does
 
 Those zoomed sizes are a consistent 1.164 times the native screen size, but the widget frames do not follow that ratio: the small widget goes 170 to 188 on one device, a factor of 1.106, and 155 to 162 on another, a factor of 1.045. There is no way to derive them.
 
+**CarPlay.** The simulator does implement CarPlay, unlike StandBy. `I/O > External Displays > CarPlay` brings up a working 800x480 screen, `com.apple.CarPlayApp` runs, and the framebuffer can be captured with `simctl io --display external`. What does not work is touching it: clicks do not reach the CarPlay window, which is a long standing Apple bug reported against many Xcode versions and reproducible with Apple's own sample apps. See [Cannot interact with CarPlay external display in Xcode](https://developer.apple.com/forums/thread/736554). The reported workaround, quitting and reconnecting the display several times with the phone locked, did not help here. Apple's suggested alternative is the standalone CarPlay Simulator from Additional Tools, which needs a physical iPhone tethered to the Mac.
+
 **Widget placement in a preview.** Every `Preview` macro overload takes `as family:` and nothing else, and `WidgetPreviewContext` has one initialiser, `init(family:)`. A preview can choose which family renders but not where, so previews cannot reach StandBy, CarPlay or the Lock Screen.
 
 ## How to capture
