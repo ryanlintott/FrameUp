@@ -10,6 +10,10 @@ These are the raw measurements behind the `WidgetSize` lookup tables. Apple does
 
 **StandBy.** StandBy needs the device locked, charging and in landscape at once. `simctl status_bar override --batteryState charging` only changes what the status bar draws, not what the system believes about power, so rotating a locked simulator gives a landscape Lock Screen rather than StandBy. `WidgetPlacement.standBy` therefore needs real hardware.
 
+**Display Zoom.** The simulator's Settings app has no Display & Brightness pane, so More Space cannot be turned on. `simctl ui` offers only appearance, contrast and content size, the device type profile defines no zoom variants, and no zoom preference domain exists on a booted device. The three iPad rows marked with a `*` in Apple's table, `1192x1590`, `970x1389` and `954x1373`, therefore keep their published system frames and fall back to the nearest measured screen size for the Lock Screen frames.
+
+Those zoomed sizes are a consistent 1.164 times the native screen size, but the widget frames do not follow that ratio: the small widget goes 170 to 188 on one device, a factor of 1.106, and 155 to 162 on another, a factor of 1.045. There is no way to derive them.
+
 **Widget placement in a preview.** Every `Preview` macro overload takes `as family:` and nothing else, and `WidgetPreviewContext` has one initialiser, `init(family:)`. A preview can choose which family renders but not where, so previews cannot reach StandBy, CarPlay or the Lock Screen.
 
 ## How to capture
