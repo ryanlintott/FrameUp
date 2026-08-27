@@ -8,7 +8,9 @@
 import Foundation
 import os
 import WidgetKit
-#if canImport(UIKit)
+#if os(watchOS)
+import WatchKit
+#elseif canImport(UIKit)
 import UIKit
 #elseif canImport(AppKit)
 import AppKit
@@ -31,6 +33,8 @@ struct ProbeRecord: Codable {
     let systemVersion: String
     /// Widget family as reported by `WidgetFamily.description`, such as `systemLarge`.
     let family: String
+    /// Which probe widget produced the record. The watchOS placement probes use this to attribute a frame to a placement, since nothing readable at render time reports the location.
+    let widgetKind: String
     /// Frame size WidgetKit reports in `TimelineProviderContext.displaySize`. Nil for records emitted while rendering.
     let displaySize: CGSize?
     /// Frame size measured inside the widget body. Nil for records emitted from a provider callback.
@@ -43,6 +47,8 @@ struct ProbeRecord: Codable {
     let renderingMode: String?
     /// Whether the widget was drawn with a container background. False on the Lock Screen and in StandBy. Nil for provider callbacks.
     let showsContainerBackground: Bool?
+    /// Whether the widget was drawn somewhere that shows its `widgetLabel`. On watchOS this separates a watch face complication, which shows one, from the Smart Stack, which does not. Nil for provider callbacks.
+    let showsWidgetLabel: Bool?
     /// Screen size ignoring orientation, the key the `WidgetSize` lookup tables switch on. Nil when it could not be read, see ``ProbeRecord/screenSize``.
     let screenSize: CGSize?
     /// Pixels per point on the display. Nil when it could not be read, see ``ProbeRecord/screenSize``.
@@ -78,13 +84,21 @@ extension ProbeRecord {
     ///
     /// `UIScreen` is main actor isolated but `TimelineProvider` callbacks make no promise about which thread they run on, so this returns nil rather than hopping actors. A run where this is always nil tells us the provider does not run on the main thread.
     static var screenSize: CGSize? {
+        #if os(watchOS)
+        /// `WKInterfaceDevice` is not main actor isolated, so the watch screen size is readable from whichever thread the provider runs on. It is the key the watch frames are stored against, so losing it would make a measurement useless.
+        return WKInterfaceDevice.current().screenBounds.size
+        #else
         guard Thread.isMainThread else { return nil }
-        #if canImport(UIKit)
+        #if os(visionOS)
+        /// A visionOS widget is placed on a surface in the room rather than on a screen, and `UIScreen` is unavailable there, so there is no screen size to record.
+        return nil
+        #elseif canImport(UIKit)
         return MainActor.assumeIsolated { UIScreen.main.fixedCoordinateSpace.bounds.size }
         #elseif canImport(AppKit)
         return MainActor.assumeIsolated { NSScreen.main?.frame.size }
         #else
         return nil
+        #endif
         #endif
     }
 
@@ -92,19 +106,28 @@ extension ProbeRecord {
     ///
     /// Recorded rather than inferred. A screen size in points does not imply a scale, and a frame that happens to be a whole number of points is a whole number of pixels at both 2x and 3x, so the scale cannot be recovered from the frame afterwards.
     static var displayScale: CGFloat? {
+        #if os(watchOS)
+        return WKInterfaceDevice.current().screenScale
+        #else
         guard Thread.isMainThread else { return nil }
-        #if canImport(UIKit)
+        #if os(visionOS)
+        /// See ``ProbeRecord/screenSize``. visionOS renders each surface at whatever scale its distance calls for, so there is no fixed value to record.
+        return nil
+        #elseif canImport(UIKit)
         return MainActor.assumeIsolated { UIScreen.main.scale }
         #elseif canImport(AppKit)
         return MainActor.assumeIsolated { NSScreen.main?.backingScaleFactor }
         #else
         return nil
         #endif
+        #endif
     }
 
     /// User interface idiom as a string. Nil when not read from the main thread, see ``ProbeRecord/screenSize``.
     static var idiom: String? {
-        #if canImport(UIKit)
+        #if os(watchOS)
+        return "watch"
+        #elseif canImport(UIKit)
         guard Thread.isMainThread else { return nil }
         return MainActor.assumeIsolated {
             switch UIDevice.current.userInterfaceIdiom {
@@ -146,18 +169,20 @@ enum ProbeLog {
     }
 
     /// Emits a record for a provider callback.
-    static func emit(family: String, displaySize: CGSize, isPreview: Bool, stage: String) {
+    static func emit(family: String, widgetKind: String, displaySize: CGSize, isPreview: Bool, stage: String) {
         emit(
             ProbeRecord(
                 deviceModel: ProbeRecord.deviceModel,
                 systemVersion: ProbeRecord.systemVersion,
                 family: family,
+                widgetKind: widgetKind,
                 displaySize: displaySize,
                 viewSize: nil,
                 stage: stage,
                 isPreview: isPreview,
                 renderingMode: nil,
                 showsContainerBackground: nil,
+                showsWidgetLabel: nil,
                 screenSize: ProbeRecord.screenSize,
                 displayScale: ProbeRecord.displayScale,
                 idiom: ProbeRecord.idiom
@@ -166,18 +191,20 @@ enum ProbeLog {
     }
 
     /// Emits a record for a frame measured while rendering the widget body.
-    static func emit(family: String, viewSize: CGSize, renderingMode: String, showsContainerBackground: Bool) {
+    static func emit(family: String, widgetKind: String, viewSize: CGSize, renderingMode: String, showsContainerBackground: Bool, showsWidgetLabel: Bool?) {
         emit(
             ProbeRecord(
                 deviceModel: ProbeRecord.deviceModel,
                 systemVersion: ProbeRecord.systemVersion,
                 family: family,
+                widgetKind: widgetKind,
                 displaySize: nil,
                 viewSize: viewSize,
                 stage: "render",
                 isPreview: nil,
                 renderingMode: renderingMode,
                 showsContainerBackground: showsContainerBackground,
+                showsWidgetLabel: showsWidgetLabel,
                 screenSize: ProbeRecord.screenSize,
                 displayScale: ProbeRecord.displayScale,
                 idiom: ProbeRecord.idiom

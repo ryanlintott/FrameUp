@@ -32,6 +32,14 @@ Those zoomed sizes are a consistent 1.164 times the native screen size, but the 
 3. On the device, enter jiggle mode, choose **Add Widget**, and open the **FrameUp** entry in the gallery. Opening the entry is enough — WidgetKit renders every supported family to build the gallery carousel, so the widget does not need to be placed on the Home Screen.
 4. Merge the captured `WIDGET_SIZE_PROBE` lines into `widget-frames.json`.
 
+On iPad, `displaySize` reports the design canvas, so a rendered frame has to be measured from a screenshot instead. `findwidget.py` decodes a PNG and reports the bounding box of the probe's fill in pixels and points:
+
+```sh
+xcrun simctl io <udid> screenshot shot.png
+python3 Measurements/findwidget.py shot.png 2            # Home Screen and Today View
+python3 Measurements/findwidget.py shot.png 2 bright     # Lock Screen, which renders vibrant
+```
+
 ## Fields
 
 | Field | Meaning |
@@ -43,6 +51,8 @@ Those zoomed sizes are a consistent 1.164 times the native screen size, but the 
 | `family` | `WidgetFamily.description`. |
 | `displaySize` | Frame from `TimelineProviderContext.displaySize`. |
 | `viewSize` | Frame measured while rendering the widget body, with content margins disabled. On iPad this may be the design canvas while `displaySize` is the Home Screen frame. |
+| `widgetKind` | Which probe widget produced the record. Absent on records captured before the watchOS placement work added it. |
+| `showsWidgetLabel` | Whether the render happened somewhere that shows a widget label. Tried as a way to tell a watch face complication from a Smart Stack widget; it does not separate them. Absent on records captured before it was added, and always absent on macOS, which has no such value. |
 
 The file keeps every distinct record rather than a merged summary. Deriving a single frame per device and family is deliberately left to the step that generates the lookup table, because the raw records disagree in ways that are still being investigated. See the notes below.
 
@@ -133,7 +143,25 @@ Design canvas frames. Apple publishes no row for this family on any platform.
 
 The width is identical to `systemMedium` and `systemLarge` on every iPad, the same rule that holds on iPhone.
 
-`834×1112` and `768×1024` have no entry because iPadOS 27 does not run on any iPad reporting those screen sizes. The Home Screen frame is not measured for any of these, and it cannot be derived from the scale factor of the other sizes because that gives a value which is not a whole number of pixels.
+`834×1112` and `768×1024` have no entry because iPadOS 27 does not run on any iPad reporting those screen sizes.
+
+**On iPad this family is offered in Today View, not on the Home Screen grid.** WidgetKit's own `WidgetLocation` has no Today View case, so it is recorded against the Home Screen like every other Today View size, but it cannot be added to the Home Screen itself.
+
+**The rendered frame is derivable after all, and measurement confirms it.** An earlier note here said it could not be, because applying the scale factor to the canvas gives a value that is not a whole number of pixels. That is true of the scale factor and false of the grid. Every published Home Screen row is an exact grid — `medium` is two cells plus a gutter, `large` the same square, `extraLarge` four cells plus three gutters — with no rounding error on any of the ten screen sizes. The canvas rows are the ones carrying a half point, because they are that grid divided by the scale factor.
+
+`extraLargePortrait` measures two cells wide by three tall on the canvas, so it is two by three on the Home Screen grid too:
+
+| Screen | Cell | Gutter | Rendered `extraLargePortrait` | Pixels at 2x |
+| --- | --- | --- | --- | --- |
+| 1024×1366 | 160 | 36 | 356×552 | 712×1104 |
+| 834×1194 | 136 | 28 | 300×464 | 600×928 |
+| 820×1180 | 136 | 28 | **300×464** | **600×928** |
+| 810×1080 | 124 | 24 | 272×420 | 544×840 |
+| 744×1133 | 120 | 20 | 260×400 | 520×800 |
+
+The bold row is measured: a widget placed in Today View on a 820×1180 iPad rendered 600×928 pixels against a 342×529 design canvas, a ratio of 0.8772, the same scale factor every other size on that iPad uses. The rest are derived from the grid and land on whole pixels. `1032×1376` has no row, because it has no published Home Screen row to build a grid from and its canvas frames measured identical to `1024×1366`, so it resolves there by nearest width exactly as its system sizes do.
+
+Measuring a placed widget is the only way to get an iPad rendered frame, since `displaySize` there reports the canvas. The probe paints its container background a saturated magenta for exactly this reason, so its bounds can be found in a screenshot by testing pixels rather than by eye.
 
 This run also confirmed the published `systemExtraLarge` frames on iPadOS 27, which previously had only been checked on 26.5 and 18.6.
 
@@ -154,7 +182,126 @@ Apple's table has no accessory row for iPad. Every value here is measured, all o
 
 On every iPad the Lock Screen `systemSmall` is exactly as wide as `accessoryRectangular`. The Lock Screen widget column is that wide and a system small is sized to fit it. On a 834×1112 iPad the Lock Screen frame is **larger** than the Home Screen frame, 152 against 150, so it is not simply a shrunken version.
 
+**iPad Lock Screen widgets are not scaled.** Placing all three on a 820×1180 iPad and measuring the rendered pixels gives 126×126, 304×126 and 304×304, which is 63×63, 152×63 and 152×152 points — exactly the design canvas values above. Had the Lock Screen scaled its widgets the way the Home Screen does, the same factor would have produced 110.5, 266.7×110.5 and 266.7 pixels, none of them whole. So the canvas frame is the size a Lock Screen widget draws at, and these sizes have one frame rather than two.
+
+That answers what looked like a missing measurement. `WidgetTarget` separates the canvas from the frame it is scaled into on the Home Screen grid, and the Lock Screen does not use that grid, so there is no second frame to find for the accessory sizes or for the Lock Screen `small`.
+
 `1032×1376` has no row in `WidgetSize` at all. Every M4 and M5 13-inch iPad Pro reports it. Its design canvas system frames were measured and are identical to those of 1024×1366, so the nearest width fallback already gives the right answer for those, but its Lock Screen frames differ and now have their own row.
+
+### visionOS
+
+Measured on the Apple Vision Pro simulator on visionOS 26.5 and 27.0, which agree exactly on every family both offer. Apple publishes a visionOS row but only `small` matches.
+
+| Family | Measured | Apple publishes |
+| --- | --- | --- |
+| `small` | 158×158 | 158×158 |
+| `medium` | 354×158 | 338×158 |
+| `large` | 354×354 | 338×354 |
+| `extraLarge` | 550×354 | 450×338 |
+| `extraLargePortrait` | 354×550 | 338×450 |
+| `accessoryCircular` | **75×75** | no row |
+| `accessoryRectangular` | **208×79** | no row |
+
+The system frames form a grid of 158 point cells with a 38 point gutter, so one, two and three cells are 158, 354 and 550 points. Every one of them lands on it: `medium` is two cells by one, `large` two by two, `extraLarge` three by two, and `extraLargePortrait` the same two by three the other way up.
+
+**Apple's table contradicts itself, and the one place it disagrees with itself is the place it agrees with the measurement.** It publishes `large` as 338×354. A two by two widget has to be square, and this one is not. Every other place a two cell span appears in the table it is written 338, but `large`'s height is written 354, which is exactly what every two cell span measures. Three cells is published as 450, and no gutter reproduces that from a 158 point cell: three cells need 474 points before any gutter at all, so 450 would require a gutter of −12.
+
+`small` is the only row that matches, at 158×158, and its millimetre column of 268×268 matches too. The table gives millimetres alongside points at a consistent 1.696 mm per point, so it was written for visionOS specifically rather than copied from the iPhone rows.
+
+Because 26.5 and 27.0 agree, this is a published table that was never right rather than frames that changed the way iPhone's did in iOS 26.
+
+The published values are not an earlier visionOS either. Widgets arrived on visionOS in version 26: every one of the 103 visionOS availability annotations in WidgetKit is 26.0, the two accessory cases are 27.0, and none is lower. A widget extension will not compile for visionOS 2 at all — `WidgetFamily`, `Timeline` and even `WidgetBundle.main()` are all 26.0. The published table also has an `Extra large portrait` row, and that family is visionOS 26.0 in the SDK, arriving there a release before iOS and macOS got it, so a table describing an earlier visionOS could not have listed it.
+
+The accessory sizes arrive in visionOS 27. A 26.5 sweep offered every other family and not these, which is what pins the version. `accessoryInline` has no case in the visionOS SDK at all, so it does not exist there.
+
+The accessory frames are recorded against the Home Screen rather than the Lock Screen, which visionOS does not have. They render with a container background and report `isPreview` false, the same as every other visionOS family, unlike an iPhone Lock Screen accessory which renders vibrant and without one.
+
+visionOS records have no `screenSize` or `displayScale`. A visionOS widget is placed on a surface in the room rather than on a screen, `UIScreen` is unavailable on the platform, and each surface is rendered at whatever scale its distance calls for.
+
+#### Capturing on visionOS
+
+The probe extension needs `xros xrsimulator` added to `SUPPORTED_PLATFORMS`, device family 7, and an `XROS_DEPLOYMENT_TARGET` of 26. Its embed phase carries no `platformFilter`, so unlike the macOS case nothing else has to be changed to get it into the app bundle.
+
+Interaction is the part that is different. visionOS is a 3D scene rather than a screen with touch events, so there is no gallery to open by tapping. The widget gallery is a system app, `com.apple.RealityWidgets`, and launching it directly renders every supported family:
+
+```sh
+xcrun simctl launch <udid> com.abetterwaytodo.FrameUpExample
+xcrun simctl launch <udid> com.apple.RealityWidgets
+```
+
+No pointer or keyboard input is needed, which is why visionOS could be measured where CarPlay could not.
+
+### Apple Watch — watchOS 27
+
+Measured on every Apple Watch simulator, one per case size. Apple publishes one Smart Stack frame per case size and nothing for the watch face.
+
+| Case | Screen | Smart Stack rectangular | Watch face rectangular | Watch face circular | Corner | Apple publishes |
+| --- | --- | --- | --- | --- | --- | --- |
+| 40mm | 162×197 | **152×69.5** | **162×69** | **42×42** | 32×32 | 152×69.5 |
+| 42mm | 187×223 | 176×72.5 | *none reported* | 47×47 | 30×30 | no row |
+| 44mm | 184×224 | **173×76.5** | **184×78** | **47×47** | **36×36** | 173×76.5 |
+| 46mm | 208×248 | 194×80.5 | 196×80.5 | 51×51 | 34×34 | no row |
+| 49mm Ultra 3 | 211×257 | 197×84 | 199×84.5 | 51×51 | 39×39 | 191×81.5 |
+
+Launching the watch app is enough to capture the frame *values*. No gallery to open and no interaction, which makes watchOS the easiest platform to sweep, and all five case sizes above were swept that way.
+
+**Which frame belongs to which placement is a separate question, and it was answered on two of the five watches.** Bold values are confirmed by a placed widget. The 46mm and Ultra 3 rows assign the smaller frame to the Smart Stack and the larger to the watch face by applying the rule those two established, rather than having been placed themselves.
+
+The rule was tested as a prediction rather than assumed. After the 44mm established it, the 40mm frames were predicted in advance — Smart Stack 152×69.5, watch face 162×69, circular 42×42 — and all three came back as predicted. On the 40mm the same widget was placed in both locations and reported both frames, which is the cleanest form of the result: one widget, two places, two frames.
+
+Both confirmed watches' Smart Stack frames also match Apple's published rows exactly, and Apple's table is explicitly Smart Stack sizes.
+
+The 42mm is the one watch where the sweep reports a single rectangular frame rather than a pair. That reproduces across runs with a long settle, so it is not a truncated capture, but with only one frame there is nothing to attribute and no second value is recorded for it.
+
+#### Every family reports two frames, and which is which had to be established
+
+A registration sweep reports two frames for each family — for 44mm, `accessoryRectangular` at both 173×76.5 and 184×78. Nothing readable at render time says where a render came from, so the placement had to be established rather than assumed.
+
+Two approaches failed. `showsWidgetLabel` does not separate them: both frames appear with it true and false. `disfavoredLocations` does not either, because it does not change what WidgetKit pre-renders — a probe disfavouring the Smart Stack still reported both frames.
+
+What worked is the method that settled the iPad Lock Screen: place the widget and read the `timeline` stage. On a 44mm watch:
+
+| Watch | Placed | Family | `timeline` displaySize |
+| --- | --- | --- | --- |
+| 44mm | Smart Stack | `accessoryRectangular` | 173×76.5 |
+| 44mm | Watch face | `accessoryRectangular` | 184×78 |
+| 44mm | Watch face | `accessoryCircular` | 47×47 |
+| 44mm | Watch face | `accessoryCorner` | 36×36 |
+| 40mm | Smart Stack | `accessoryRectangular` | 152×69.5 |
+| 40mm | Watch face | `accessoryRectangular` | 162×69 |
+| 40mm | Watch face | `accessoryCircular` | 42×42 |
+
+On both watches the smaller frame of each pair is the Smart Stack and the larger is the watch face.
+
+`disfavoredLocations` does work for what it is for, which both sessions showed: the probe disfavouring the Smart Stack was not offered in the Smart Stack gallery at all, while still appearing in the complications picker. It gates where a widget can be added, not what gets pre-rendered.
+
+#### Findings
+
+**Apple's table has no row for the 42mm and 46mm watches.** Series 10 and 11 case sizes. They resolved to rows meant for a smaller watch, 165×72.5 and 184×80.5, against measured 176×72.5 and 194×80.5.
+
+**Case size does not identify a watch.** The Ultra 2 and Ultra 3 are both 49mm but report 205×251 and 211×257 screens and different Smart Stack frames, 191×81.5 against a measured 197×84. Apple's published 49mm row describes the Ultra 2. Any lookup keyed on case size alone returns the same answer for both and is wrong for one of them.
+
+**A complication is not the same size as a Smart Stack widget.** On the 44mm they are 184×78 and 173×76.5. Apple publishes only the Smart Stack figure, so the watch face frame exists nowhere else.
+
+**`accessoryCircular` was only ever observed placed on the watch face.** Placing it produced a watch face record and the Smart Stack offered rectangular widgets, so it is recorded against the watch face only. That it *cannot* appear in the Smart Stack was not tested. Its watch face frame is the larger of its pair on both the 40mm and the 44mm, and the larger is taken as the watch face frame on the other watches.
+
+**`accessoryInline` has no usable frame.** It reports a small square — 11×11 on the 40mm up to 13.5×13.5 on the 49mm — and never renders, producing only a placeholder record. It is left out of the table rather than recorded as a frame.
+
+**`accessoryCorner` was measured** but has no ``WidgetSize`` case, so it is in the raw data only.
+
+#### Capturing on watchOS
+
+The probe extension needs `xros`-style treatment plus three things specific to watchOS:
+
+- `SDKROOT = auto`, because the Watch App is `watchos` while the extension inherits `iphoneos` and otherwise builds for the wrong platform and is rejected as mismatched embedded content.
+- `PRODUCT_BUNDLE_IDENTIFIER[sdk=watch*]` nested under the watch app's identifier, since an embedded binary must be prefixed by its parent app's.
+- An embed phase and target dependency on the Watch App, which has neither by default.
+
+`WKInterfaceDevice` supplies the screen size and scale in place of `UIScreen`, which watchOS does not have. It is not main actor isolated, so unlike iOS the screen size is captured whichever thread the provider runs on — worth having, since screen size is the key these frames are stored against.
+
+```sh
+xcrun simctl launch <udid> com.abetterwaytodo.FrameUpExample.watchkitapp
+```
 
 ### macOS and Mac Catalyst
 
@@ -224,6 +371,10 @@ Two patterns hold across every iPhone measured. `accessoryInline` is 36 points t
 
 There is no formula. Circular is not proportional to screen width, at 0.136, 0.144 and 0.149 of it across the range, and it moves by the same 2 points across both a 38 point and a 27 point difference in screen width. Every screen size had to be measured.
 
+**A placed visionOS widget is the same size as its gallery preview.** Checked by placing the probe on a surface in the simulator and comparing it against the preview, which matched. This is the same result as on iPhone and iPad, where a placed widget was measured on screen and agreed with the gallery, so reading frames from the gallery is valid on every platform measured so far. Unlike those two this was confirmed by eye in the environment rather than from a `timeline` stage record, because the placed widget did not re-render inside the log window.
+
+**Apple's published visionOS frames are wrong for every family except `small`.** `medium` and `large` are published 338 wide and measure 354, and `extraLarge` is published 450x338 and measures 550x354. visionOS 26.5 and 27.0 report identical values, so unlike the iPhone case this is not a frame that changed after the table was written — the table was never right. The measured values form a clean 158 point grid with a 38 point gutter and the published ones fit no grid at all, which is the strongest evidence the measurements are the real frames.
+
 **iPad frames did not change in iOS 26.** The same iPad Air reports identical frames on iPadOS 18.6 and 26.5, and a third iPad agrees on 27.0. Whatever changed for iPhone in iOS 26 left iPad alone, so the iPad table needs no OS version axis.
 
 **The iPad design canvas and Home Screen frames are both confirmed, and the scaling is still real.** Apple's published values for 820×1180 are a 155 point canvas and a 136 point Home Screen frame. `displaySize` returns 155 whether the widget is in the gallery or placed, and the placed widget measures 136 points on screen. The ratio is 0.877, matching `scaleFactorForiPad`. Content is still laid out large and scaled down on iPadOS 26.
@@ -245,6 +396,8 @@ This is the only screen size known to split. It was found by noticing that 166.5
 **The pre-iOS-26 values are unverified.** No iOS 25 or earlier runtime is installed, so the older rows are still only Apple's published numbers. They have never been confirmed by measurement.
 
 **`displaySize` is the trustworthy value; `viewSize` is not.** On iPad the rendered `viewSize` for `systemMedium` and `systemLarge` came back as 341.911765 rather than 342. That is 11625/34, which is not a whole number of pixels, while every `displaySize` is. The gallery appears to render the widget through a transform, so `viewSize` measured there reflects the render rather than the frame.
+
+**Measuring a placed widget needs a marking that survives the rendering mode.** The probe paints its container background magenta, which works on the Home Screen and in Today View. The Lock Screen removes the container background and renders vibrant, turning content into a material keyed on luminance, so the magenta never draws. The probe therefore also fills its whole frame with opaque white, which is the brightest thing vibrant mode can produce and is what made the Lock Screen frames measurable. Content margins are disabled, so that fill is exactly the frame.
 
 **A widget size can have more than one frame on the same device, depending on where it is placed.** An iPad `systemSmall` is 155×155 on the Home Screen and 152×152 on the Lock Screen. A widget placed on the Lock Screen reports 152 from its `timeline` callback, so this is a real placement rather than a preview artefact. 152 points is also the width of `accessoryRectangular`, which suggests the Lock Screen widget column is 152 points wide and a system small placed there is sized to that column.
 

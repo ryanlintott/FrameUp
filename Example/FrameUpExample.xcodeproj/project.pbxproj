@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		CFB000000000000000000003 /* WidgetSizeProbeExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = CFB000000000000000000002 /* WidgetSizeProbeExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		CFB000000000000000000020 /* WidgetSizeProbeExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = CFB000000000000000000002 /* WidgetSizeProbeExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		CFB000000000000000000008 /* FrameUp in Frameworks */ = {isa = PBXBuildFile; productRef = CFB000000000000000000007 /* FrameUp */; };
 		CF1AB2B22CB5BF530049E553 /* FrameUp in Frameworks */ = {isa = PBXBuildFile; productRef = CF1AB2B12CB5BF530049E553 /* FrameUp */; };
 		CF1EEF3E274D4C4D00987595 /* WidgetFrameWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = CF1EEF2D274D4C4C00987595 /* WidgetFrameWidgetExtension.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -62,6 +63,17 @@
 				CFF359C92C090B4100AFC57E /* FrameUpWatchExample Watch App.app in Embed Watch Content */,
 			);
 			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CFB000000000000000000021 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				CFB000000000000000000020 /* WidgetSizeProbeExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -258,10 +270,12 @@
 				CFF359B82C090B3F00AFC57E /* Sources */,
 				CFF359B92C090B3F00AFC57E /* Frameworks */,
 				CFF359BA2C090B3F00AFC57E /* Resources */,
+				CFB000000000000000000021 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				CFB000000000000000000022 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				CFD054AD302F8C9200D0E96D /* Shared */,
@@ -400,6 +414,11 @@
 			target = CFF359BB2C090B3F00AFC57E /* FrameUpWatchExample Watch App */;
 			targetProxy = CFF359C72C090B4100AFC57E /* PBXContainerItemProxy */;
 		};
+		CFB000000000000000000022 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CFB000000000000000000009 /* WidgetSizeProbeExtension */;
+			targetProxy = CFB000000000000000000010 /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
@@ -422,15 +441,20 @@
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.abetterwaytodo.FrameUpExample.WidgetSizeProbe;
+				"PRODUCT_BUNDLE_IDENTIFIER[sdk=watch*]" = com.abetterwaytodo.FrameUpExample.watchkitapp.WidgetSizeProbe;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
 				SKIP_INSTALL = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx watchos watchsimulator xros xrsimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 6.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				"TARGETED_DEVICE_FAMILY[sdk=watch*]" = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 9.0;
+				XROS_DEPLOYMENT_TARGET = 26.0;
 			};
 			name = Debug;
 		};
@@ -453,15 +477,20 @@
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.abetterwaytodo.FrameUpExample.WidgetSizeProbe;
+				"PRODUCT_BUNDLE_IDENTIFIER[sdk=watch*]" = com.abetterwaytodo.FrameUpExample.watchkitapp.WidgetSizeProbe;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
 				SKIP_INSTALL = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx watchos watchsimulator xros xrsimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 6.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				"TARGETED_DEVICE_FAMILY[sdk=watch*]" = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 9.0;
+				XROS_DEPLOYMENT_TARGET = 26.0;
 			};
 			name = Release;
 		};

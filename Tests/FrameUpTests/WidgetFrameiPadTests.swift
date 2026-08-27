@@ -203,20 +203,44 @@ struct WidgetFrameiPadTests {
         #expect(try #require(onLock[.small]) == lock)
     }
 
-    /// On every iPad, extraLargePortrait is exactly as wide as medium and large, the same rule that holds on iPhone.
+    /// On every iPad, extraLargePortrait is exactly as wide as medium and large, the same rule that holds on iPhone. It holds within each target, since the canvas and the rendered frame are different sizes.
     @Test func extraLargePortraitSharesTheMediumWidth() throws {
         for stored in WidgetFrame.all
         where stored.platform == .pad && stored.widgetSize == .extraLargePortrait {
             let frames = WidgetSize.sizesForiPad(
                 screenSize: stored.screenSize,
-                target: .designCanvas,
+                target: try #require(stored.target),
                 majorOSVersion: 27
             )
             let medium = try #require(frames[.medium])
             let large = try #require(frames[.large])
-            #expect(stored.frame.width == medium.width, "\(stored.screenSize)")
-            #expect(stored.frame.height > large.height, "\(stored.screenSize)")
+            #expect(stored.frame.width == medium.width, "\(stored.screenSize) \(String(describing: stored.target))")
+            #expect(stored.frame.height > large.height, "\(stored.screenSize) \(String(describing: stored.target))")
         }
+    }
+
+    /// The rendered `extraLargePortrait` frame is the canvas scaled by the same factor every other size on that iPad uses. Confirmed on the 820x1180 iPad by measuring a placed widget at 600x928 pixels.
+    @Test func extraLargePortraitScalesLikeEveryOtherSize() throws {
+        for stored in WidgetFrame.all
+        where stored.platform == .pad && stored.widgetSize == .extraLargePortrait && stored.target == .homeScreen {
+            let scale = try #require(WidgetSize.extraLargePortrait.scaleFactorForiPad(screenSize: stored.screenSize, majorOSVersion: 27))
+            let smallScale = try #require(WidgetSize.small.scaleFactorForiPad(screenSize: stored.screenSize, majorOSVersion: 27))
+            #expect(abs(scale - smallScale) < 0.001, "\(stored.screenSize)")
+            /// Every rendered frame lands on a whole pixel at 2x.
+            for value in [stored.frame.width, stored.frame.height] {
+                #expect((value * 2).truncatingRemainder(dividingBy: 1) == 0, "\(stored.screenSize) \(value)")
+            }
+        }
+    }
+
+    /// The measured case, kept as its own assertion so the value that was confirmed on device is pinned separately from the ones derived from the grid.
+    @Test func theMeasuredExtraLargePortraitRenderedFrame() throws {
+        let frames = WidgetSize.sizesForiPad(
+            screenSize: CGSize(width: 820, height: 1180),
+            target: .homeScreen,
+            majorOSVersion: 27
+        )
+        #expect(try #require(frames[.extraLargePortrait]) == CGSize(width: 300, height: 464))
     }
 
     /// extraLargePortrait arrived in iPadOS 27, so an earlier lookup has no frame for it.

@@ -11,7 +11,7 @@ extension WidgetFrame {
     /// Every known set of widget frames.
     ///
     /// iPhone sets from iOS 26 onward were measured with the `WidgetSizeProbe` widget in the example app. Everything else is sourced from [Apple Human Interface Guidelines: widget specifications](https://developer.apple.com/design/human-interface-guidelines/widgets#Specifications), which describes iOS 18 and earlier. Spot checks on iOS 18.6 confirmed the published iPhone values, including the 402 and 440 point wide screens that Apple never published a row for.
-    static let all: [WidgetFrame] = iPhoneiOS15 + iPhoneiOS15LockScreen + iPhoneiOS26 + iPhoneiOS26LockScreen + iPhoneiOS27Portrait + iPad + iPadPortrait + iPadLockScreen + visionOS + watch + mac
+    static let all: [WidgetFrame] = iPhoneiOS15 + iPhoneiOS15LockScreen + iPhoneiOS26 + iPhoneiOS26LockScreen + iPhoneiOS27Portrait + iPadDesignCanvas + iPadHomeScreen + iPadPortraitDesignCanvas + iPadPortraitHomeScreen + iPadLockScreen + visionOS + visionOSAccessory + watch + mac
 
     /// iPhone frames for iOS 18 and earlier, as published by Apple.
     ///
@@ -61,7 +61,7 @@ extension WidgetFrame {
     ///
     /// These are the accessory columns of the same published table, separated because accessory widgets appear on the Lock Screen rather than the Home Screen. Accessory widgets arrived in iOS 16, so these apply from there rather than from 15.
     ///
-    /// > Note: these have not been measured on iOS 26. The system frames on that OS all changed, so these may be out of date.
+    /// > Note: these are superseded from iOS 26 by ``iPhoneiOS26LockScreen``, which measured every one of them and found every published value wrong. They still apply to iOS 18 and earlier, where they remain unverified.
     private static let iPhoneiOS15LockScreen: [WidgetFrame] = [
         iPhoneiOS15Lock(screenSize: (430, 932), circular: (76, 76), rectangular: (172, 76), inline: (257, 26)),
         iPhoneiOS15Lock(screenSize: (428, 926), circular: (76, 76), rectangular: (172, 76), inline: (257, 26)),
@@ -101,7 +101,7 @@ extension WidgetFrame {
     ///
     /// Values are written in pixels because every measured frame lands on a whole number of pixels. Dividing by the display scale reproduces the fractional point values exactly. The frames themselves are stored in points.
     ///
-    /// > Note: the accessory sizes and `extraLargePortrait` have not been measured on iOS 26 yet, so they are omitted here. Sets layer rather than replace, so a lookup on iOS 26 still returns the published accessory frames from the iOS 15 set. Those values are unverified on iOS 26 and may have changed the way the system sizes did.
+    /// > Note: only the system sizes are here. The accessory sizes changed in iOS 26 too and are in ``iPhoneiOS26LockScreen``, kept separate because they appear on the Lock Screen rather than the Home Screen. `extraLargePortrait` does not exist until iOS 27 and is in ``iPhoneiOS27Portrait``.
     private static let iPhoneiOS26: [WidgetFrame] = [
         // Measured on iPhone 17 Pro Max (iPhone18,2), iOS 27.0
         iPhoneiOS26(screenSize: (440, 956), displayScale: 3, small: (530, 530), medium: (1134, 530), large: (1134, 1182)),
@@ -249,24 +249,50 @@ extension WidgetFrame {
         )
     }
 
-    /// visionOS frames, as published by Apple.
+    /// visionOS system frames, measured rather than published.
     ///
     /// visionOS widgets are placed on real surfaces rather than a screen, so there is no screen size to key on and one group covers every device. The screen size is a placeholder that any lookup matches.
     ///
-    /// > Note: `accessoryCircular` and `accessoryRectangular` are supported from visionOS 27 but have no frame here yet, so they are omitted.
+    /// Apple publishes a visionOS row, but only `small` matches what the system reports. Measured on visionOS 26.5 and 27.0, which agree exactly, so this is a published table that was never right rather than a frame that changed. The published `medium` and `large` are 338 wide against a measured 354, and the published `extraLarge` is 450x338 against a measured 550x354.
+    ///
+    /// The measured frames form a grid of 158 point cells with a 38 point gutter, so one, two and three cells are 158, 354 and 550 points. Every system frame lands on it: `medium` is two cells by one, `extraLarge` three by two, and `extraLargePortrait` the same two by three the other way up.
+    ///
+    /// Apple's table contradicts itself, and the one place it disagrees with itself is the place it agrees with the measurement. It publishes `large` as 338x354, which cannot be right because a two by two widget has to be square. Every other two cell span in the table is written 338, but `large`'s height is written 354, which is what every two cell span measures.
+    ///
+    /// Read from the widget gallery, and a widget placed on a surface was checked against its preview and matched, the same result as on iPhone and iPad.
+    ///
+    /// Widgets arrived on visionOS in version 26, so these are not an earlier version's frames: every visionOS availability annotation in WidgetKit is 26.0 or 27.0, and a widget extension does not compile for visionOS 2 at all. The published table even has an `extraLargePortrait` row, a family that is visionOS 26.0 in the SDK.
     private static let visionOS: [WidgetFrame] = group(
         platform: .vision,
-        minMajorOSVersion: 1,
+        minMajorOSVersion: 26,
         placement: .homeScreen,
         screenSize: (0, 0),
         displayScale: nil,
         target: nil,
         frames: [
             .small: (158, 158),
-            .medium: (338, 158),
-            .large: (338, 354),
-            .extraLarge: (450, 338),
-            .extraLargePortrait: (338, 450)
+            .medium: (354, 158),
+            .large: (354, 354),
+            .extraLarge: (550, 354),
+            .extraLargePortrait: (354, 550)
+        ]
+    )
+
+    /// visionOS accessory frames, measured rather than published. Apple publishes no accessory row for visionOS.
+    ///
+    /// Added in visionOS 27, and absent from a 26.5 sweep that offered every other family, which confirms the version they arrive in. The visionOS SDK has no `accessoryInline` case at all, so only these two exist.
+    ///
+    /// Unlike the system frames these do not land on the 158 point grid. They are recorded against the Home Screen because visionOS has no Lock Screen: they render with a container background and report `isPreview` false, the same as every other visionOS family, rather than the backgroundless vibrant render an iPhone Lock Screen accessory gives.
+    private static let visionOSAccessory: [WidgetFrame] = group(
+        platform: .vision,
+        minMajorOSVersion: 27,
+        placement: .homeScreen,
+        screenSize: (0, 0),
+        displayScale: nil,
+        target: nil,
+        frames: [
+            .accessoryCircular: (75, 75),
+            .accessoryRectangular: (208, 79)
         ]
     )
 
@@ -312,7 +338,9 @@ extension WidgetFrame {
     ///
     /// These are exactly the rows Apple publishes, so the list can be checked against the specification line by line.
     ///
-    /// > Note: `accessoryCircular` and `accessoryInline` are supported on Apple Watch but have no frame here yet, so they are omitted. `accessoryCorner` is supported too but has no ``WidgetSize`` case.
+    /// These are the published Smart Stack values only. ``watchMeasured`` supersedes them for every watch with a simulator, and they remain the fallback for the rest.
+    ///
+    /// > Note: keyed on case size because that is how Apple publishes them, but a case size does not identify a watch: the Ultra 2 and Ultra 3 are both 49mm with different screens and different frames.
     static let watchRectangularByCaseSize: [(minCaseSize: CGFloat, frame: CGSize)] = [
         (49, CGSize(width: 191, height: 81.5)),
         (45, CGSize(width: 184, height: 80.5)),
@@ -334,91 +362,195 @@ extension WidgetFrame {
         return watchRectangularByCaseSize.min(by: { $0.minCaseSize < $1.minCaseSize })?.frame
     }
 
-    /// Apple Watch frames, derived by giving each watch the frame published for its case size.
+    /// Apple Watch frames measured on watchOS 27, keyed on screen size.
+    ///
+    /// Apple publishes one Smart Stack frame per case size and nothing else. Measuring found three problems with that. The published table has no row for the 42mm and 46mm Series 10 and 11 watches, so they resolved to a row meant for a smaller watch. It has no watch face row at all, and a complication is a different size from a Smart Stack widget on the same watch. And case size does not determine the frame: the Ultra 2 and Ultra 3 are both 49mm but report 205x251 and 211x257 screens, so they cannot share a row.
+    ///
+    /// Every family is pre-rendered at two frames during registration, and nothing readable at render time says which place a render came from. `showsWidgetLabel` does not separate them and neither does `disfavoredLocations`, which changes where a widget is offered but not what gets pre-rendered.
+    ///
+    /// The placement of each frame was established by placing the probe, on the 40mm and again on the 44mm. In both cases a widget in the Smart Stack reported the smaller frame of the pair and the same widget as a complication reported the larger. On the 40mm this was the same widget in both places, reporting 152x69.5 and 162x69. Both watches' Smart Stack frames also match Apple's published rows exactly.
+    ///
+    /// > Important: the 46mm and Ultra 3 rows apply that rule rather than having been placed themselves. Two independent confirmations make it a well supported rule, but those two rows are still an inference.
+    ///
+    /// > Note: `accessoryCorner` was measured but has no ``WidgetSize`` case. `accessoryInline` reports a small square, 11x11 to 13.5x13.5, that never renders and is not a usable frame, so it is left out.
+    private static let watchMeasured: [(screenSize: (CGFloat, CGFloat), smartStackRectangular: (CGFloat, CGFloat), watchFaceRectangular: (CGFloat, CGFloat)?, watchFaceCircular: (CGFloat, CGFloat))] = [
+        // Apple Watch SE 3 40mm. Both frames confirmed by placing the probe in both places, and the Smart Stack frame matches Apple's published 40mm row.
+        (screenSize: (162, 197), smartStackRectangular: (152, 69.5), watchFaceRectangular: (162, 69), watchFaceCircular: (42, 42)),
+        // Apple Watch Series 11 42mm. Apple publishes no row for this case size. Only one rectangular frame is ever pre-rendered here, reproducibly across runs, so there is nothing to attribute to the watch face and no second value is invented for it. A watch face lookup falls back to the nearest watch that has one, the same as any other unknown.
+        (screenSize: (187, 223), smartStackRectangular: (176, 72.5), watchFaceRectangular: nil, watchFaceCircular: (47, 47)),
+        // Apple Watch SE 3 44mm. Both frames confirmed by placing the probe, and the Smart Stack frame matches Apple's published 44mm row.
+        (screenSize: (184, 224), smartStackRectangular: (173, 76.5), watchFaceRectangular: (184, 78), watchFaceCircular: (47, 47)),
+        // Apple Watch Series 11 46mm. Apple publishes no row for this case size.
+        (screenSize: (208, 248), smartStackRectangular: (194, 80.5), watchFaceRectangular: (196, 80.5), watchFaceCircular: (51, 51)),
+        // Apple Watch Ultra 3 49mm. Apple's published 49mm row describes the Ultra 2, which has a smaller screen in the same case.
+        (screenSize: (211, 257), smartStackRectangular: (197, 84), watchFaceRectangular: (199, 84.5), watchFaceCircular: (51, 51))
+    ]
+
+    /// Apple Watch frames.
+    ///
+    /// A measured watch takes its measured frames. Every other watch keeps the frame Apple publishes for its case size, in the Smart Stack only, since there is nothing published for the watch face.
     ///
     /// Storing them against screen size means a watch released after ``watchDevices`` was last updated resolves to the nearest known one rather than to nothing.
-    private static let watch: [WidgetFrame] = watchDevices.flatMap { device -> [WidgetFrame] in
-        guard let frame = watchRectangular(caseSize: device.caseSize) else { return [] }
-        return group(
-            platform: .watch,
-            /// FrameUp supports watchOS 9 and later, which is also where widgets in the Smart Stack arrived.
-            minMajorOSVersion: 9,
-            placement: .smartStack,
-            screenSize: (device.screenSize.width, device.screenSize.height),
+    private static let watch: [WidgetFrame] = {
+        let measured = watchMeasured.flatMap { row -> [WidgetFrame] in
+            var watchFace: [WidgetSize: (CGFloat, CGFloat)] = [.accessoryCircular: row.watchFaceCircular]
+            if let rectangular = row.watchFaceRectangular {
+                watchFace[.accessoryRectangular] = rectangular
+            }
+            return group(
+                platform: .watch,
+                minMajorOSVersion: 9,
+                placement: .smartStack,
+                screenSize: row.screenSize,
+                displayScale: nil,
+                target: nil,
+                frames: [.accessoryRectangular: row.smartStackRectangular]
+            ) + group(
+                platform: .watch,
+                minMajorOSVersion: 9,
+                placement: .watchFace,
+                screenSize: row.screenSize,
+                displayScale: nil,
+                target: nil,
+                frames: watchFace
+            )
+        }
+
+        let published = watchDevices.flatMap { device -> [WidgetFrame] in
+            /// `CGSize` is only `Hashable` from macOS 15, so this compares rather than using a set.
+            let isMeasured = watchMeasured.contains {
+                $0.screenSize.0 == device.screenSize.width && $0.screenSize.1 == device.screenSize.height
+            }
+            guard !isMeasured, let frame = watchRectangular(caseSize: device.caseSize) else { return [] }
+            return group(
+                platform: .watch,
+                /// FrameUp supports watchOS 9 and later, which is also where widgets in the Smart Stack arrived.
+                minMajorOSVersion: 9,
+                placement: .smartStack,
+                screenSize: (device.screenSize.width, device.screenSize.height),
+                displayScale: nil,
+                target: nil,
+                frames: [.accessoryRectangular: (frame.width, frame.height)]
+            )
+        }
+
+        return measured + published
+    }()
+
+    /// iPad design canvas frames, as published by Apple.
+    ///
+    /// The design canvas is the frame widget content is laid out in, before the system scales it into the smaller slot the Home Screen grid gives it. ``iPadHomeScreen`` holds the scaled frames.
+    ///
+    /// iPad frames did not change in iOS 26, so unlike iPhone these apply from iOS 15 with no later set.
+    ///
+    /// > Note: only the system sizes are here. `extraLargePortrait` arrives in iPadOS 27 and is in ``iPadPortrait``, and the accessory sizes and the Lock Screen `small` frame are in ``iPadLockScreen``.
+    private static let iPadDesignCanvas: [WidgetFrame] = [
+        iPadDesignCanvas(screenSize: (1192, 1590), small: (188, 188), medium: (412, 188), large: (412, 412), extraLarge: (860, 412)),
+        iPadDesignCanvas(screenSize: (1024, 1366), small: (170, 170), medium: (378.5, 170), large: (378.5, 378.5), extraLarge: (795, 378.5)),
+        iPadDesignCanvas(screenSize: (970, 1389), small: (162, 162), medium: (350, 162), large: (350, 350), extraLarge: (726, 350)),
+        iPadDesignCanvas(screenSize: (954, 1373), small: (162, 162), medium: (350, 162), large: (350, 350), extraLarge: (726, 350)),
+        iPadDesignCanvas(screenSize: (834, 1194), small: (155, 155), medium: (342, 155), large: (342, 342), extraLarge: (715.5, 342)),
+        iPadDesignCanvas(screenSize: (834, 1112), small: (150, 150), medium: (327.5, 150), large: (327.5, 327.5), extraLarge: (682, 327.5)),
+        // Confirmed on iPad Air 11-inch M2 (iPad14,9) on iPadOS 18.6 and 26.5, and iPad A16 (iPad15,7) on 27.0
+        iPadDesignCanvas(screenSize: (820, 1180), small: (155, 155), medium: (342, 155), large: (342, 342), extraLarge: (715.5, 342)),
+        iPadDesignCanvas(screenSize: (810, 1080), small: (146, 146), medium: (320.5, 146), large: (320.5, 320.5), extraLarge: (669, 320.5)),
+        iPadDesignCanvas(screenSize: (768, 1024), small: (141, 141), medium: (305.5, 141), large: (305.5, 305.5), extraLarge: (634.5, 305.5)),
+        // Published by Apple with the same values as 768x1024. The switch this table replaced had no row for it and reached the same values through its default arm.
+        iPadDesignCanvas(screenSize: (744, 1133), small: (141, 141), medium: (305.5, 141), large: (305.5, 305.5), extraLarge: (634.5, 305.5))
+    ].flatMap { $0 }
+
+    private static func iPadDesignCanvas(
+        screenSize: (CGFloat, CGFloat),
+        small: (CGFloat, CGFloat),
+        medium: (CGFloat, CGFloat),
+        large: (CGFloat, CGFloat),
+        extraLarge: (CGFloat, CGFloat)
+    ) -> [WidgetFrame] {
+        iPad(target: .designCanvas, screenSize: screenSize, small: small, medium: medium, large: large, extraLarge: extraLarge)
+    }
+
+    /// iPad Home Screen frames, as published by Apple.
+    ///
+    /// The frame a widget actually occupies on the Home Screen, which the system produces by scaling the larger ``iPadDesignCanvas`` frame down. Measuring a placed `small` widget on a 820x1180 iPad gave 272 pixels, confirming the 136 points published here.
+    ///
+    /// One row per screen size the same way the canvas table has one, rather than a scale factor applied to the canvas, because the published values are not a constant ratio of it. They range from 0.849 on a 810x1080 iPad to 1 on the Display Zoom rows.
+    ///
+    /// The system sizes are the only ones with a Home Screen frame. `extraLargePortrait`, the accessory sizes and the Lock Screen `small` frame are measured on the design canvas only, so a Home Screen lookup for those returns nothing.
+    ///
+    /// > Note: `1192x1590`, `970x1389` and `954x1373` repeat their canvas frames unscaled. Those are Display Zoom modes rather than devices, and Apple publishes one frame for each.
+    private static let iPadHomeScreen: [WidgetFrame] = [
+        iPadHomeScreen(screenSize: (1192, 1590), small: (188, 188), medium: (412, 188), large: (412, 412), extraLarge: (860, 412)),
+        iPadHomeScreen(screenSize: (1024, 1366), small: (160, 160), medium: (356, 160), large: (356, 356), extraLarge: (748, 356)),
+        iPadHomeScreen(screenSize: (970, 1389), small: (162, 162), medium: (350, 162), large: (350, 350), extraLarge: (726, 350)),
+        iPadHomeScreen(screenSize: (954, 1373), small: (162, 162), medium: (350, 162), large: (350, 350), extraLarge: (726, 350)),
+        iPadHomeScreen(screenSize: (834, 1194), small: (136, 136), medium: (300, 136), large: (300, 300), extraLarge: (628, 300)),
+        iPadHomeScreen(screenSize: (834, 1112), small: (132, 132), medium: (288, 132), large: (288, 288), extraLarge: (600, 288)),
+        // The 136 point small frame confirmed by measuring a placed widget at 272 pixels on an iPad Air 11-inch M2 (iPad14,9)
+        iPadHomeScreen(screenSize: (820, 1180), small: (136, 136), medium: (300, 136), large: (300, 300), extraLarge: (628, 300)),
+        iPadHomeScreen(screenSize: (810, 1080), small: (124, 124), medium: (272, 124), large: (272, 272), extraLarge: (568, 272)),
+        iPadHomeScreen(screenSize: (768, 1024), small: (120, 120), medium: (260, 120), large: (260, 260), extraLarge: (540, 260)),
+        // Published by Apple with the same values as 768x1024. The switch this table replaced had no row for it and reached the same values through its default arm.
+        iPadHomeScreen(screenSize: (744, 1133), small: (120, 120), medium: (260, 120), large: (260, 260), extraLarge: (540, 260))
+    ].flatMap { $0 }
+
+    private static func iPadHomeScreen(
+        screenSize: (CGFloat, CGFloat),
+        small: (CGFloat, CGFloat),
+        medium: (CGFloat, CGFloat),
+        large: (CGFloat, CGFloat),
+        extraLarge: (CGFloat, CGFloat)
+    ) -> [WidgetFrame] {
+        iPad(target: .homeScreen, screenSize: screenSize, small: small, medium: medium, large: large, extraLarge: extraLarge)
+    }
+
+    /// The system frames for one iPad screen size, in whichever target the caller is building.
+    private static func iPad(
+        target: WidgetTarget,
+        screenSize: (CGFloat, CGFloat),
+        small: (CGFloat, CGFloat),
+        medium: (CGFloat, CGFloat),
+        large: (CGFloat, CGFloat),
+        extraLarge: (CGFloat, CGFloat)
+    ) -> [WidgetFrame] {
+        group(
+            platform: .pad,
+            minMajorOSVersion: 15,
+            placement: .homeScreen,
+            screenSize: screenSize,
             displayScale: nil,
-            target: nil,
-            frames: [.accessoryRectangular: (frame.width, frame.height)]
+            target: target,
+            frames: [
+                .small: small,
+                .medium: medium,
+                .large: large,
+                .extraLarge: extraLarge
+            ]
         )
     }
 
-    /// iPad frames, as published by Apple.
+    /// iPad `extraLargePortrait` design canvas frames, measured rather than published. Apple publishes no row for this family on any platform.
     ///
-    /// Each screen size contributes two sets, one for the design canvas the content is laid out in and one for the smaller Home Screen frame the canvas is scaled into. The 820x1180 canvas values are confirmed by measurement on iPadOS 18.6, 26.5 and 27.0, and its Home Screen value of 136 points is confirmed by measuring a placed widget on screen. iPad frames did not change in iOS 26, so unlike iPhone these apply from iOS 15 with no later set.
+    /// On every iPad the width is identical to `systemMedium` and `systemLarge`, the same rule that holds on iPhone, so this is the same column made taller. On the canvas grid it is two cells wide by three tall, which is what ``iPadPortraitHomeScreen`` relies on.
     ///
-    /// > Note: `extraLargePortrait` is supported on iPad from iOS 27 but has no frame here yet, so it is omitted.
-    private static let iPad: [WidgetFrame] = [
-        iPadFrameSet(screenSize: (1192, 1590), canvas: ((188, 188), (412, 188), (412, 412), (860, 412)), homeScreen: ((188, 188), (412, 188), (412, 412), (860, 412))),
-        iPadFrameSet(screenSize: (1024, 1366), canvas: ((170, 170), (378.5, 170), (378.5, 378.5), (795, 378.5)), homeScreen: ((160, 160), (356, 160), (356, 356), (748, 356))),
-        iPadFrameSet(screenSize: (970, 1389), canvas: ((162, 162), (350, 162), (350, 350), (726, 350)), homeScreen: ((162, 162), (350, 162), (350, 350), (726, 350))),
-        iPadFrameSet(screenSize: (954, 1373), canvas: ((162, 162), (350, 162), (350, 350), (726, 350)), homeScreen: ((162, 162), (350, 162), (350, 350), (726, 350))),
-        iPadFrameSet(screenSize: (834, 1194), canvas: ((155, 155), (342, 155), (342, 342), (715.5, 342)), homeScreen: ((136, 136), (300, 136), (300, 300), (628, 300))),
-        iPadFrameSet(screenSize: (834, 1112), canvas: ((150, 150), (327.5, 150), (327.5, 327.5), (682, 327.5)), homeScreen: ((132, 132), (288, 132), (288, 288), (600, 288))),
-        // Canvas values confirmed on iPad Air 11-inch M2 (iPad14,9) on iPadOS 18.6 and 26.5, and iPad A16 (iPad15,7) on 27.0. The 136 point Home Screen frame confirmed by measuring a placed widget at 272 pixels.
-        iPadFrameSet(screenSize: (820, 1180), canvas: ((155, 155), (342, 155), (342, 342), (715.5, 342)), homeScreen: ((136, 136), (300, 136), (300, 300), (628, 300))),
-        iPadFrameSet(screenSize: (810, 1080), canvas: ((146, 146), (320.5, 146), (320.5, 320.5), (669, 320.5)), homeScreen: ((124, 124), (272, 124), (272, 272), (568, 272))),
-        iPadFrameSet(screenSize: (768, 1024), canvas: ((141, 141), (305.5, 141), (305.5, 305.5), (634.5, 305.5)), homeScreen: ((120, 120), (260, 120), (260, 260), (540, 260))),
-        // Published by Apple with the same values as 768x1024. The switch this table replaced had no row for it and reached the same values through its default arm.
-        iPadFrameSet(screenSize: (744, 1133), canvas: ((141, 141), (305.5, 141), (305.5, 305.5), (634.5, 305.5)), homeScreen: ((120, 120), (260, 120), (260, 260), (540, 260)))
-    ].flatMap { $0 }
-
-    /// Builds the design canvas and Home Screen sets for one iPad screen size.
-    private static func iPadFrameSet(
-        screenSize: (CGFloat, CGFloat),
-        canvas: ((CGFloat, CGFloat), (CGFloat, CGFloat), (CGFloat, CGFloat), (CGFloat, CGFloat)),
-        homeScreen: ((CGFloat, CGFloat), (CGFloat, CGFloat), (CGFloat, CGFloat), (CGFloat, CGFloat))
-    ) -> [WidgetFrame] {
-        [(WidgetTarget.designCanvas, canvas), (.homeScreen, homeScreen)].flatMap { target, sizes in
-            group(
-                platform: .pad,
-                minMajorOSVersion: 15,
-                placement: .homeScreen,
-                screenSize: screenSize,
-                displayScale: nil,
-                target: target,
-                frames: [
-                    .small: sizes.0,
-                    .medium: sizes.1,
-                    .large: sizes.2,
-                    .extraLarge: sizes.3
-                ]
-            )
-        }
-    }
-
-
-    /// iPad `extraLargePortrait` frames, measured rather than published. Apple publishes no row for this family on any platform.
-    ///
-    /// On every iPad the width is identical to `systemMedium` and `systemLarge`, the same rule that holds on iPhone, so this is the same column made taller.
-    ///
-    /// > Note: these are design canvas frames only. The smaller Home Screen frame has not been measured, and it cannot be derived from the scale factor of the other sizes because doing so gives a value that is not a whole number of pixels.
+    /// > Note: on iPad this family is offered in Today View rather than on the Home Screen grid. WidgetKit's own `WidgetLocation` has no Today View case, so it is recorded against the Home Screen the way every other Today View size is.
     ///
     /// > Note: `834x1112` and `768x1024` have no entry because iPadOS 27 does not run on any iPad reporting those screen sizes.
-    private static let iPadPortrait: [WidgetFrame] = [
+    private static let iPadPortraitDesignCanvas: [WidgetFrame] = [
         // Measured on iPad Pro 13-inch M4, iPadOS 27.0
-        iPadPortrait(screenSize: (1032, 1376), portrait: (757, 1173)),
+        iPadPortraitDesignCanvas(screenSize: (1032, 1376), portrait: (757, 1173)),
         // Measured on iPad Pro 12.9-inch 6th generation, iPadOS 27.0
-        iPadPortrait(screenSize: (1024, 1366), portrait: (757, 1173)),
+        iPadPortraitDesignCanvas(screenSize: (1024, 1366), portrait: (757, 1173)),
         // Measured on iPad Pro 11-inch 4th generation, iPadOS 27.0
-        iPadPortrait(screenSize: (834, 1194), portrait: (684, 1058)),
+        iPadPortraitDesignCanvas(screenSize: (834, 1194), portrait: (684, 1058)),
         // Measured on iPad Air 11-inch M2, iPadOS 27.0
-        iPadPortrait(screenSize: (820, 1180), portrait: (684, 1058)),
+        iPadPortraitDesignCanvas(screenSize: (820, 1180), portrait: (684, 1058)),
         // Measured on iPad 9th generation, iPadOS 27.0
-        iPadPortrait(screenSize: (810, 1080), portrait: (641, 989)),
+        iPadPortraitDesignCanvas(screenSize: (810, 1080), portrait: (641, 989)),
         // Measured on iPad mini 6th generation, iPadOS 27.0
-        iPadPortrait(screenSize: (744, 1133), portrait: (611, 940))
+        iPadPortraitDesignCanvas(screenSize: (744, 1133), portrait: (611, 940))
     ].flatMap { $0 }
 
-    private static func iPadPortrait(
+    private static func iPadPortraitDesignCanvas(
         screenSize: (CGFloat, CGFloat),
         portrait: (CGFloat, CGFloat)
     ) -> [WidgetFrame] {
@@ -430,6 +562,37 @@ extension WidgetFrame {
             displayScale: nil,
             target: .designCanvas,
             frames: framesFromPixels(displayScale: 2, [.extraLargePortrait: portrait])
+        )
+    }
+
+    /// iPad `extraLargePortrait` rendered frames, the size the canvas is scaled into.
+    ///
+    /// Every published Home Screen row is an exact grid: `medium` is two cells plus a gutter, `large` the same square, and `extraLarge` four cells plus three gutters, with no rounding error on any of the ten screen sizes. The canvas rows are the ones that carry a half point, because they are this grid divided by the scale factor. `extraLargePortrait` measures two cells by three on the canvas, so it is two by three here, and every value that produces lands on a whole pixel.
+    ///
+    /// Confirmed by measurement on a 820x1180 iPad: a placed widget rendered 600x928 pixels, which is the 300x464 predicted here, against a 342x529 design canvas. That is the same 0.8772 scale factor every other size on that iPad uses.
+    ///
+    /// > Note: `1032x1376` has no row. It has no published Home Screen row of its own to build a grid from, and its canvas frames measured identical to `1024x1366`, so it resolves there by nearest width exactly as its system sizes do.
+    private static let iPadPortraitHomeScreen: [WidgetFrame] = [
+        iPadPortraitHomeScreen(screenSize: (1024, 1366), portrait: (356, 552)),
+        iPadPortraitHomeScreen(screenSize: (834, 1194), portrait: (300, 464)),
+        // Confirmed by measuring a placed widget at 600x928 pixels on an iPad Air 11-inch M4, iPadOS 27.0
+        iPadPortraitHomeScreen(screenSize: (820, 1180), portrait: (300, 464)),
+        iPadPortraitHomeScreen(screenSize: (810, 1080), portrait: (272, 420)),
+        iPadPortraitHomeScreen(screenSize: (744, 1133), portrait: (260, 400))
+    ].flatMap { $0 }
+
+    private static func iPadPortraitHomeScreen(
+        screenSize: (CGFloat, CGFloat),
+        portrait: (CGFloat, CGFloat)
+    ) -> [WidgetFrame] {
+        group(
+            platform: .pad,
+            minMajorOSVersion: 27,
+            placement: .homeScreen,
+            screenSize: screenSize,
+            displayScale: nil,
+            target: .homeScreen,
+            frames: [.extraLargePortrait: portrait]
         )
     }
 

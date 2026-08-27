@@ -150,3 +150,36 @@ extension WidgetPlacement {
         return order.count - 1 - index
     }
 }
+
+extension WidgetFrame {
+    /// The smallest and largest frame one widget size takes across every device that has one.
+    struct Extremes: Sendable {
+        let minimum: CGSize
+        let maximum: CGSize
+    }
+
+    /// The smallest and largest known frame for every widget size.
+    ///
+    /// Derived from ``all`` rather than written out, so adding a measurement widens the range on its own. Maintained by hand these drifted out of step with the tables twice, most recently when `extraLargePortrait` was measured at 378.5x611.33 while its recorded maximum was still the 338x450 visionOS frame.
+    ///
+    /// The iPad Home Screen frames are left out because they are the design canvas scaled down, and the canvas is the size widget content is laid out in.
+    ///
+    /// Frames are compared by area, so the answer is always a frame some device actually reports rather than the narrowest width paired with the shortest height. A frame smaller than every other on both axes also has the smallest area, so comparing by area alone still picks the outright smallest wherever there is one.
+    static let extremes: [WidgetSize: Extremes] = {
+        Dictionary(grouping: all.filter { $0.target != .homeScreen }, by: \.widgetSize)
+            .compactMapValues { frames in
+                guard let minimum = frames.min(by: isSmaller)?.frame,
+                      let maximum = frames.max(by: isSmaller)?.frame
+                else { return nil }
+                return Extremes(minimum: minimum, maximum: maximum)
+            }
+    }()
+
+    /// Orders frames by area, falling back to width and then height so frames of equal area still order deterministically.
+    private static func isSmaller(_ a: WidgetFrame, _ b: WidgetFrame) -> Bool {
+        let area = (a.frame.width * a.frame.height, b.frame.width * b.frame.height)
+        if area.0 != area.1 { return area.0 < area.1 }
+        if a.frame.width != b.frame.width { return a.frame.width < b.frame.width }
+        return a.frame.height < b.frame.height
+    }
+}

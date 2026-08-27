@@ -150,7 +150,7 @@ public extension WidgetSize {
     
     /// Size for this widget on the current device.
     ///
-    /// > Note: Only iPhone and iPad have frames. Mac Catalyst and CarPlay support widgets but have no frames here yet, so they return nil for every widget size. `extraLargePortrait` returns nil on both iPhone and iPad, as do the accessory sizes on iPad.
+    /// > Note: CarPlay supports widgets but has no frames here yet, so it returns nil for every widget size. On iPad the accessory sizes, the Lock Screen `small` frame and `extraLargePortrait` are only known for the design canvas, so asking for the Home Screen target returns nil for those.
     /// - Parameter iPadTarget: Widget frame target. iPad widgets have a design canvas frame used for laying out the content, and a smaller Home Screen frame that the content is scaled to fit.
     /// - Returns: Size for this widget for the current device. Nil if no frame is known, either because the current device does not support this widget size or because the frame has not been added to FrameUp yet.
     @preconcurrency @MainActor
@@ -161,7 +161,8 @@ public extension WidgetSize {
         case .pad:
             sizeForiPad(screenSize: Self.currentScreenSize, target: iPadTarget)
         case .macCatalyst:
-            nil
+            /// Widgets in a Mac Catalyst app are hosted by macOS, so they take the macOS frames.
+            sizeForMac()
         default:
             nil
         }
@@ -169,9 +170,9 @@ public extension WidgetSize {
     
     /// How much the widget is scaled down to fit on the Home Screen.
     ///
-    /// Home Screen width divided by design canvas width. iPhone value will always be 1.
+    /// Home Screen width divided by design canvas width. Only iPad scales its widgets, so every other platform is 1.
     ///
-    /// Nil if the current device is not an iPhone or iPad, or if no frame is known for this widget size.
+    /// Nil if the current platform has no frames, or if no frame is known for this widget size.
     @preconcurrency @MainActor
     var scaleFactorForCurrentDevice: CGFloat? {
         switch Platform.current {
@@ -180,7 +181,8 @@ public extension WidgetSize {
         case .phone:
             1
         case .macCatalyst:
-            nil
+            /// A Mac widget is not laid out on a canvas and scaled into a grid slot the way an iPad widget is.
+            sizeForMac() == nil ? nil : 1
         default:
             nil
         }
@@ -190,7 +192,7 @@ public extension WidgetSize {
 public extension WidgetSize {
     /// Size for this widget on the current device.
     ///
-    /// > Note: `accessoryCircular` and `accessoryRectangular` are supported from visionOS 27 but have no frame here yet, so they return nil.
+    /// > Note: `accessoryCircular` and `accessoryRectangular` arrive in visionOS 27, so they return nil on earlier versions. `accessoryInline` does not exist on visionOS at all.
     /// - Returns: Size for this widget for the current device. Nil if no frame is known, either because the current device does not support this widget size or because the frame has not been added to FrameUp yet.
     func sizeForCurrentDevice() -> CGSize? {
         sizeForVisionOS()
@@ -202,7 +204,7 @@ import WatchKit
 public extension WidgetSize {
     /// Size for this widget on the current device.
     ///
-    /// > Note: `accessoryCircular` and `accessoryInline` are supported on Apple Watch but have no frame here yet, so they return nil. A watch released after this table was last updated also returns nil for every widget size.
+    /// > Note: `accessoryInline` returns nil; it reports a small square that never renders rather than a usable frame. A watch released after this table was last updated resolves to the nearest known screen size.
     /// - Returns: Size for this widget for the current device. Nil if no frame is known, either because the current device does not support this widget size or because the frame has not been added to FrameUp yet.
     func sizeForCurrentDevice() -> CGSize? {
         sizeForWatch(screenSize: WKInterfaceDevice.current().screenBounds.size)
