@@ -160,46 +160,6 @@ struct WidgetSizeProbe: Widget {
     }
 }
 
-#if os(watchOS)
-/// Families a placement probe offers. Every family watchOS has, so nothing is missed by the split.
-@available(watchOS 26.0, *)
-private let placementProbeFamilies: [WidgetFamily] = [.accessoryCircular, .accessoryRectangular, .accessoryInline, .accessoryCorner]
-
-/// Builds a probe that is disfavoured in one of the two places a watchOS widget can appear.
-///
-/// Every watchOS family reports two frames and nothing readable at render time says which place a render came from. `WidgetLocation` only goes into `disfavoredLocations`, and `showsWidgetLabel` was tried and does not separate them: both frames appear with it true and false.
-///
-/// So the location is varied on the way in instead. One probe disfavours the watch face and the other disfavours the Smart Stack, and the frames each reports attribute a size to a place. Disfavouring is a preference rather than an exclusion, so a frame that still appears under both probes means the split failed rather than that the two places agree.
-@available(watchOS 26.0, *)
-@MainActor
-private func placementProbe(kind: String, disfavored: WidgetLocation) -> some WidgetConfiguration {
-    StaticConfiguration(kind: kind, provider: ProbeProvider(widgetKind: kind)) { entry in
-        ProbeEntryView(entry: entry)
-    }
-    .configurationDisplayName(kind)
-    .description("Reports frames for a widget disfavoured in one location.")
-    .supportedFamilies(placementProbeFamilies)
-    .contentMarginsDisabled()
-    .disfavoredLocations([disfavored], for: placementProbeFamilies)
-}
-
-/// Prefers the Smart Stack by disfavouring the watch face.
-@available(watchOS 26.0, *)
-struct SmartStackProbe: Widget {
-    var body: some WidgetConfiguration {
-        placementProbe(kind: "SmartStackProbe", disfavored: .watchFace)
-    }
-}
-
-/// Prefers the watch face by disfavouring the Smart Stack.
-@available(watchOS 26.0, *)
-struct WatchFaceProbe: Widget {
-    var body: some WidgetConfiguration {
-        placementProbe(kind: "WatchFaceProbe", disfavored: .smartStack)
-    }
-}
-#endif
-
 extension Color {
     /// Fill used for the widget's container background.
     ///
