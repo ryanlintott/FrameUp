@@ -405,7 +405,13 @@ This is a different axis from ``WidgetTarget``. That distinguishes an iPad's des
 
 ## Open questions
 
-**The pre-iOS-26 values are unverified.** No iOS 25 or earlier runtime is installed, so the older rows are still only Apple's published numbers. They have never been confirmed by measurement.
+**Most of the iOS 18 and earlier values are unverified, and most of them are measurable.** Seven of the ten rows in that table are still only Apple's published numbers. Three carry a measurement, and two of those were confirmed indirectly by a device that has no row of its own and fell through to a narrower one.
+
+There is no iOS 19 through 25. Apple renamed its OS versions in 2025 to align them on the year, so the release before iOS 26 is iOS 18, and a value that differs between the two is pinned to iOS 26 exactly.
+
+The iOS 17.5 and 18.6 runtimes are both installed, and both support the older device types, which are simply not created by default. Creating them covers `430x932`, `428x926`, `414x896` at both display scales, `393x852`, `390x844`, `375x812` and `375x667`. Only three rows cannot be reached: `414x736` and `320x568`, whose devices top out at iOS 16 and iOS 15, and `360x780`, which no device reports.
+
+Worth doing for one reason beyond confirming transcription. `414x896` splits by display scale on iOS 26, which is why the lookup key includes the scale, and Apple publishes a single row for it. Both an iPhone 11 at 2x and an iPhone 11 Pro Max at 3x run on iOS 18.6, so whether that split predates iOS 26 is answerable. If it does, the iOS 18 row is wrong for one of those two devices.
 
 **`displaySize` is the trustworthy value; `viewSize` is not.** On iPad the rendered `viewSize` for `systemMedium` and `systemLarge` came back as 341.911765 rather than 342. That is 11625/34, which is not a whole number of pixels, while every `displaySize` is. The gallery appears to render the widget through a transform, so `viewSize` measured there reflects the render rather than the frame.
 
