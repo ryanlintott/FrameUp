@@ -24,12 +24,12 @@ import SwiftUI
 /// | iPad | none. The accessory sizes and the Lock Screen `small` frame appear only on the design canvas target, because a Lock Screen widget is drawn at its canvas size rather than scaled into the Home Screen grid. |
 /// | macOS, Mac Catalyst | `extraLargePortrait`, which arrives in macOS 27 and could not be measured on macOS 26. Earlier than macOS 26 no size has a frame, since Apple publishes none and iOS frames are known to have changed at 26. |
 /// | visionOS | none |
-/// | Apple Watch | `accessoryInline`, which reports a small square that never renders rather than a usable frame. `accessoryCircular` has a watch face frame but none in the Smart Stack, where it does not appear. `accessoryCorner` is supported too but has no ``WidgetSize`` case. |
+/// | Apple Watch | `accessoryInline`, which reports a small square that never renders rather than a usable frame, and `accessoryCorner`, whose reported size does not bound what it draws. `accessoryCircular` has a watch face frame but none in the Smart Stack, where it does not appear. |
 /// | CarPlay | every size |
 ///
 /// Frames are also known for two of the places a widget can appear, the Home Screen and the Lock Screen, and for the Apple Watch Smart Stack. The other ``WidgetPlacement`` cases have no frames: StandBy and CarPlay cannot be reached in a simulator, and the rest have not been measured.
 ///
-/// ``minimumSize`` and ``maximumSize`` always return a value for every case, so they are a useful fallback when no device frame is known.
+/// ``minimumSize`` and ``maximumSize`` return a value for every case that has a frame somewhere, so they are a useful fallback when no device frame is known. ``accessoryCorner`` is the exception and returns zero, because no frame is stored for it on any platform.
 public enum WidgetSize: String, Identifiable, CaseIterable, Sendable {
     case small
     case medium
@@ -39,6 +39,10 @@ public enum WidgetSize: String, Identifiable, CaseIterable, Sendable {
     case accessoryCircular
     case accessoryRectangular
     case accessoryInline
+    /// A complication in a corner of an Apple Watch face. Apple Watch only, and the only widget size that appears on no other platform.
+    ///
+    /// It has no frame. A corner complication is roughly triangular rather than rectangular, and a label can curve around its frame and extend past it, so the size WidgetKit reports does not bound what the complication draws. ``minimumSize`` and ``maximumSize`` return zero for it.
+    case accessoryCorner
     
     public var id: String {
         self.rawValue
@@ -169,7 +173,7 @@ public extension WidgetSize {
     ///
     /// Measured on watchOS 27 for the five case sizes with a simulator, and Apple's published values elsewhere. Apple publishes one Smart Stack frame per case size and nothing for the watch face, so a complication frame is measured only.
     ///
-    /// > Note: `accessoryInline` has no frame. It reports a small square, 11x11 to 13.5x13.5, that never renders. `accessoryCircular` only appears on the watch face, so a Smart Stack lookup omits it.
+    /// > Note: `accessoryInline` and `accessoryCorner` have no frame. `accessoryInline` reports a small square, 11x11 to 13.5x13.5, that never renders, and `accessoryCorner` is not a rectangle, so its reported size does not bound what it draws. `accessoryCircular` only appears on the watch face, so a Smart Stack lookup omits it.
     /// - Parameter screenSize: Apple Watch screen size in points.
     /// - Parameter placement: Where the widget appears. Nil reports the Smart Stack frame for `accessoryRectangular`, which is where Apple's published values apply, and the watch face frame for `accessoryCircular`.
     /// - Returns: A dictionary of sizes based on widget size. Sizes with no known frame are omitted. Empty if the screen size does not match a known Apple Watch, which will be the case for any watch released after this table was last updated.
@@ -188,7 +192,7 @@ public extension WidgetSize {
     ///
     /// > Important: a case size does not identify a watch. The Ultra 2 and Ultra 3 are both 49mm but report 205x251 and 211x257 screens and different frames, and this lookup returns Apple's published 49mm row for both. ``sizesForWatch(screenSize:)`` distinguishes them. This overload also returns only the published Smart Stack values, so it does not carry the measured corrections for the 42mm, 46mm and Ultra 3 watches.
     ///
-    /// > Note: `accessoryCircular` and `accessoryInline` are omitted. Apple publishes only the Smart Stack rectangular row.
+    /// > Note: `accessoryCircular`, `accessoryCorner` and `accessoryInline` are omitted. Apple publishes only the Smart Stack rectangular row.
     /// - Parameter watchSize: Apple Watch size in mm.
     /// - Returns: A dictionary of sizes based on widget size. Sizes with no known frame are omitted.
     static func sizesForWatch(watchSize: CGFloat) -> [WidgetSize: CGSize] {
@@ -200,7 +204,7 @@ public extension WidgetSize {
     ///
     /// Useful for checking a widget in its tightest frame, and as a fallback when a `sizeFor` lookup returns nil because no frame is known for that platform.
     ///
-    /// Derived from the frame tables rather than listed separately, so a new measurement is reflected here without a second edit. The iPad design canvas is used rather than the smaller Home Screen frame, since the design canvas is the size widget content is laid out in. Where no candidate is smaller on both axes the one with the smallest area is used, which is why `extraLarge` is the 634.5x305.5 iPad canvas rather than the narrower but taller 550x354 visionOS frame.
+    /// Derived from the frame tables rather than listed separately, so a new measurement is reflected here without a second edit. A size with no frame in those tables has no minimum, so ``accessoryCorner`` returns zero. The iPad design canvas is used rather than the smaller Home Screen frame, since the design canvas is the size widget content is laid out in. Where no candidate is smaller on both axes the one with the smallest area is used, which is why `extraLarge` is the 634.5x305.5 iPad canvas rather than the narrower but taller 550x354 visionOS frame.
     var minimumSize: CGSize {
         /// Every widget size has at least one frame on some platform, which `WidgetSizeExtremesTests` enforces, so the fallback is unreachable.
         WidgetFrame.extremes[self]?.minimum ?? .zero
@@ -274,7 +278,7 @@ public extension WidgetSize {
     
     /// Size for this widget on a watch with the specified screen size.
     ///
-    /// > Note: `accessoryInline` returns nil; it reports a small square that never renders rather than a usable frame. A screen size that does not match a known Apple Watch resolves to the nearest one.
+    /// > Note: `accessoryInline` and `accessoryCorner` return nil. A screen size that does not match a known Apple Watch resolves to the nearest one.
     /// - Parameter screenSize: Apple Watch screen size in points.
     /// - Parameter placement: Where the widget appears. Nil reports the Smart Stack frame for `accessoryRectangular` and the watch face frame for `accessoryCircular`, which is where each of them appears.
     /// - Returns: Size for this widget. Nil if no frame is known, either because the platform does not support this widget size or because the frame has not been added to FrameUp yet.

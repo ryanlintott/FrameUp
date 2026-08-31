@@ -11,9 +11,15 @@ import Testing
 
 /// `minimumSize` and `maximumSize` are derived from the frame tables, so these check the derivation rather than a list of expected numbers, which is what drifted out of date when the values were maintained by hand.
 struct WidgetSizeExtremesTests {
-    /// Every widget size has at least one frame somewhere, which is what makes the zero fallback in `minimumSize` and `maximumSize` unreachable.
+    /// Every widget size with a frame has extremes. `accessoryCorner` is the one case with no frame anywhere, so it is the one case the zero fallback in `minimumSize` and `maximumSize` is reachable for.
     @Test(arguments: WidgetSize.allCases)
-    func everyWidgetSizeHasExtremes(widgetSize: WidgetSize) {
+    func everyWidgetSizeWithAFrameHasExtremes(widgetSize: WidgetSize) {
+        guard widgetSize != .accessoryCorner else {
+            #expect(WidgetFrame.extremes[widgetSize] == nil)
+            #expect(widgetSize.minimumSize == .zero)
+            #expect(widgetSize.maximumSize == .zero)
+            return
+        }
         #expect(WidgetFrame.extremes[widgetSize] != nil)
         #expect(widgetSize.minimumSize != .zero)
         #expect(widgetSize.maximumSize != .zero)
@@ -22,6 +28,7 @@ struct WidgetSizeExtremesTests {
     /// No frame in the tables is smaller or larger by area than the range reported for its widget size.
     @Test(arguments: WidgetSize.allCases)
     func noFrameFallsOutsideTheReportedRange(widgetSize: WidgetSize) {
+        guard widgetSize != .accessoryCorner else { return }
         let area = { (size: CGSize) in size.width * size.height }
         let frames = WidgetFrame.all.filter { $0.widgetSize == widgetSize && $0.target != .homeScreen }
         for frame in frames {
@@ -33,6 +40,7 @@ struct WidgetSizeExtremesTests {
     /// Both extremes are frames a real device reports rather than a mix of the narrowest width and the shortest height.
     @Test(arguments: WidgetSize.allCases)
     func bothExtremesAreRealFrames(widgetSize: WidgetSize) {
+        guard widgetSize != .accessoryCorner else { return }
         let frames = WidgetFrame.all.filter { $0.widgetSize == widgetSize && $0.target != .homeScreen }.map(\.frame)
         #expect(frames.contains(widgetSize.minimumSize))
         #expect(frames.contains(widgetSize.maximumSize))

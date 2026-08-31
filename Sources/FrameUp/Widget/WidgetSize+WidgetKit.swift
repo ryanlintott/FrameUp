@@ -56,6 +56,11 @@ public extension WidgetSize {
                 return .accessoryInline
             }
             #endif
+        case .accessoryCorner:
+            /// The only widget family that exists on Apple Watch alone.
+            #if os(watchOS)
+            return .accessoryCorner
+            #endif
         }
         return nil
     }

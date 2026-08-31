@@ -65,7 +65,7 @@ public extension WidgetFamily {
         case .accessoryCircular: .accessoryCircular
         case .accessoryRectangular: .accessoryRectangular
         case .accessoryInline: .accessoryInline
-        case .accessoryCorner: nil
+        case .accessoryCorner: .accessoryCorner
         #endif
             
         @unknown default: nil

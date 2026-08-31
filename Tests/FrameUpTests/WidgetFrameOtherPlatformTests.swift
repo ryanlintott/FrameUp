@@ -111,6 +111,14 @@ struct WidgetFrameWatchTests {
         #expect(try #require(watchFace[.accessoryCircular]) == expectedCircular)
     }
 
+    /// `accessoryCorner` has a case but no frame on any platform. It is measured, but a corner complication is not a rectangle and its reported size does not bound what it draws, so no frame is stored. See ``WidgetFrame/watchMeasured``.
+    @Test func cornerHasNoFrameAnywhere() {
+        #expect(WidgetFrame.all.allSatisfy { $0.widgetSize != .accessoryCorner })
+        #expect(WidgetSize.accessoryCorner.sizeForWatch(screenSize: CGSize(width: 184, height: 224)) == nil)
+        #expect(WidgetSize.accessoryCorner.sizeForiPhone(screenSize: CGSize(width: 393, height: 852), majorOSVersion: 27) == nil)
+        #expect(WidgetSize.accessoryCorner.sizeForVisionOS(majorOSVersion: 27) == nil)
+    }
+
     /// `accessoryCircular` is only recorded against the watch face, which is the only place it was observed placed, so a Smart Stack lookup has no frame for it.
     @Test func circularIsWatchFaceOnly() {
         let smartStack = WidgetFrame.frames(platform: .watch, screenSize: CGSize(width: 184, height: 224), majorOSVersion: 27, placement: .smartStack)

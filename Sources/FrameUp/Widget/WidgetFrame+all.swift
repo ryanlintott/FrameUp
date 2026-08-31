@@ -372,13 +372,15 @@ extension WidgetFrame {
     ///
     /// > Important: the 46mm and Ultra 3 rows apply that rule rather than having been placed themselves. Two independent confirmations make it a well supported rule, but those two rows are still an inference.
     ///
-    /// > Note: `accessoryCorner` was measured but has no ``WidgetSize`` case. `accessoryInline` reports a small square, 11x11 to 13.5x13.5, that never renders and is not a usable frame, so it is left out.
+    /// > Note: `accessoryInline` reports a small square, 11x11 to 13.5x13.5, that never renders and is not a usable frame, so it is left out.
+    ///
+    /// > Note: `accessoryCorner` has a ``WidgetSize`` case but no frame here. It is measured, and the values are in `Measurements/`, but a corner complication is not a rectangle: it sits in the curve of the bezel, roughly triangular, and a label can curve around the frame and extend past it. The reported size is therefore not a box the content fits inside, which is what every other frame in this table means. It also explains why the values do not scale with the screen the way every other family does, 32 on a 162 point wide watch against 30 on a 187.
     private static let watchMeasured: [(screenSize: (CGFloat, CGFloat), smartStackRectangular: (CGFloat, CGFloat), watchFaceRectangular: (CGFloat, CGFloat)?, watchFaceCircular: (CGFloat, CGFloat))] = [
         // Apple Watch SE 3 40mm. Both frames confirmed by placing the probe in both places, and the Smart Stack frame matches Apple's published 40mm row.
         (screenSize: (162, 197), smartStackRectangular: (152, 69.5), watchFaceRectangular: (162, 69), watchFaceCircular: (42, 42)),
         // Apple Watch Series 11 42mm. Apple publishes no row for this case size. Only one rectangular frame is ever pre-rendered here, reproducibly across runs, so there is nothing to attribute to the watch face and no second value is invented for it. A watch face lookup falls back to the nearest watch that has one, the same as any other unknown.
         (screenSize: (187, 223), smartStackRectangular: (176, 72.5), watchFaceRectangular: nil, watchFaceCircular: (47, 47)),
-        // Apple Watch SE 3 44mm. Both frames confirmed by placing the probe, and the Smart Stack frame matches Apple's published 44mm row.
+        // Apple Watch SE 3 44mm. Both frames confirmed by placing the probe, and the Smart Stack frame matches Apple's published 44mm row. Its corner frame is confirmed by a placed widget too.
         (screenSize: (184, 224), smartStackRectangular: (173, 76.5), watchFaceRectangular: (184, 78), watchFaceCircular: (47, 47)),
         // Apple Watch Series 11 46mm. Apple publishes no row for this case size.
         (screenSize: (208, 248), smartStackRectangular: (194, 80.5), watchFaceRectangular: (196, 80.5), watchFaceCircular: (51, 51)),

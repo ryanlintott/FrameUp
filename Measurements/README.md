@@ -287,7 +287,9 @@ On both watches the smaller frame of each pair is the Smart Stack and the larger
 
 **`accessoryInline` has no usable frame.** It reports a small square — 11×11 on the 40mm up to 13.5×13.5 on the 49mm — and never renders, producing only a placeholder record. It is left out of the table rather than recorded as a frame.
 
-**`accessoryCorner` was measured** but has no ``WidgetSize`` case, so it is in the raw data only.
+**Watch face complication frames do not vary by watch face.** The frames measured on one face were checked against others on the same watch and match, so the single watch face value per family is a property of the device rather than of whichever face happened to be selected. This was worth testing because the watch face to Smart Stack ratio clusters by model rather than by screen size, 1.066 and 1.064 on the SE 3 against 1.010 and 1.010 on the Series 11 and Ultra 3, which looked like face dependence. It is not.
+
+**`accessoryCorner` is measured but has no frame in the lookup.** Its 44mm value is confirmed by a placed widget, but the value does not bound what the complication draws, because the shape is not a rectangle. See the open question below. `WidgetSize.accessoryCorner` exists as a case, and the measurements are here, but no frame is stored.
 
 #### Capturing on watchOS
 
@@ -391,18 +393,22 @@ This is the only screen size known to split. It was found by noticing that 166.5
 
 **Frames land on whole pixels.** Every `displaySize` is an integer number of pixels, which is why values are fractional exactly when the pixel count is not divisible by the scale factor: thirds on @3x, halves on @2x, never anything else.
 
+**A widget size can have more than one frame on the same device, depending on where it is placed.** An iPad `systemSmall` is 155×155 on the Home Screen and 152×152 on the Lock Screen. A widget placed on the Lock Screen reports 152 from its `timeline` callback, so this is a real placement rather than a preview artefact. 152 points is also the width of `accessoryRectangular`, which suggests the Lock Screen widget column is 152 points wide and a system small placed there is sized to that column.
+
+This is a different axis from ``WidgetTarget``. That distinguishes an iPad's design canvas from its scaled Home Screen frame; this distinguishes one placement from another.
+
+`widgetRenderingMode` does not identify the placement. Both frames appear in `vibrant`, `fullColor` and `accented` renders, because the gallery previews a widget in several modes before it is placed. The reliable signal is a `displaySize` from the `timeline` stage of a placed widget. That signal is what settled both the iPad Lock Screen and the two Apple Watch placements.
+
+**The iPad accessory frames were never published, and are measured here.** Apple's table has no accessory row for iPad. They are `accessoryCircular` 63×63, `accessoryRectangular` 152×63 and `accessoryInline` 372×36, the same on iPadOS 18.6 and 26.5, and placing them confirmed a Lock Screen widget is drawn at those sizes rather than scaled.
+
+**Measuring a placed widget needs a marking that survives the rendering mode.** The probe paints its container background magenta, which works on the Home Screen and in Today View. The Lock Screen removes the container background and renders vibrant, turning content into a material keyed on luminance, so the magenta never draws. The probe therefore also fills its whole frame with opaque white, which is the brightest thing vibrant mode can produce and is what made the Lock Screen frames measurable. Content margins are disabled, so that fill is exactly the frame.
+
 ## Open questions
 
 **The pre-iOS-26 values are unverified.** No iOS 25 or earlier runtime is installed, so the older rows are still only Apple's published numbers. They have never been confirmed by measurement.
 
 **`displaySize` is the trustworthy value; `viewSize` is not.** On iPad the rendered `viewSize` for `systemMedium` and `systemLarge` came back as 341.911765 rather than 342. That is 11625/34, which is not a whole number of pixels, while every `displaySize` is. The gallery appears to render the widget through a transform, so `viewSize` measured there reflects the render rather than the frame.
 
-**Measuring a placed widget needs a marking that survives the rendering mode.** The probe paints its container background magenta, which works on the Home Screen and in Today View. The Lock Screen removes the container background and renders vibrant, turning content into a material keyed on luminance, so the magenta never draws. The probe therefore also fills its whole frame with opaque white, which is the brightest thing vibrant mode can produce and is what made the Lock Screen frames measurable. Content margins are disabled, so that fill is exactly the frame.
+**`accessoryCorner` reports a frame that does not bound what it draws.** A corner complication is not a rectangle. It sits in the curve of the bezel, roughly triangular, and a label can curve around the frame and extend beyond it. The reported 32x32 on a 162 point wide watch is therefore not a box the content fits inside, which is what every other widget frame in this file means.
 
-**A widget size can have more than one frame on the same device, depending on where it is placed.** An iPad `systemSmall` is 155×155 on the Home Screen and 152×152 on the Lock Screen. A widget placed on the Lock Screen reports 152 from its `timeline` callback, so this is a real placement rather than a preview artefact. 152 points is also the width of `accessoryRectangular`, which suggests the Lock Screen widget column is 152 points wide and a system small placed there is sized to that column.
-
-This is a different axis from ``WidgetTarget``. That distinguishes an iPad's design canvas from its scaled Home Screen frame; this distinguishes one placement from another.
-
-`widgetRenderingMode` does not identify the placement. Both frames appear in `vibrant`, `fullColor` and `accented` renders, because the gallery previews a widget in several modes before it is placed. The reliable signal is a `displaySize` from the `timeline` stage of a placed widget.
-
-**The iPad accessory frames were never published.** Apple's table has no accessory row for iPad and `WidgetSize` documents them as unknown. They are `accessoryCircular` 63×63, `accessoryRectangular` 152×63 and `accessoryInline` 372×36, the same on iPadOS 18.6 and 26.5.
+That also explains why the numbers do not behave: 32 on a 162 point wide watch, 36 on a 184, 30 on a 187, 34 on a 208 and 39 on a 211, which sorted by screen width is not monotonic. A non-rectangular region's reported size has no reason to scale the way a rectangle's does. `WidgetSize.accessoryCorner` exists as a case and the measurements are recorded here, but no frame is stored, because storing one would imply a bound that does not hold.

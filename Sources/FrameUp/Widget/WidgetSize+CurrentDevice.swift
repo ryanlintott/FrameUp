@@ -88,8 +88,7 @@ public extension WidgetSize {
                 []
             }
         case .watch:
-            [.accessoryCircular, .accessoryRectangular, .accessoryInline]
-            //.accessoryCorner is supported as well but no size is known
+            [.accessoryCircular, .accessoryRectangular, .accessoryInline, .accessoryCorner]
         case .carPlay:
             if #available(iOS 26, *) {
                 [.small, .medium, .accessoryCircular, .accessoryRectangular, .accessoryInline]
@@ -204,7 +203,7 @@ import WatchKit
 public extension WidgetSize {
     /// Size for this widget on the current device.
     ///
-    /// > Note: `accessoryInline` returns nil; it reports a small square that never renders rather than a usable frame. A watch released after this table was last updated resolves to the nearest known screen size.
+    /// > Note: `accessoryInline` and `accessoryCorner` return nil, having no stored frame. A watch released after this table was last updated resolves to the nearest known screen size.
     /// - Returns: Size for this widget for the current device. Nil if no frame is known, either because the current device does not support this widget size or because the frame has not been added to FrameUp yet.
     func sizeForCurrentDevice() -> CGSize? {
         sizeForWatch(screenSize: WKInterfaceDevice.current().screenBounds.size)
