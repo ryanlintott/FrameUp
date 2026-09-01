@@ -233,6 +233,29 @@ struct WidgetFrameiPadTests {
         }
     }
 
+    /// The Display Zoom screen sizes, which previously had no Lock Screen or extraLargePortrait frame and fell back to the nearest unzoomed iPad.
+    @Test(arguments: [
+        (CGSize(width: 1192, height: 1590), CGSize(width: 412, height: 636), CGSize(width: 154.5, height: 154.5)),
+        (CGSize(width: 970, height: 1389), CGSize(width: 350, height: 538), CGSize(width: 152.5, height: 152.5)),
+        (CGSize(width: 954, height: 1373), CGSize(width: 350, height: 538), CGSize(width: 149, height: 149))
+    ])
+    func displayZoomFrames(screenSize: CGSize, portrait: CGSize, lockScreenSmall: CGSize) throws {
+        let canvas = WidgetSize.sizesForiPad(screenSize: screenSize, target: .designCanvas, majorOSVersion: 27)
+        #expect(try #require(canvas[.extraLargePortrait]) == portrait)
+        let lock = WidgetSize.sizesForiPad(screenSize: screenSize, target: .designCanvas, majorOSVersion: 27, placement: .lockScreen)
+        #expect(try #require(lock[.small]) == lockScreenSmall)
+    }
+
+    /// A Display Zoom row is not scaled, so its canvas and Home Screen frames are the same. Apple publishes them identically and measurement agrees.
+    @Test(arguments: [CGSize(width: 1192, height: 1590), CGSize(width: 970, height: 1389), CGSize(width: 954, height: 1373)])
+    func displayZoomRowsAreUnscaled(screenSize: CGSize) throws {
+        let canvas = WidgetSize.sizesForiPad(screenSize: screenSize, target: .designCanvas, majorOSVersion: 27)
+        let home = WidgetSize.sizesForiPad(screenSize: screenSize, target: .homeScreen, majorOSVersion: 27)
+        for size in [WidgetSize.small, .medium, .large, .extraLarge, .extraLargePortrait] {
+            #expect(try #require(canvas[size]) == (try #require(home[size])), "\(screenSize) \(size)")
+        }
+    }
+
     /// The measured case, kept as its own assertion so the value that was confirmed on device is pinned separately from the ones derived from the grid.
     @Test func theMeasuredExtraLargePortraitRenderedFrame() throws {
         let frames = WidgetSize.sizesForiPad(

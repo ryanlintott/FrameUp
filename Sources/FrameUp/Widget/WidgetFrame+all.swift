@@ -479,7 +479,7 @@ extension WidgetFrame {
     ///
     /// The system sizes are the only ones with a Home Screen frame. `extraLargePortrait`, the accessory sizes and the Lock Screen `small` frame are measured on the design canvas only, so a Home Screen lookup for those returns nothing.
     ///
-    /// > Note: `1192x1590`, `970x1389` and `954x1373` repeat their canvas frames unscaled. Those are Display Zoom modes rather than devices, and Apple publishes one frame for each.
+    /// > Note: `1192x1590`, `970x1389` and `954x1373` repeat their canvas frames unscaled, which measurement confirms. Those are Display Zoom modes rather than devices, and Apple publishes one frame for each.
     private static let iPadHomeScreen: [WidgetFrame] = [
         iPadHomeScreen(screenSize: (1192, 1590), small: (188, 188), medium: (412, 188), large: (412, 412), extraLarge: (860, 412)),
         iPadHomeScreen(screenSize: (1024, 1366), small: (160, 160), medium: (356, 160), large: (356, 356), extraLarge: (748, 356)),
@@ -538,10 +538,16 @@ extension WidgetFrame {
     ///
     /// > Note: `834x1112` and `768x1024` have no entry because iPadOS 27 does not run on any iPad reporting those screen sizes.
     private static let iPadPortraitDesignCanvas: [WidgetFrame] = [
+        // Measured on iPad Pro 12.9-inch 6th generation with Display Zoom set to More Space, iPadOS 27.0
+        iPadPortraitDesignCanvas(screenSize: (1192, 1590), portrait: (824, 1272)),
         // Measured on iPad Pro 13-inch M4, iPadOS 27.0
         iPadPortraitDesignCanvas(screenSize: (1032, 1376), portrait: (757, 1173)),
         // Measured on iPad Pro 12.9-inch 6th generation, iPadOS 27.0
         iPadPortraitDesignCanvas(screenSize: (1024, 1366), portrait: (757, 1173)),
+        // Measured on iPad Pro 11-inch 4th generation with Display Zoom set to More Space, iPadOS 27.0
+        iPadPortraitDesignCanvas(screenSize: (970, 1389), portrait: (700, 1076)),
+        // Measured on iPad Air 11-inch M2 with Display Zoom set to More Space, iPadOS 27.0
+        iPadPortraitDesignCanvas(screenSize: (954, 1373), portrait: (700, 1076)),
         // Measured on iPad Pro 11-inch 4th generation, iPadOS 27.0
         iPadPortraitDesignCanvas(screenSize: (834, 1194), portrait: (684, 1058)),
         // Measured on iPad Air 11-inch M2, iPadOS 27.0
@@ -574,7 +580,13 @@ extension WidgetFrame {
     /// Confirmed by measurement on a 820x1180 iPad: a placed widget rendered 600x928 pixels, which is the 300x464 predicted here, against a 342x529 design canvas. That is the same 0.8772 scale factor every other size on that iPad uses.
     ///
     /// > Note: `1032x1376` has no row. It has no published Home Screen row of its own to build a grid from, and its canvas frames measured identical to `1024x1366`, so it resolves there by nearest width exactly as its system sizes do.
+    ///
+    /// The three Display Zoom rows are measured rather than derived, and they came back exactly as the grid predicted: 412x636, 350x538 and 350x538. That is the third independent confirmation of the rule, after the shape check on the canvas and the 600x928 pixel measurement of a placed widget.
     private static let iPadPortraitHomeScreen: [WidgetFrame] = [
+        // Display Zoom rows are not scaled: Apple publishes identical canvas and Home Screen system frames for them, so the canvas value is the rendered one.
+        iPadPortraitHomeScreen(screenSize: (1192, 1590), portrait: (412, 636)),
+        iPadPortraitHomeScreen(screenSize: (970, 1389), portrait: (350, 538)),
+        iPadPortraitHomeScreen(screenSize: (954, 1373), portrait: (350, 538)),
         iPadPortraitHomeScreen(screenSize: (1024, 1366), portrait: (356, 552)),
         iPadPortraitHomeScreen(screenSize: (834, 1194), portrait: (300, 464)),
         // Confirmed by measuring a placed widget at 600x928 pixels on an iPad Air 11-inch M4, iPadOS 27.0
@@ -602,8 +614,16 @@ extension WidgetFrame {
     ///
     /// A `systemSmall` on the iPad Lock Screen is a different size from the same widget on the Home Screen, and on every iPad measured its width is exactly the width of `accessoryRectangular`. The Lock Screen widget column is that wide and a system small is sized to fit it. On a 834x1112 iPad the Lock Screen frame is larger than the Home Screen one rather than smaller.
     ///
-    /// > Note: iPad Lock Screen widgets arrived in iPadOS 17 but the earliest measurement is on 18.6, so these apply from 18. `1192x1590`, `970x1389` and `954x1373` are Display Zoom modes rather than devices and have not been measured.
+    /// > Note: iPad Lock Screen widgets arrived in iPadOS 17 but the earliest measurement is on 18.6, so these apply from 18.
+    ///
+    /// `1192x1590`, `970x1389` and `954x1373` are Display Zoom modes rather than devices. They are measured, by turning on More Space under Settings > Developer > Display Zoom. Their Lock Screen frames do not follow from the unzoomed ones: a 820x1180 iPad has a 152 point Lock Screen `small` and zooming it to 954x1373 makes that frame *smaller*, at 149, while the other two grow.
     private static let iPadLockScreen: [WidgetFrame] = [
+        // Measured on iPad Pro 12.9-inch 6th generation with Display Zoom set to More Space, iPadOS 27.0
+        iPadLock(screenSize: (1192, 1590), small: (309, 309), circular: (126, 126), rectangular: (309, 126), inline: (822, 72)),
+        // Measured on iPad Pro 11-inch 4th generation with Display Zoom set to More Space, iPadOS 27.0
+        iPadLock(screenSize: (970, 1389), small: (305, 305), circular: (124, 124), rectangular: (305, 124), inline: (812, 72)),
+        // Measured on iPad Air 11-inch M2 with Display Zoom set to More Space, iPadOS 27.0. Its Lock Screen frames are smaller than the same iPad unzoomed, where they are 152.
+        iPadLock(screenSize: (954, 1373), small: (298, 298), circular: (121, 121), rectangular: (298, 121), inline: (796, 72)),
         // Measured on iPad Pro 13-inch M4, iPadOS 26.5
         iPadLock(screenSize: (1032, 1376), small: (301, 301), circular: (120, 120), rectangular: (301, 120), inline: (744, 72)),
         // Measured on iPad Pro 12.9-inch 6th generation, iPadOS 26.5

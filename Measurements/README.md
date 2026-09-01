@@ -4,15 +4,45 @@ Frame sizes reported by WidgetKit on real devices and simulators, captured with 
 
 These are the raw measurements behind the `WidgetSize` lookup tables. Apple does not publish a frame for every widget family on every platform, and the published tables lag new devices and OS betas, so measuring is the only way to fill the gaps.
 
+## How it works
+
+The probe is a widget extension embedded in `FrameUpExample`, so installing the example app installs the probe. Everything it learns leaves the device as a line in the unified log, except on iPad, where a rendered frame has to be read out of a screenshot instead.
+
+| File | Role |
+| --- | --- |
+| `Example/WidgetSizeProbe/WidgetSizeProbeBundle.swift` | `@main`, the extension's entry point |
+| `Example/WidgetSizeProbe/Info.plist` | Declares it a `com.apple.widgetkit-extension` |
+| `Example/WidgetSizeProbe/WidgetSizeProbe.swift` | The widget, its timeline provider, and the two measuring instruments |
+| `Example/WidgetSizeProbe/ProbeRecord.swift` | The record type, the device context, and log emission |
+| `Measurements/findwidget.swift` | Measures a placed widget from a screenshot |
+| `Measurements/widget-frames.json` | Every raw record, kept unmerged |
+| `Sources/FrameUp/Widget/WidgetFrame+all.swift` | The lookup tables the measurements feed |
+
+**The probe declares more families than it expects to get.** `supportedFamilies` lists every family the OS might offer rather than the ones `WidgetSize` believes are supported, and WidgetKit ignores any the device cannot show. Declaring the library's own list would leave the probe unable to discover a family the library has wrong, because that family would never be offered, never render and never be measured. `.contentMarginsDisabled()` is set for a related reason: without it the body is inset and the measured view size is the frame minus its margins.
+
+**Each render is measured twice, by different means.** `ProbeProvider` reads `TimelineProviderContext.displaySize` in each of its callbacks and emits a record tagged `placeholder`, `snapshot` or `timeline`. That is WidgetKit declaring the frame. `FrameProbe`, a `Shape` in the entry view's background, receives the laid out rectangle in `path(in:)` and emits it as `viewSize`, tagged `render`. That is what the layout actually produced. It is a `Shape` rather than an `onAppear` because widget bodies render as static snapshots where appearance callbacks are not guaranteed to run, while `path(in:)` always is. The two agree on most platforms and disagree on iPad, where `displaySize` reports the design canvas and the widget draws smaller, and that disagreement is a finding rather than noise.
+
+**Records travel as log lines.** `ProbeLog.emit` encodes a `ProbeRecord` as one line of JSON with sorted keys and writes it to `os.Logger` on subsystem `com.abetterwaytodo.FrameUpExample.WidgetSizeProbe`, behind the `WIDGET_SIZE_PROBE` marker. The interpolation is `privacy: .public`; without that the payload comes back from the log redacted. The device fields are read on whichever thread the provider happened to run on and return nil rather than hopping actors, which is why `displayScale` is absent from about a third of the records.
+
+**iPad needs a third route.** `displaySize` there is the design canvas, so no log record can report the frame a placed widget draws at. The probe paints its container background magenta and fills its frame opaque white, and `findwidget.swift` finds that fill in a screenshot. Magenta is for the Home Screen and Today View; the white is what survives the Lock Screen, which removes the container background and renders vibrant.
+
+**Two hops are done by hand, and the second one deliberately.**
+
+```
+probe render ──> os.Logger ──> log show ──> paste ──> widget-frames.json ──┐
+                                                                           ├──> WidgetFrame+all.swift
+screenshot ──> findwidget.swift ──> notes in this file ────────────────────┘
+```
+
+There is no merge script. Captured lines have the `WIDGET_SIZE_PROBE ` marker stripped and are pasted into the array in `widget-frames.json`, one object per line, with `CGSize` encoded as `[width, height]`. Turning those records into a table row is then a judgment call rather than a transform, for the reason given under [Fields](#fields), and the judgment is preserved as `// Measured on ...` provenance comments beside each row of `WidgetFrame+all.swift`.
+
+Note the asymmetry in that sketch: screenshot measurements never reach `widget-frames.json`, whose schema has no place for them. They go from the tool's output into the notes in this file and into the table, so their provenance lives only in prose.
+
 ## What cannot be captured in a simulator
 
-**Use the Simulator app from Xcode 26.6, not Xcode 27.** Xcode 27 ships no `Simulator.app` at all; it is replaced by Device Hub, which does not accept injected touch events and has a reduced Settings app. Everything below was retested under the Xcode 26.6 Simulator before being called impossible.
+**Use the Simulator app from Xcode 26.6, not Xcode 27.** Xcode 27 ships no `Simulator.app` at all; it is replaced by Device Hub, which does not accept injected touch events. Everything below was retested under the Xcode 26.6 Simulator before being called impossible.
 
 **StandBy.** StandBy needs the device locked, charging and in landscape at once. `simctl status_bar override --batteryState charging` only changes what the status bar draws, not what the system believes about power, so rotating a locked simulator gives a landscape Lock Screen rather than StandBy. `WidgetPlacement.standBy` therefore needs real hardware.
-
-**Display Zoom.** The simulator's Settings app has no Display & Brightness pane, so More Space cannot be turned on. `simctl ui` offers only appearance, contrast and content size, the device type profile defines no zoom variants, and no zoom preference domain exists on a booted device. The three iPad rows marked with a `*` in Apple's table, `1192x1590`, `970x1389` and `954x1373`, therefore keep their published system frames and fall back to the nearest measured screen size for the Lock Screen frames.
-
-Those zoomed sizes are a consistent 1.164 times the native screen size, but the widget frames do not follow that ratio: the small widget goes 170 to 188 on one device, a factor of 1.106, and 155 to 162 on another, a factor of 1.045. There is no way to derive them.
 
 **CarPlay.** The simulator does implement CarPlay, unlike StandBy. `I/O > External Displays > CarPlay` brings up a working 800x480 screen, `com.apple.CarPlayApp` runs, and the framebuffer can be captured with `simctl io --display external`. What does not work is touching it: clicks do not reach the CarPlay window, which is a long standing Apple bug reported against many Xcode versions and reproducible with Apple's own sample apps. See [Cannot interact with CarPlay external display in Xcode](https://developer.apple.com/forums/thread/736554). The reported workaround, quitting and reconnecting the display several times with the phone locked, did not help here. Apple's suggested alternative is the standalone CarPlay Simulator from Additional Tools, which needs a physical iPhone tethered to the Mac.
 
@@ -32,13 +62,19 @@ Those zoomed sizes are a consistent 1.164 times the native screen size, but the 
 3. On the device, enter jiggle mode, choose **Add Widget**, and open the **FrameUp** entry in the gallery. Opening the entry is enough — WidgetKit renders every supported family to build the gallery carousel, so the widget does not need to be placed on the Home Screen.
 4. Merge the captured `WIDGET_SIZE_PROBE` lines into `widget-frames.json`.
 
-On iPad, `displaySize` reports the design canvas, so a rendered frame has to be measured from a screenshot instead. `findwidget.py` decodes a PNG and reports the bounding box of the probe's fill in pixels and points:
+To measure a Display Zoom row, turn on **Settings > Developer > Display Zoom > More Space** and let the device restart. The probe records `screenSize`, so a sweep can be checked for the zoomed value before its frames are trusted.
+
+On iPad, `displaySize` reports the design canvas, so a rendered frame has to be measured from a screenshot instead. `findwidget.swift` decodes a screenshot and reports the bounding box of the probe's fill in pixels and points. It runs directly, with no build step:
 
 ```sh
 xcrun simctl io <udid> screenshot shot.png
-python3 Measurements/findwidget.py shot.png 2            # Home Screen and Today View
-python3 Measurements/findwidget.py shot.png 2 bright     # Lock Screen, which renders vibrant
+Measurements/findwidget.swift shot.png 2            # Home Screen and Today View
+Measurements/findwidget.swift shot.png 2 bright     # Lock Screen, which renders vibrant
 ```
+
+The second argument is the pixels per point of the device the screenshot came from, used to convert the measured box to points. An optional fourth argument, `x,y,width,height` in pixels, narrows the search when something else on screen also matches; boxes are still reported in screenshot coordinates.
+
+A match is a run of pixels that pass a colour threshold, so a partly covered edge pixel is not counted and a measured frame can read up to one pixel short on each side. That is 0.5pt at @2x and 0.33pt at @3x, always in the same direction, which is worth remembering when a screenshot disagrees with a `displaySize` by a fraction of a point.
 
 ## Fields
 
@@ -304,6 +340,32 @@ The probe extension needs `xros`-style treatment plus three things specific to w
 ```sh
 xcrun simctl launch <udid> com.abetterwaytodo.FrameUpExample.watchkitapp
 ```
+
+### iPad Display Zoom, iPadOS 27
+
+The three screen sizes Apple marks with a `*`, measured by turning on More Space under Settings > Developer > Display Zoom. Apple publishes the system frames for these and nothing else.
+
+| Zoomed screen | Native | Small | Medium | Large | Extra large | Matches published |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1192×1590 | 1024×1366 | 188 | 412×188 | 412×412 | 860×412 | yes |
+| 970×1389 | 834×1194 | 162 | 350×162 | 350×350 | 726×350 | yes |
+| 954×1373 | 820×1180 | 162 | 350×162 | 350×350 | 726×350 | yes |
+
+Every published value is confirmed. The frames these three had no value for at all are below.
+
+| Zoomed screen | extraLargePortrait | Lock Screen small | circular | rectangular | inline |
+| --- | --- | --- | --- | --- | --- |
+| 1192×1590 | 412×636 | 154.5 | 63 | 154.5×63 | 411×36 |
+| 970×1389 | 350×538 | 152.5 | 62 | 152.5×62 | 406×36 |
+| 954×1373 | 350×538 | 149 | 60.5 | 149×60.5 | 398×36 |
+
+`extraLargePortrait` came back exactly as the Home Screen grid predicts, two cells by three, on all three. That is the third independent confirmation of the grid rule.
+
+**A zoomed frame still cannot be derived from its native one.** The zoomed *screen* sizes are a consistent multiple of the native ones, 1.164, 1.163 and 1.163, and the frames are not: `small` goes 170 to 188 on one device, a factor of 1.106, and 155 to 162 on the other two, a factor of 1.045. The ratio also differs by widget size on the same device, where 1192×1590 is 1.106 for `small`, 1.089 for `medium` and 1.082 for `extraLarge`.
+
+The Lock Screen frames are stranger still. Zooming a 1024×1366 iPad grows its Lock Screen `small` from 149 to 154.5 and zooming a 834×1194 grows it from 152 to 152.5, but zooming a 820×1180 *shrinks* it, from 152 to 149. Nothing about the native row predicts that.
+
+`970×1389` and `954×1373` have identical system frames but different Lock Screen frames, 152.5 against 149, so they need separate rows. That is the same pattern as `1024×1366` and `1032×1376`.
 
 ### macOS and Mac Catalyst
 

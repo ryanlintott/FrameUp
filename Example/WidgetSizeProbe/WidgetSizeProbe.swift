@@ -120,9 +120,9 @@ struct WidgetSizeProbe: Widget {
 
     /// Families measured by this probe.
     ///
-    /// Every family the OS might offer. The accessory families are what the Lock Screen shows, so they have to be declared for the widget to appear there at all. `systemExtraLarge` is offered only on iPad and `extraLargePortrait` only from iOS 27, and WidgetKit ignores a family the current device does not support.
+    /// Every family the OS might offer. The accessory families are what the Lock Screen shows, so they have to be declared for the widget to appear there at all. `systemExtraLarge` is offered only on iPad and `extraLargePortrait` only from iOS 27, macOS 27 and visionOS 26, and WidgetKit ignores a family the current device does not support.
     var supportedFamilies: [WidgetFamily] {
-        /// watchOS has no system families at all. `accessoryCorner` exists only here, and is included even though `WidgetSize` has no case for it, because measuring it costs nothing and the frame is otherwise unrecorded anywhere.
+        /// watchOS has no system families at all. `accessoryCorner` exists only here, and is measured even though `WidgetSize.accessoryCorner` stores no frame, because the reported size is what shows the frame is meaningless as a bound: it does not scale with screen width, and a corner complication is not a rectangle. Re-measuring it on a new watch or OS version confirms that still holds.
         #if os(watchOS)
         return [.accessoryCircular, .accessoryRectangular, .accessoryInline, .accessoryCorner]
         #else
@@ -134,16 +134,21 @@ struct WidgetSizeProbe: Widget {
         ]
         /// The accessory families appear on the Lock Screen and, from visionOS 27, on Vision Pro. macOS has no Lock Screen, and the visionOS SDK has no `accessoryInline` case at all.
         #if os(visionOS)
+        /// The visionOS accessory cases arrived in the Xcode 27 SDK, so they need a compiler gate as well as a platform one.
+        #if compiler(>=6.4)
         if #available(visionOS 27, *) {
             families += [.accessoryCircular, .accessoryRectangular]
         }
+        #endif
         #elseif !os(macOS)
         families += [.accessoryCircular, .accessoryRectangular, .accessoryInline]
         #endif
-        /// `systemExtraLargePortrait` arrived in visionOS 26, a release earlier than on iOS and macOS.
+        /// `systemExtraLargePortrait` arrived in visionOS 26, a release earlier than on iOS and macOS, and in the Xcode 26 SDK rather than Xcode 27. Matches the gate on `WidgetSize.widgetFamily`.
+        #if (os(visionOS) && compiler(>=6.2)) || ((os(iOS) || os(macOS)) && compiler(>=6.4))
         if #available(iOS 27, macOS 27, visionOS 26, *) {
             families.append(.systemExtraLargePortrait)
         }
+        #endif
         return families
         #endif
     }
