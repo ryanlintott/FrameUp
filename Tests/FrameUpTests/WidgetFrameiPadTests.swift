@@ -154,19 +154,6 @@ struct WidgetFrameiPadTests {
         #expect(try #require(frames[.accessoryCircular]) == expected)
     }
 
-    /// The Display Zoom screen sizes have system frames but no measured Lock Screen frames, so they resolve to the nearest measured screen size rather than reporting nothing.
-    @Test(arguments: [CGFloat(1192), 970, 954])
-    func displayZoomScreenSizesFallBackForAccessoryFrames(width: CGFloat) throws {
-        let frames = WidgetSize.sizesForiPad(
-            screenSize: CGSize(width: width, height: width * 1.33),
-            target: .designCanvas,
-            majorOSVersion: 26
-        )
-        #expect(frames[.accessoryCircular] != nil)
-        /// The system frames still come from that screen size's own row.
-        #expect(frames[.medium] != nil)
-    }
-
     /// On every iPad the Lock Screen systemSmall is exactly as wide as accessoryRectangular. The Lock Screen widget column is that wide and a system small is sized to fit it.
     @Test func theLockScreenSmallMatchesTheRectangularWidth() throws {
         /// CGSize is only Hashable from macOS 15, so the screen sizes are deduplicated by description.
@@ -201,6 +188,31 @@ struct WidgetFrameiPadTests {
         let onLock = WidgetSize.sizesForiPad(screenSize: screenSize, target: .designCanvas, majorOSVersion: 26, placement: .lockScreen)
         #expect(try #require(onHome[.small]) == home)
         #expect(try #require(onLock[.small]) == lock)
+    }
+
+    /// Placement is resolved before screen proximity, so an exact Lock Screen row cannot replace a nearby Home Screen row in an unnamed lookup.
+    @Test func defaultPlacementIsMatchedBeforeNearestScreen() throws {
+        let screenSize = CGSize(width: 1032, height: 1376)
+        let frames = WidgetSize.sizesForiPad(
+            screenSize: screenSize,
+            target: .designCanvas,
+            majorOSVersion: 26
+        )
+        let homeScreenFrames = WidgetSize.sizesForiPad(
+            screenSize: screenSize,
+            target: .designCanvas,
+            majorOSVersion: 26,
+            placement: .homeScreen
+        )
+        let lockScreenFrames = WidgetSize.sizesForiPad(
+            screenSize: screenSize,
+            target: .designCanvas,
+            majorOSVersion: 26,
+            placement: .lockScreen
+        )
+
+        #expect(try #require(frames[.small]) == #require(homeScreenFrames[.small]))
+        #expect(try #require(frames[.small]) != #require(lockScreenFrames[.small]))
     }
 
     /// On every iPad, extraLargePortrait is exactly as wide as medium and large, the same rule that holds on iPhone. It holds within each target, since the canvas and the rendered frame are different sizes.

@@ -169,9 +169,9 @@ struct Region {
     }
 }
 
-/// Finds every connected region of widget coloured pixels within `searchArea`.
+/// Finds every connected region of widget coloured pixels that intersects `searchArea`.
 ///
-/// Regions are 4-connected and are clipped to `searchArea`, but their boxes are reported in image coordinates, so narrowing the search never changes the numbers that come out of it.
+/// Regions are 4-connected. Once a matching pixel is found within `searchArea`, its complete region is discovered across the image, so narrowing the search never clips a region or changes the numbers that come out of it.
 func findRegions(in bitmap: Bitmap, mode: FillMode, searchArea: PixelRect, minimumSide: Int) -> [Region] {
     let neighbours = [(1, 0), (-1, 0), (0, 1), (0, -1)]
     var visited = [Bool](repeating: false, count: bitmap.width * bitmap.height)
@@ -198,7 +198,7 @@ func findRegions(in bitmap: Bitmap, mode: FillMode, searchArea: PixelRect, minim
                 for (dx, dy) in neighbours {
                     let nextX = x + dx
                     let nextY = y + dy
-                    guard searchArea.contains(x: nextX, y: nextY),
+                    guard bitmap.bounds.contains(x: nextX, y: nextY),
                           !visited[nextY * bitmap.width + nextX],
                           bitmap.matches(mode, x: nextX, y: nextY)
                     else { continue }

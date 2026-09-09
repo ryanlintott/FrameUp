@@ -72,7 +72,7 @@ Measurements/findwidget.swift shot.png 2            # Home Screen and Today View
 Measurements/findwidget.swift shot.png 2 bright     # Lock Screen, which renders vibrant
 ```
 
-The second argument is the pixels per point of the device the screenshot came from, used to convert the measured box to points. An optional fourth argument, `x,y,width,height` in pixels, narrows the search when something else on screen also matches; boxes are still reported in screenshot coordinates.
+The second argument is the pixels per point of the device the screenshot came from, used to convert the measured box to points. An optional fourth argument, `x,y,width,height` in pixels, narrows the search when something else on screen also matches. Complete regions are discovered before the crop is applied, so a crop that crosses a widget still reports its full box in screenshot coordinates.
 
 A match is a run of pixels that pass a colour threshold, so a partly covered edge pixel is not counted and a measured frame can read up to one pixel short on each side. That is 0.5pt at @2x and 0.33pt at @3x, always in the same direction, which is worth remembering when a screenshot disagrees with a `displaySize` by a fraction of a point.
 

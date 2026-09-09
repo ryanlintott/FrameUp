@@ -78,9 +78,9 @@ extension WidgetFrame {
 extension WidgetFrame {
     /// Frames for a device, chosen independently for each widget size.
     ///
-    /// Each widget size resolves to the nearest screen size that has a frame for it, by width and then by height. Resolving per widget size rather than per device means a size that has only been measured on one screen still resolves everywhere, the way the system sizes already do. Height matters because some screen widths appear more than once: 375 points is both an iPhone SE and an iPhone 11 Pro, and their frames differ by 13 points.
+    /// Each widget size first resolves to one placement, then to the nearest screen size that has a frame for it in that placement, by width and then by height. Resolving per widget size rather than per device means a size that has only been measured on one screen still resolves everywhere, the way the system sizes already do. Height matters because some screen widths appear more than once: 375 points is both an iPhone SE and an iPhone 11 Pro, and their frames differ by 13 points.
     ///
-    /// Among the frames at that screen size, the one that applies is chosen by placement first, so a size that appears both on the Home Screen and elsewhere reports its Home Screen frame, then by the highest OS version the supplied version satisfies, then by display scale.
+    /// When no placement is supplied, a size that appears both on the Home Screen and elsewhere uses its Home Screen frames. A size that only appears elsewhere uses its highest-priority available placement according to ``WidgetPlacement/defaultResolutionOrder``. Frames from another placement never participate in nearest-screen matching. The frame is then chosen by the highest OS version the supplied version satisfies, then by display scale.
     /// - Parameters:
     ///   - platform: Platform to look up.
     ///   - screenSize: Screen size in points, ignoring orientation.
@@ -111,7 +111,15 @@ extension WidgetFrame {
         }
 
         return Dictionary(grouping: candidates, by: \.widgetSize)
-            .compactMapValues { $0.min { a, b in a.isBetterThan(b, for: screenSize, displayScale: displayScale) }?.frame }
+            .compactMapValues { candidates in
+                guard let preferredPlacement = WidgetPlacement.defaultResolutionOrder.last(where: { placement in
+                    candidates.contains { $0.placement == placement }
+                }) else { return nil }
+                return candidates
+                    .filter { $0.placement == preferredPlacement }
+                    .min { a, b in a.isBetterThan(b, for: screenSize, displayScale: displayScale) }?
+                    .frame
+            }
     }
 
     /// Ordering used to pick one frame from several that could apply.
@@ -121,9 +129,6 @@ extension WidgetFrame {
 
         let heightDelta = (abs(self.screenSize.height - screenSize.height), abs(other.screenSize.height - screenSize.height))
         if heightDelta.0 != heightDelta.1 { return heightDelta.0 < heightDelta.1 }
-
-        /// Placement outranks OS version so a Home Screen frame is not replaced by a newer frame from somewhere else.
-        if placement != other.placement { return placement.priority < other.placement.priority }
 
         if minMajorOSVersion != other.minMajorOSVersion { return minMajorOSVersion > other.minMajorOSVersion }
 
@@ -139,15 +144,6 @@ extension WidgetFrame {
         if let displayScale, self.displayScale == displayScale { return -2 }
         guard let frameScale = self.displayScale else { return -1 }
         return frameScale
-    }
-}
-
-extension WidgetPlacement {
-    /// Lower is preferred when a widget size has a frame in more than one place.
-    var priority: Int {
-        let order = Self.defaultResolutionOrder
-        guard let index = order.firstIndex(of: self) else { return order.count }
-        return order.count - 1 - index
     }
 }
 
