@@ -11,24 +11,26 @@ import SwiftUI
 struct WidgetDemoFrameExample: View {
     @State private var widgetSize: WidgetSize = .small
     
-    #if !os(iOS)
+    #if os(tvOS)
+    /// tvOS has no widgets, so there is no current device to ask. These stand in for one.
     let iPhoneDemoSize = CGSize(width: 430, height: 932)
     let iPadDemoSize = CGSize(width: 768, height: 1024)
     
-    var homeScreenSize: CGSize {
+    /// `extraLarge` is an iPad size, so it is the one that demos with an iPad screen.
+    var demoFrame: WidgetFrame? {
         if widgetSize == .extraLarge {
-            return widgetSize.sizeForiPad(screenSize: iPadDemoSize, target: .homeScreen) ?? widgetSize.minimumSize
+            widgetSize.frame(platform: .pad, screenSize: iPadDemoSize)
         } else {
-            return widgetSize.sizeForiPhone(screenSize: iPhoneDemoSize) ?? widgetSize.minimumSize
+            widgetSize.frame(platform: .phone, screenSize: iPhoneDemoSize)
         }
     }
     
+    var homeScreenSize: CGSize {
+        demoFrame?.renderedSize ?? widgetSize.minimumSize
+    }
+    
     var designCanvasSize: CGSize {
-        if widgetSize == .extraLarge {
-            return widgetSize.sizeForiPad(screenSize: iPadDemoSize, target: .designCanvas) ?? widgetSize.minimumSize
-        } else {
-            return widgetSize.sizeForiPhone(screenSize: iPhoneDemoSize) ?? widgetSize.minimumSize
-        }
+        demoFrame?.canvasSize ?? widgetSize.minimumSize
     }
     #endif
     
@@ -37,15 +39,13 @@ struct WidgetDemoFrameExample: View {
     }
     
     var sizes: [WidgetSize] {
-        #if os(iOS)
-        WidgetSize.supportedSizesForCurrentDevice
-        #else
-        WidgetSize.allCases
-        #endif
+        let supported = WidgetSize.supportedSizesForCurrentDevice
+        /// tvOS supports no widget sizes at all, so it demos every one rather than showing an empty picker.
+        return supported.isEmpty ? WidgetSize.allCases : supported
     }
     
     var device: String {
-        #if os(iOS)
+        #if os(iOS) || os(macOS) || os(visionOS) || os(watchOS)
         return "this device"
         #else
         if widgetSize == .extraLarge {
@@ -72,7 +72,7 @@ struct WidgetDemoFrameExample: View {
             
             Spacer(minLength: 0)
             
-            #if os(iOS)
+            #if os(iOS) || os(macOS) || os(visionOS) || os(watchOS)
             WidgetDemoFrame(widgetSize) { size, cornerRadius in
                 Color.blue
             }

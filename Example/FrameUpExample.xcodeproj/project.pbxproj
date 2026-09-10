@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		CFB000000000000000000003 /* WidgetSizeProbeExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = CFB000000000000000000002 /* WidgetSizeProbeExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		CFB000000000000000000003 /* WidgetSizeProbeExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = CFB000000000000000000002 /* WidgetSizeProbeExtension.appex */; platformFilters = (ios, macos, xros, ); settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		CFB000000000000000000020 /* WidgetSizeProbeExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = CFB000000000000000000002 /* WidgetSizeProbeExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		CFB000000000000000000008 /* FrameUp in Frameworks */ = {isa = PBXBuildFile; productRef = CFB000000000000000000007 /* FrameUp */; };
 		CF1AB2B22CB5BF530049E553 /* FrameUp in Frameworks */ = {isa = PBXBuildFile; productRef = CF1AB2B12CB5BF530049E553 /* FrameUp */; };
@@ -399,6 +399,7 @@
 /* Begin PBXTargetDependency section */
 		CFB000000000000000000011 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
+			platformFilters = (ios, macos, xros, );
 			target = CFB000000000000000000009 /* WidgetSizeProbeExtension */;
 			targetProxy = CFB000000000000000000010 /* PBXContainerItemProxy */;
 		};

@@ -48,6 +48,11 @@ struct WidthReaderExample: View {
                 }
                 
                 HStack {
+                    #if os(tvOS)
+                    Button("Padding \(padding)") { padding = Int.random(in: 0...100) }
+                    Button("-") { padding = max(0, padding - 10) }
+                    Button("+") { padding = min(100, padding + 10) }
+                    #else
                     Stepper(value: $padding, in: 0...100, step: 10) {
                         Button("Padding \(padding)") {
 //                            withAnimation {
@@ -55,6 +60,7 @@ struct WidthReaderExample: View {
 //                            }
                         }
                     }
+                    #endif
                 }
             }
             .padding()

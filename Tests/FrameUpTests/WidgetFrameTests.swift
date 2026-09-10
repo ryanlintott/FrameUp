@@ -69,30 +69,30 @@ struct WidgetFrameTests {
 
     @Test(arguments: published + measured)
     func systemFramesMatchTheTable(expectation: Expectation) throws {
-        let frames = WidgetSize.sizesForiPhone(
+        let frames = WidgetSize.frames(platform: .phone, 
             screenSize: expectation.screenSize,
             majorOSVersion: expectation.majorOSVersion,
             displayScale: expectation.displayScale
         )
-        #expect(try #require(frames[.small]) == expectation.small)
-        #expect(try #require(frames[.medium]) == expectation.medium)
-        #expect(try #require(frames[.large]) == expectation.large)
+        #expect(try #require(frames[.small]).canvasSize == expectation.small)
+        #expect(try #require(frames[.medium]).canvasSize == expectation.medium)
+        #expect(try #require(frames[.large]).canvasSize == expectation.large)
     }
 
     /// The bug this table was built to fix. Every 402 point wide iPhone resolved through the 393 arm and reported an iOS 18 frame.
     @Test func modernFramesDifferFromPublishedOnes() {
-        let modern = WidgetSize.sizesForiPhone(screenSize: CGSize(width: 402, height: 874), majorOSVersion: 26)
-        let legacy = WidgetSize.sizesForiPhone(screenSize: CGSize(width: 402, height: 874), majorOSVersion: 18)
-        #expect(legacy[.small] == CGSize(width: 158, height: 158))
+        let modern = WidgetSize.frames(platform: .phone, screenSize: CGSize(width: 402, height: 874), majorOSVersion: 26)
+        let legacy = WidgetSize.frames(platform: .phone, screenSize: CGSize(width: 402, height: 874), majorOSVersion: 18)
+        #expect(legacy[.small]?.canvasSize == CGSize(width: 158, height: 158))
         #expect(modern[.small] != legacy[.small])
     }
 
     /// Screen width alone is ambiguous. 375 points is both an iPhone SE and an iPhone 11 Pro, and their frames differ.
     @Test func screenHeightBreaksWidthTies() throws {
-        let tall = WidgetSize.sizesForiPhone(screenSize: CGSize(width: 375, height: 812), majorOSVersion: 26)
-        let short = WidgetSize.sizesForiPhone(screenSize: CGSize(width: 375, height: 667), majorOSVersion: 26)
-        #expect(try #require(tall[.small]).width == 159)
-        #expect(try #require(short[.small]).width == 146)
+        let tall = WidgetSize.frames(platform: .phone, screenSize: CGSize(width: 375, height: 812), majorOSVersion: 26)
+        let short = WidgetSize.frames(platform: .phone, screenSize: CGSize(width: 375, height: 667), majorOSVersion: 26)
+        #expect(try #require(tall[.small]).canvasSize.width == 159)
+        #expect(try #require(short[.small]).canvasSize.width == 146)
     }
 
     /// An unknown screen size resolves to the nearest known width rather than the next smaller one.
@@ -103,16 +103,16 @@ struct WidgetFrameTests {
         (CGFloat(445), CGFloat(440))
     ])
     func unknownWidthsResolveToTheNearestKnownWidth(width: CGFloat, expectedMatch: CGFloat) throws {
-        let unknown = WidgetSize.sizesForiPhone(screenSize: CGSize(width: width, height: 900), majorOSVersion: 26)
-        let known = WidgetSize.sizesForiPhone(screenSize: CGSize(width: expectedMatch, height: 900), majorOSVersion: 26)
+        let unknown = WidgetSize.frames(platform: .phone, screenSize: CGSize(width: width, height: 900), majorOSVersion: 26)
+        let known = WidgetSize.frames(platform: .phone, screenSize: CGSize(width: expectedMatch, height: 900), majorOSVersion: 26)
         #expect(try #require(unknown[.small]) == #require(known[.small]))
     }
 
     /// A newer frame only has to list what changed. A widget size with no frame for the newer OS keeps the one from the older OS.
     @Test func newerFramesLayerOverOlderOnes() throws {
         let screen = CGSize(width: 402, height: 874)
-        let onTwentySix = WidgetSize.sizesForiPhone(screenSize: screen, majorOSVersion: 26, displayScale: 3)
-        let onTwentySeven = WidgetSize.sizesForiPhone(screenSize: screen, majorOSVersion: 27, displayScale: 3)
+        let onTwentySix = WidgetSize.frames(platform: .phone, screenSize: screen, majorOSVersion: 26, displayScale: 3)
+        let onTwentySeven = WidgetSize.frames(platform: .phone, screenSize: screen, majorOSVersion: 27, displayScale: 3)
         /// No iOS 27 system frames were measured, so they carry over from iOS 26.
         #expect(try #require(onTwentySeven[.small]) == #require(onTwentySix[.small]))
         #expect(try #require(onTwentySeven[.accessoryCircular]) == #require(onTwentySix[.accessoryCircular]))
@@ -123,20 +123,20 @@ struct WidgetFrameTests {
 
     /// An OS older than every set still returns frames rather than nothing.
     @Test func versionsBelowEverySetFallBackToTheOldestOne() {
-        let frames = WidgetSize.sizesForiPhone(screenSize: CGSize(width: 390, height: 844), majorOSVersion: 15)
-        #expect(frames[.small] == CGSize(width: 158, height: 158))
+        let frames = WidgetSize.frames(platform: .phone, screenSize: CGSize(width: 390, height: 844), majorOSVersion: 15)
+        #expect(frames[.small]?.canvasSize == CGSize(width: 158, height: 158))
     }
 
     @Test func everyStoredFrameResolvesToItself() throws {
-        for stored in WidgetFrame.all where stored.platform == .phone {
-            let frames = WidgetSize.sizesForiPhone(
+        for stored in WidgetFrameRecord.all where stored.platform == .phone {
+            let frames = WidgetSize.frames(platform: .phone, 
                 screenSize: stored.screenSize,
                 majorOSVersion: stored.minMajorOSVersion,
                 displayScale: stored.displayScale,
                 placement: stored.placement
             )
             #expect(
-                try #require(frames[stored.widgetSize]) == stored.frame,
+                try #require(frames[stored.widgetSize]).canvasSize == stored.frame,
                 "\(stored.screenSize) \(stored.widgetSize) \(stored.placement)"
             )
         }
@@ -144,7 +144,7 @@ struct WidgetFrameTests {
 
     /// Widget frames always land on a whole number of pixels. Multiplying by six covers both 2x and 3x devices and catches a mistyped decimal.
     @Test func everyStoredFrameLandsOnAWholePixel() {
-        for stored in WidgetFrame.all {
+        for stored in WidgetFrameRecord.all {
             for value in [stored.frame.width, stored.frame.height] {
                 let pixels = value * 6
                 #expect(
@@ -157,7 +157,7 @@ struct WidgetFrameTests {
 
     @Test func noTwoFramesShareTheSameKey() {
         var seen = Set<String>()
-        for stored in WidgetFrame.all {
+        for stored in WidgetFrameRecord.all {
             let key = [
                 "\(stored.platform)",
                 "\(stored.widgetSize)",
@@ -174,8 +174,8 @@ struct WidgetFrameTests {
 
     /// Every stored frame must be reachable. A frame with a display scale or target no real device reports would silently never match.
     @Test func everyStoredFrameIsReachable() {
-        for stored in WidgetFrame.all {
-            let frames = WidgetFrame.frames(
+        for stored in WidgetFrameRecord.all {
+            let frames = WidgetFrameRecord.frames(
                 platform: stored.platform,
                 screenSize: stored.screenSize,
                 majorOSVersion: stored.minMajorOSVersion,
@@ -193,8 +193,8 @@ struct WidgetFrameTests {
     /// Accessory widgets appear on the Lock Screen, so their frames are stored against that placement, but a lookup that does not name a placement still reports them.
     @Test func accessoryFramesComeFromTheLockScreenByDefault() throws {
         let screen = CGSize(width: 390, height: 844)
-        let merged = WidgetSize.sizesForiPhone(screenSize: screen, majorOSVersion: 26)
-        let lock = WidgetSize.sizesForiPhone(screenSize: screen, majorOSVersion: 26, placement: .lockScreen)
+        let merged = WidgetSize.frames(platform: .phone, screenSize: screen, majorOSVersion: 26)
+        let lock = WidgetSize.frames(platform: .phone, screenSize: screen, majorOSVersion: 26, placement: .lockScreen)
         #expect(try #require(merged[.accessoryCircular]) == #require(lock[.accessoryCircular]))
         #expect(try #require(merged[.accessoryInline]) == #require(lock[.accessoryInline]))
     }
@@ -202,25 +202,25 @@ struct WidgetFrameTests {
     /// The Home Screen wins for a size that appears in more than one place.
     @Test func homeScreenWinsForSizesThatAppearInBothPlaces() throws {
         let screen = CGSize(width: 390, height: 844)
-        let merged = WidgetSize.sizesForiPhone(screenSize: screen, majorOSVersion: 26)
-        let home = WidgetSize.sizesForiPhone(screenSize: screen, majorOSVersion: 26, placement: .homeScreen)
+        let merged = WidgetSize.frames(platform: .phone, screenSize: screen, majorOSVersion: 26)
+        let home = WidgetSize.frames(platform: .phone, screenSize: screen, majorOSVersion: 26, placement: .homeScreen)
         #expect(try #require(merged[.small]) == #require(home[.small]))
     }
 
     /// Naming a placement returns only what appears there.
     @Test func namingAPlacementExcludesOtherPlacements() {
         let screen = CGSize(width: 390, height: 844)
-        let home = WidgetSize.sizesForiPhone(screenSize: screen, majorOSVersion: 26, placement: .homeScreen)
-        let lock = WidgetSize.sizesForiPhone(screenSize: screen, majorOSVersion: 26, placement: .lockScreen)
+        let home = WidgetSize.frames(platform: .phone, screenSize: screen, majorOSVersion: 26, placement: .homeScreen)
+        let lock = WidgetSize.frames(platform: .phone, screenSize: screen, majorOSVersion: 26, placement: .lockScreen)
         #expect(home[.accessoryCircular] == nil)
         #expect(lock[.small] == nil)
     }
 
     /// Accessory widgets arrived in iOS 16, so an iOS 15 lookup has no accessory frames.
     @Test func accessoryFramesStartAtiOS16() {
-        let frames = WidgetSize.sizesForiPhone(screenSize: CGSize(width: 390, height: 844), majorOSVersion: 15)
+        let frames = WidgetSize.frames(platform: .phone, screenSize: CGSize(width: 390, height: 844), majorOSVersion: 15)
         #expect(frames[.accessoryCircular] == nil)
-        #expect(frames[.small] == CGSize(width: 158, height: 158))
+        #expect(frames[.small]?.canvasSize == CGSize(width: 158, height: 158))
     }
 
     /// The iPhone accessory frames changed in iOS 26, so a lookup on that OS must not return the published values.
@@ -233,15 +233,15 @@ struct WidgetFrameTests {
     ])
     func accessoryCircularOniOS26(width: CGFloat, height: CGFloat, displayScale: CGFloat, expected: CGSize) throws {
         let screen = CGSize(width: width, height: height)
-        let modern = WidgetSize.sizesForiPhone(screenSize: screen, majorOSVersion: 26, displayScale: displayScale)
-        let published = WidgetSize.sizesForiPhone(screenSize: screen, majorOSVersion: 18, displayScale: displayScale)
-        #expect(try #require(modern[.accessoryCircular]) == expected)
+        let modern = WidgetSize.frames(platform: .phone, screenSize: screen, majorOSVersion: 26, displayScale: displayScale)
+        let published = WidgetSize.frames(platform: .phone, screenSize: screen, majorOSVersion: 18, displayScale: displayScale)
+        #expect(try #require(modern[.accessoryCircular]).canvasSize == expected)
         #expect(try #require(modern[.accessoryCircular]) != #require(published[.accessoryCircular]))
     }
 
     /// Every iPhone reports a 36 point tall inline accessory widget on iOS 26, where Apple publishes 26.
     @Test func inlineAccessoryHeightIsThirtySixOniOS26() throws {
-        for stored in WidgetFrame.all
+        for stored in WidgetFrameRecord.all
         where stored.platform == .phone
             && stored.widgetSize == .accessoryInline
             && stored.minMajorOSVersion >= 26 {
@@ -252,23 +252,23 @@ struct WidgetFrameTests {
     /// extraLargePortrait arrived in iOS 27, so an iOS 26 lookup has no frame for it.
     @Test func extraLargePortraitStartsAtiOS27() throws {
         let screen = CGSize(width: 402, height: 874)
-        let onTwentySix = WidgetSize.sizesForiPhone(screenSize: screen, majorOSVersion: 26, displayScale: 3)
-        let onTwentySeven = WidgetSize.sizesForiPhone(screenSize: screen, majorOSVersion: 27, displayScale: 3)
+        let onTwentySix = WidgetSize.frames(platform: .phone, screenSize: screen, majorOSVersion: 26, displayScale: 3)
+        let onTwentySeven = WidgetSize.frames(platform: .phone, screenSize: screen, majorOSVersion: 27, displayScale: 3)
         #expect(onTwentySix[.extraLargePortrait] == nil)
-        #expect(try #require(onTwentySeven[.extraLargePortrait]) == CGSize(width: 1049.0/3, height: 1697.0/3))
+        #expect(try #require(onTwentySeven[.extraLargePortrait]).canvasSize == CGSize(width: 1049.0/3, height: 1697.0/3))
     }
 
     /// On every iPhone, extraLargePortrait is exactly as wide as medium and large. It is the same column made taller.
     @Test func extraLargePortraitSharesTheMediumWidth() throws {
-        for stored in WidgetFrame.all
+        for stored in WidgetFrameRecord.all
         where stored.platform == .phone && stored.widgetSize == .extraLargePortrait {
-            let frames = WidgetSize.sizesForiPhone(
+            let frames = WidgetSize.frames(platform: .phone, 
                 screenSize: stored.screenSize,
                 majorOSVersion: 27,
                 displayScale: stored.displayScale
             )
-            let medium = try #require(frames[.medium])
-            let large = try #require(frames[.large])
+            let medium = try #require(frames[.medium]).canvasSize
+            let large = try #require(frames[.large]).canvasSize
             #expect(stored.frame.width == medium.width, "\(stored.screenSize)")
             #expect(stored.frame.width == large.width, "\(stored.screenSize)")
             #expect(stored.frame.height > large.height, "\(stored.screenSize)")
@@ -278,12 +278,12 @@ struct WidgetFrameTests {
     /// Every iPhone screen size iOS 27 supports has an extraLargePortrait frame, so none of them falls back to another screen size.
     @Test func everyScreenSizeHasAnExtraLargePortraitFrame() throws {
         let screenSizes = Set(
-            WidgetFrame.all
+            WidgetFrameRecord.all
                 .filter { $0.platform == .phone && $0.widgetSize == .small && $0.minMajorOSVersion >= 26 }
                 .map { "\($0.screenSize)-\(String(describing: $0.displayScale))" }
         )
         let portraitSizes = Set(
-            WidgetFrame.all
+            WidgetFrameRecord.all
                 .filter { $0.platform == .phone && $0.widgetSize == .extraLargePortrait }
                 .map { "\($0.screenSize)-\(String(describing: $0.displayScale))" }
         )

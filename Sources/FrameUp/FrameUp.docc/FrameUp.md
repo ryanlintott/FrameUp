@@ -101,6 +101,8 @@ For a feature-by-feature guide with examples, see the [README](https://github.co
 ### Widgets
 
 - ``WidgetSize``
+- ``WidgetFrame``
+- ``WidgetPlacement``
 - ``WidgetTarget``
 - ``WidgetDemoFrame``
 - ``AccessoryInlineImage``

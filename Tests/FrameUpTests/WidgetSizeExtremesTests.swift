@@ -15,12 +15,12 @@ struct WidgetSizeExtremesTests {
     @Test(arguments: WidgetSize.allCases)
     func everyWidgetSizeWithAFrameHasExtremes(widgetSize: WidgetSize) {
         guard widgetSize != .accessoryCorner else {
-            #expect(WidgetFrame.extremes[widgetSize] == nil)
+            #expect(WidgetFrameRecord.extremes[widgetSize] == nil)
             #expect(widgetSize.minimumSize == .zero)
             #expect(widgetSize.maximumSize == .zero)
             return
         }
-        #expect(WidgetFrame.extremes[widgetSize] != nil)
+        #expect(WidgetFrameRecord.extremes[widgetSize] != nil)
         #expect(widgetSize.minimumSize != .zero)
         #expect(widgetSize.maximumSize != .zero)
     }
@@ -30,7 +30,7 @@ struct WidgetSizeExtremesTests {
     func noFrameFallsOutsideTheReportedRange(widgetSize: WidgetSize) {
         guard widgetSize != .accessoryCorner else { return }
         let area = { (size: CGSize) in size.width * size.height }
-        let frames = WidgetFrame.all.filter { $0.widgetSize == widgetSize && $0.target != .homeScreen }
+        let frames = WidgetFrameRecord.all.filter { $0.widgetSize == widgetSize && $0.target != .homeScreen }
         for frame in frames {
             #expect(area(frame.frame) >= area(widgetSize.minimumSize), "\(frame.platform) \(frame.screenSize)")
             #expect(area(frame.frame) <= area(widgetSize.maximumSize), "\(frame.platform) \(frame.screenSize)")
@@ -41,7 +41,7 @@ struct WidgetSizeExtremesTests {
     @Test(arguments: WidgetSize.allCases)
     func bothExtremesAreRealFrames(widgetSize: WidgetSize) {
         guard widgetSize != .accessoryCorner else { return }
-        let frames = WidgetFrame.all.filter { $0.widgetSize == widgetSize && $0.target != .homeScreen }.map(\.frame)
+        let frames = WidgetFrameRecord.all.filter { $0.widgetSize == widgetSize && $0.target != .homeScreen }.map(\.frame)
         #expect(frames.contains(widgetSize.minimumSize))
         #expect(frames.contains(widgetSize.maximumSize))
     }
@@ -49,7 +49,7 @@ struct WidgetSizeExtremesTests {
     /// The iPad Home Screen frames are the design canvas scaled down, so they are left out of the range. The narrowest of them is well below the reported minimum, which would not be true if they counted.
     @Test func iPadHomeScreenFramesAreExcluded() throws {
         let narrowest = try #require(
-            WidgetFrame.all
+            WidgetFrameRecord.all
                 .filter { $0.platform == .pad && $0.widgetSize == .small && $0.target == .homeScreen }
                 .map(\.frame.width)
                 .min()

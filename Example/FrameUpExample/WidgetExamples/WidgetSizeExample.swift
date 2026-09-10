@@ -12,9 +12,10 @@ struct WidgetSizeExample: View {
     @State private var widgetSize: WidgetSize = .small
 
     var size: CGSize {
-        #if os(iOS)
-        widgetSize.sizeForCurrentDevice(iPadTarget: .homeScreen) ?? widgetSize.minimumSize
+        #if os(iOS) || os(macOS) || os(visionOS) || os(watchOS)
+        widgetSize.frameForCurrentDevice()?.renderedSize ?? widgetSize.minimumSize
         #else
+        /// tvOS has no widgets and so no current device to ask.
         widgetSize.minimumSize
         #endif
     }
@@ -23,25 +24,23 @@ struct WidgetSizeExample: View {
         String(format: "%.1f", size.width) + " x " + String(format: "%.1f", size.height)
     }
     
-    var sizes: [WidgetSize] {
-        #if os(iOS)
-        WidgetSize.supportedSizesForCurrentDevice
-        #else
-        WidgetSize.allCases
-        #endif
-    }
-    
     var device: String {
-        #if os(iOS)
+        #if os(iOS) || os(macOS) || os(visionOS) || os(watchOS)
         "this device"
         #else
         "the smallest possible for each widget"
         #endif
     }
     
+    var sizes: [WidgetSize] {
+        let supported = WidgetSize.supportedSizesForCurrentDevice
+        /// tvOS supports no widget sizes at all, so it lists every one rather than showing an empty picker.
+        return supported.isEmpty ? WidgetSize.allCases : supported
+    }
+    
     var body: some View {
         VStack {
-            Text("Sizes below are for \(device). Widget sizes for any device can be found by supplying the screen size.")
+            Text("Sizes below are for \(device). Widget sizes for any device can be found by supplying the platform and screen size.")
                 .font(.footnote)
                 .padding()
             

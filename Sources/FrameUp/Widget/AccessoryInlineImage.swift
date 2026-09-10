@@ -31,7 +31,7 @@ public struct AccessoryInlineImage: View {
             self.uiImage = uiImage.withRenderingMode(.alwaysTemplate)
         } else {
             let widgetSize = WidgetSize.accessoryInline
-            let imageSize = widgetSize.sizeForCurrentDevice(iPadTarget: .designCanvas) ?? widgetSize.minimumSize
+            let imageSize = widgetSize.frameForCurrentDevice()?.canvasSize ?? widgetSize.minimumSize
             
             guard let uiImage = uiImage
                 .scaledToFit(imageSize)?

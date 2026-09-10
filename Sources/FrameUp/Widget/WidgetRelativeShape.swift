@@ -53,7 +53,7 @@ public extension ScaledShape where Content == ScaledContainerRelativeShape {
             scaleFactor = 1
         } else {
             /// Scale factor will be less than 1 on iPad and 1 for all other devices
-            scaleFactor = widgetFamily.size?.scaleFactorForCurrentDevice ?? 1
+            scaleFactor = widgetFamily.size?.frameForCurrentDevice()?.scaleFactor ?? 1
         }
         let scaleSize = CGSize(width: 1 / scaleFactor, height: 1 / scaleFactor)
         
