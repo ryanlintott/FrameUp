@@ -14,6 +14,9 @@ struct AutoRotatingViewExamples: View {
             NavigationLink(destination: AutoRotatingViewExample()) {
                 Label("AutoRotatingView", systemImage: "arrow.turn.up.forward.iphone")
             }
+            NavigationLink(destination: AutoRotatingViewFullscreenExample()) {
+                Label("Fullscreen", systemImage: "arrow.up.left.and.arrow.down.right")
+            }
             #else
             UnavailableView()
             #endif

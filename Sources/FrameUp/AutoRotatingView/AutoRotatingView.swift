@@ -9,11 +9,15 @@ import SwiftUI
 
 #if os(iOS)
 /// A view that rotates and resizes the content frame to match device orientation.
+///
+/// Content is laid out in all the available space including any safe area around it, and a matching safe area is re-created inside the rotation. The content frame is then the same rect before, during, and after a rotation, and content can either respect the safe area or ignore it with `ignoresSafeArea()` in every orientation.
 public struct AutoRotatingView<Content: View>: View {
     /// The current orientation of the content relative to the device.
     @State private var contentOrientation: FUInterfaceOrientation? = nil
     /// The current orientation of the device.
     @State private var interfaceOrientation: FUInterfaceOrientation? = nil
+    /// The layout direction used to map safe area insets across the content rotation.
+    @Environment(\.layoutDirection) private var layoutDirection
     /// The rotation of the content relative to the interface.
     ///
     /// This angle accumulates rather than resetting to an equivalent angle between -180 and 180 degrees so rotation animations always take the shortest path.
@@ -30,7 +34,7 @@ public struct AutoRotatingView<Content: View>: View {
     
     /// A view that rotates and resizes the content frame to match device orientation.
     ///
-    /// View will take all available space.
+    /// View will take all available space, drawing into any safe area around it and re-creating that safe area inside the rotation.
     /// - Parameters:
     ///   - allowedOrientations: Set of allowed orientations for this view. Default is all.
     ///   - isOn: Toggles ability to rotate views.
@@ -94,7 +98,7 @@ public struct AutoRotatingView<Content: View>: View {
     }
     
     var rotation: Angle {
-        isOn ? contentRotation : .zero
+        isOn ? contentRotation : contentRotation.closestEquivalent(to: .zero)
     }
     
     /// This value is true if the aspect ratio of the device and content orientations match
@@ -109,27 +113,48 @@ public struct AutoRotatingView<Content: View>: View {
     }
     
     public var body: some View {
-        Color.clear.overlay(
-            GeometryReader { proxy in
-                content
-                    .rotationEffect(rotation)
-                    .frame(isMatchingAspectRatio ? proxy.size : proxy.size.swappingWidthAndHeight)
-                    .position(x: proxy.size.width / 2, y: proxy.size.height / 2)
+        /// This outer GeometryReader is outside the rotation so its safe area insets are the only correct ones available.
+        GeometryReader { outerProxy in
+            Color.clear.overlay(
+                GeometryReader { proxy in
+                    content
+                        .frame(isMatchingAspectRatio ? outerProxy.size : outerProxy.size.swappingWidthAndHeight)
+//                        .background { Color.yellow }
+                        .overlay {
+                            Color.green.frame(width: 16, height: 2)
+                            Color.green.frame(width: 2, height: 16)
+                        }
+                        .safeAreaInsets(outerProxy.safeAreaInsets, rotatedBy: rotation, layoutDirection: layoutDirection)
+                        .rotationEffect(rotation)
+//                        .frame(
+//                            maxWidth: isMatchingAspectRatio ? proxy.size.width : proxy.size.height,
+//                            maxHeight: isMatchingAspectRatio ? proxy.size.height : proxy.size.width
+//                        )
+                        .frame(isMatchingAspectRatio ? proxy.size : proxy.size.swappingWidthAndHeight)
+                        .position(x: proxy.size.width / 2, y: proxy.size.height / 2)
+//                        .ifAvailable {
+//                            if #available(iOS 17, *) {
+//                                $0.geometryGroup()
+//                            }
+//                        }
+                }
+            )
+            /// The content frame is the full space including the safe area so it does not change when a rotation begins.
+            .ignoresSafeArea()
+            .onChange(of: allowedOrientations) { newValue in
+                contentOrientation = nil
+                changeOrientations(allowedOrientations: newValue)
             }
-                .onChange(of: allowedOrientations) { newValue in
-                    contentOrientation = nil
-                    changeOrientations(allowedOrientations: newValue)
-                }
-                .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
-                    changeOrientations()
-                }
-                .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
-                    changeOrientations()
-                }
-                .onAppear {
-                    changeOrientations()
-                }
-        )
+            .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
+                changeOrientations()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+                changeOrientations()
+            }
+            .onAppear {
+                changeOrientations()
+            }
+        }
     }
 }
 #endif
