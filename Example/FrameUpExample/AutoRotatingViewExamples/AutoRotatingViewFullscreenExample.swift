@@ -37,29 +37,28 @@ struct AutoRotatingViewFullscreenExample: View {
     
     /// Content that goes edge to edge alongside content that stays inside the safe area.
     var rotatingContent: some View {
-        ZStack {
-            /// Ignores the safe area so it should reach every screen edge in every orientation.
-            LinearGradient(colors: [.blue, .indigo], startPoint: .topLeading, endPoint: .bottomTrailing)
-                .ignoresSafeArea()
-            
-            /// Respects the safe area so it should stay clear of the status bar and home indicator in every orientation.
-            RoundedRectangle(cornerRadius: 20)
-                .strokeBorder(style: StrokeStyle(lineWidth: 2, dash: [8]))
-            
-            VStack {
+        /// Respects the safe area so it should stay clear of the status bar and home indicator in every orientation.
+        Rectangle()
+            .strokeBorder(style: StrokeStyle(lineWidth: 2, dash: [8]))
+            .overlay(alignment: .top) {
                 Text("Top")
-                Spacer()
+            }
+            .overlay(alignment: .bottom) {
                 Text("Bottom")
             }
-            
-            HStack {
+            .overlay(alignment: .leading) {
                 Text("Leading")
-                Spacer()
+            }
+            .overlay(alignment: .trailing) {
                 Text("Trailing")
             }
-        }
-        .font(.headline)
-        .foregroundColor(.white)
+            .background {
+                /// Ignores the safe area so it should reach every screen edge in every orientation.
+                Color.pink
+                    .ignoresSafeArea()
+            }
+            .font(.headline)
+            .foregroundColor(.white)
     }
     
     /// Controls that stay with the screen instead of rotating with the content.
@@ -90,7 +89,6 @@ struct AutoRotatingViewFullscreenExample: View {
         .padding()
         .frame(maxWidth: .infinity)
         .background(.ultraThinMaterial)
-        .frame(maxHeight: .infinity, alignment: .bottom)
     }
     
     var body: some View {
@@ -110,11 +108,10 @@ struct AutoRotatingViewFullscreenExample: View {
         .frame(maxHeight: .infinity, alignment: .top)
         .navigationTitle("Fullscreen")
         .fullScreenCover(isPresented: $isPresented) {
-            ZStack {
-                AutoRotatingView(allowedOrientations, animation: isAnimated ? .default : nil) {
-                    rotatingContent
-                }
-                
+            AutoRotatingView(allowedOrientations, animation: isAnimated ? .default : nil) {
+                rotatingContent
+            }
+            .overlay(alignment: .bottom) {
                 controls
             }
         }

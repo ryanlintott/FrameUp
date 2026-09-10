@@ -22,10 +22,6 @@ public struct AutoRotatingView<Content: View>: View {
     ///
     /// This angle accumulates rather than resetting to an equivalent angle between -180 and 180 degrees so rotation animations always take the shortest path.
     @State private var contentRotation: Angle = .zero
-    /// The rotation the content rested at before the current one.
-    ///
-    /// The safe area moves directly from the shape it rests in at that angle to the shape it rests in at the new one, so both ends of the rotation have to be known.
-    @State private var previousRotation: Angle = .zero
     
     /// Allowed orientations for the content.
     let allowedOrientations: [FUInterfaceOrientation]
@@ -86,8 +82,6 @@ public struct AutoRotatingView<Content: View>: View {
                 changeAnimation = animation
             }
             withAnimation(changeAnimation) {
-                /// Read before the new rotation is worked out below, so it is the angle the content is turning away from.
-                previousRotation = rotation
                 if let newInterfaceOrientation {
                     interfaceOrientation = newInterfaceOrientation
                 }
@@ -111,13 +105,17 @@ public struct AutoRotatingView<Content: View>: View {
             Color.clear.overlay(
                 GeometryReader { proxy in
                     content
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background { Color.yellow }
+                        .background { Color.pink.ignoresSafeArea() }
                         /// The container's safe area is carried through the rotation, moving directly from the shape it rests in at one end to the shape it rests in at the other.
-                        .rotated(
-                            to: rotation,
-                            from: previousRotation,
-                            inContainer: proxy.size,
-                            safeAreaInsets: outerProxy.safeAreaInsets,
-                            layoutDirection: layoutDirection
+                        .modifier(
+                            RotationWithSafeAreaViewModifier(
+                                angle: rotation,
+                                containerSize: proxy.size,
+                                safeAreaInsets: outerProxy.safeAreaInsets,
+                                layoutDirection: layoutDirection
+                            )
                         )
                 }
             )
