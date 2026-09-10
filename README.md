@@ -134,7 +134,7 @@ AutoRotatingView([.portrait, .landscapeLeft, .landscapeRight], animation: .defau
 }
 ```
 
-The content is laid out in all the available space including any safe area around it, and a matching safe area is re-created inside the rotation, turning with the content. Content can use `ignoresSafeArea()` to go edge to edge, or respect the safe area and stay clear of the real unsafe regions, in every orientation.
+The content is laid out in all the available space including any safe area around it, with a matching safe area re-created inside the rotation. Content can use `ignoresSafeArea()` to go edge to edge, or respect the safe area and stay clear of the real unsafe regions, in every orientation, and neither steps nor drifts as the view turns.
 
 ## Frame Adjustment
 ### WidthReader

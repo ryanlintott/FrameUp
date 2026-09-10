@@ -10,7 +10,7 @@ import SwiftUI
 #if os(iOS)
 /// A view that rotates and resizes the content frame to match device orientation.
 ///
-/// Content is laid out in all the available space including any safe area around it, and a matching safe area is re-created inside the rotation. The content frame is then the same rect before, during, and after a rotation, and content can either respect the safe area or ignore it with `ignoresSafeArea()` in every orientation.
+/// Content is laid out in all the available space including any safe area around it, and a matching safe area is re-created inside the rotation. Content can either respect that safe area or ignore it with `ignoresSafeArea()`, and in both cases it neither steps at the start of a rotation nor drifts off the axis of rotation part way through one.
 public struct AutoRotatingView<Content: View>: View {
     /// The current orientation of the content relative to the device.
     @State private var contentOrientation: FUInterfaceOrientation? = nil
@@ -22,6 +22,10 @@ public struct AutoRotatingView<Content: View>: View {
     ///
     /// This angle accumulates rather than resetting to an equivalent angle between -180 and 180 degrees so rotation animations always take the shortest path.
     @State private var contentRotation: Angle = .zero
+    /// The rotation the content rested at before the current one.
+    ///
+    /// The safe area moves directly from the shape it rests in at that angle to the shape it rests in at the new one, so both ends of the rotation have to be known.
+    @State private var previousRotation: Angle = .zero
     
     /// Allowed orientations for the content.
     let allowedOrientations: [FUInterfaceOrientation]
@@ -82,6 +86,8 @@ public struct AutoRotatingView<Content: View>: View {
                 changeAnimation = animation
             }
             withAnimation(changeAnimation) {
+                /// Read before the new rotation is worked out below, so it is the angle the content is turning away from.
+                previousRotation = rotation
                 if let newInterfaceOrientation {
                     interfaceOrientation = newInterfaceOrientation
                 }
@@ -91,8 +97,6 @@ public struct AutoRotatingView<Content: View>: View {
                 if let contentOrientation, let interfaceOrientation {
                     contentRotation = contentRotation.closestEquivalent(to: contentOrientation.rotation(to: interfaceOrientation))
                 }
-                
-//                print("Device: \(deviceOrientation?.name ?? "nil") Content: \(contentOrientation?.name ?? "nil")")
             }
         }
     }
@@ -101,42 +105,20 @@ public struct AutoRotatingView<Content: View>: View {
         isOn ? contentRotation : contentRotation.closestEquivalent(to: .zero)
     }
     
-    /// This value is true if the aspect ratio of the device and content orientations match
-    var isMatchingAspectRatio: Bool {
-        guard
-            isOn,
-            let contentOrientation = contentOrientation,
-            let interfaceOrientation = interfaceOrientation
-        else { return true }
-        
-        return contentOrientation.isLandscape == interfaceOrientation.isLandscape
-    }
-    
     public var body: some View {
         /// This outer GeometryReader is outside the rotation so its safe area insets are the only correct ones available.
         GeometryReader { outerProxy in
             Color.clear.overlay(
                 GeometryReader { proxy in
                     content
-                        .frame(isMatchingAspectRatio ? outerProxy.size : outerProxy.size.swappingWidthAndHeight)
-//                        .background { Color.yellow }
-                        .overlay {
-                            Color.green.frame(width: 16, height: 2)
-                            Color.green.frame(width: 2, height: 16)
-                        }
-                        .safeAreaInsets(outerProxy.safeAreaInsets, rotatedBy: rotation, layoutDirection: layoutDirection)
-                        .rotationEffect(rotation)
-//                        .frame(
-//                            maxWidth: isMatchingAspectRatio ? proxy.size.width : proxy.size.height,
-//                            maxHeight: isMatchingAspectRatio ? proxy.size.height : proxy.size.width
-//                        )
-                        .frame(isMatchingAspectRatio ? proxy.size : proxy.size.swappingWidthAndHeight)
-                        .position(x: proxy.size.width / 2, y: proxy.size.height / 2)
-//                        .ifAvailable {
-//                            if #available(iOS 17, *) {
-//                                $0.geometryGroup()
-//                            }
-//                        }
+                        /// The container's safe area is carried through the rotation, moving directly from the shape it rests in at one end to the shape it rests in at the other.
+                        .rotated(
+                            to: rotation,
+                            from: previousRotation,
+                            inContainer: proxy.size,
+                            safeAreaInsets: outerProxy.safeAreaInsets,
+                            layoutDirection: layoutDirection
+                        )
                 }
             )
             /// The content frame is the full space including the safe area so it does not change when a rotation begins.

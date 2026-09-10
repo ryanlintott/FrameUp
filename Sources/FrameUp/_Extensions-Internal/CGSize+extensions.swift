@@ -35,13 +35,14 @@ internal extension CGSize {
     var swappingWidthAndHeight: CGSize {
         proportionableSize.swappingWidthAndHeight.size
     }
-
-    var minDimension: CGFloat {
-        proportionableSize.minDimension
-    }
-
-    var maxDimension: CGFloat {
-        proportionableSize.maxDimension
+    
+    /// This size as seen from inside a rotation of the supplied angle.
+    ///
+    /// Angles are matched to the nearest quarter turn, where a rotation either leaves a size as it is or swaps its width and height.
+    /// - Parameter angle: Rotation applied to the view this size is measured in.
+    /// - Returns: This size, with its width and height swapped by an odd number of quarter turns.
+    func rotated(by angle: Angle) -> CGSize {
+        Int((angle.degrees / 90).rounded()) % 2 == 0 ? self : swappingWidthAndHeight
     }
     
     init(width: CGFloat, aspectRatio: CGFloat) {

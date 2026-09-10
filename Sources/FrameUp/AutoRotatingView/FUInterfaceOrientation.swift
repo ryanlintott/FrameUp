@@ -33,15 +33,6 @@ internal extension FUInterfaceOrientation {
         }
     }
     
-    var isLandscape: Bool {
-        switch self {
-        case .landscapeLeft, .landscapeRight:
-            return true
-        default:
-            return false
-        }
-    }
-    
     /// The rotation angle required to change this orientation and a new orientation.
     func rotation(to newOrientation: Self) -> Angle {
         switch (self, newOrientation) {
