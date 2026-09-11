@@ -88,7 +88,6 @@ struct AutoRotatingViewFullscreenExample: View {
         }
         .padding()
         .frame(maxWidth: .infinity)
-        .background(.ultraThinMaterial)
     }
     
     var body: some View {
@@ -108,11 +107,34 @@ struct AutoRotatingViewFullscreenExample: View {
         .frame(maxHeight: .infinity, alignment: .top)
         .navigationTitle("Fullscreen")
         .fullScreenCover(isPresented: $isPresented) {
-            AutoRotatingView(allowedOrientations, animation: isAnimated ? .default : nil) {
-                rotatingContent
-            }
-            .overlay(alignment: .bottom) {
-                controls
+            GeometryReader { outer in
+                AutoRotatingView(allowedOrientations, animation: isAnimated ? .default : nil) {
+                    rotatingContent
+                                        .overlay {
+                                            GeometryReader { proxy in
+                                                let i = proxy.safeAreaInsets
+                                                Text(String(format: "%.0f×%.0f\nT%.0f L%.0f B%.0f R%.0f",
+                                                            proxy.size.width, proxy.size.height,
+                                                            i.top, i.leading, i.bottom, i.trailing))
+                                                    .font(.system(size: 13, weight: .bold, design: .monospaced))
+                                                    .padding(4)
+                                                    .background(.black)
+                                                    .foregroundStyle(.green)
+                                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                            }
+                                        }
+                }
+                .overlay(alignment: .bottom) {
+                    let i = outer.safeAreaInsets
+                    Text(String(format: "container %.0f×%.0f  T%.0f L%.0f B%.0f R%.0f",
+                                outer.size.width, outer.size.height,
+                                i.top, i.leading, i.bottom, i.trailing))
+                    .font(.system(size: 12, weight: .bold, design: .monospaced))
+                    .padding(4).background(.black).foregroundStyle(.yellow)
+                }
+                .overlay(alignment: .bottom) {
+                    controls
+                }
             }
         }
     }

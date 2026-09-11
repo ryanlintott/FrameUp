@@ -64,6 +64,8 @@ struct AutoRotatingViewExample: View {
                 .padding()
                 .background(Color.blue)
                 .cornerRadius(20)
+                .frame(maxWidth: .infinity)
+                .background { Color.pink.ignoresSafeArea() }
             }
             
             VStack(alignment: .leading) {

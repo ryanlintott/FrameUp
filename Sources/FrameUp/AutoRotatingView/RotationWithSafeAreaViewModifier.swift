@@ -61,21 +61,33 @@ internal struct RotationWithSafeAreaViewModifier: ViewModifier, Animatable {
         content
             .safeAreaInsets(insets)
             .rotationEffect(angle)
-            .frame(frameSize)
+            .frame(roundedFrameSize)
             .position(position)
     }
     
-    /// Where to put the centre of the frame so the safe area keeps the centre the rotation gives it.
+    /// The frame, with its width and height rounded to whole points.
     ///
-    /// The centre of the safe area moves directly along with its insets, so part way through a turn it is not where turning it would have put it. Moving the frame by the difference puts it back.
+    /// A frame whose edges land between points is not treated as touching the edges of its container, and content that ignores the safe area stops expanding into it. That shows up as a flicker through a rotation, where the position lands between points on most frames, and as a permanent gap on any device whose container has an odd width or height, where the resting position lands between points too.
+    var roundedFrameSize: CGSize {
+        CGSize(width: frameSize.width.rounded(), height: frameSize.height.rounded())
+    }
+    
+    /// Where to put the centre of the frame so the safe area keeps the centre the rotation gives it, rounded so the frame's edges land on whole points.
+    ///
+    /// The centre of the safe area moves directly along with its insets, so part way through a turn it is not where turning it would have put it. Moving the frame by the difference puts it back. Rounding then moves it by up to half a point, which is far less than the drift it is correcting.
     var position: CGPoint {
         /// Where the centre of the safe area lands once the rotation is applied, and where it needs to land.
         let center = insets.centerOffset(layoutDirection: layoutDirection).rotated(by: angle)
         let target = containerSafeAreaInsets.centerOffset(layoutDirection: layoutDirection)
-        
-        return CGPoint(
+        let wanted = CGPoint(
             x: containerSize.width / 2 + target.x - center.x,
             y: containerSize.height / 2 + target.y - center.y
+        )
+        /// Positioning is by centre, so the centre is moved to wherever puts the frame's edges on whole points.
+        let size = roundedFrameSize
+        return CGPoint(
+            x: (wanted.x - size.width / 2).rounded() + size.width / 2,
+            y: (wanted.y - size.height / 2).rounded() + size.height / 2
         )
     }
 }

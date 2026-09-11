@@ -81,7 +81,7 @@ public struct AutoRotatingView<Content: View>: View {
             } else {
                 changeAnimation = animation
             }
-            withAnimation(changeAnimation) {
+            withAnimation(changeAnimation?.speed(0.1)) {
                 if let newInterfaceOrientation {
                     interfaceOrientation = newInterfaceOrientation
                 }
@@ -105,9 +105,8 @@ public struct AutoRotatingView<Content: View>: View {
             Color.clear.overlay(
                 GeometryReader { proxy in
                     content
+                        /// Fill in any remaining frame to fit the container
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .background { Color.yellow }
-                        .background { Color.pink.ignoresSafeArea() }
                         /// The container's safe area is carried through the rotation, moving directly from the shape it rests in at one end to the shape it rests in at the other.
                         .modifier(
                             RotationWithSafeAreaViewModifier(

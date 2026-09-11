@@ -53,13 +53,16 @@ struct RotationWithSafeAreaViewModifierTests {
         let isQuarterTurn = Int((angle.degrees / 90).rounded()) % 2 != 0
         let expected = isQuarterTurn ? CGSize(width: Self.container.height, height: Self.container.width) : Self.container
         
-        #expect(abs(geometry.frameSize.width - expected.width) < 1e-9)
-        #expect(abs(geometry.frameSize.height - expected.height) < 1e-9)
-        #expect(abs(geometry.position.x - Self.container.width / 2) < 1e-9)
-        #expect(abs(geometry.position.y - Self.container.height / 2) < 1e-9)
+        #expect(abs(geometry.roundedFrameSize.width - expected.width) < 1e-9)
+        #expect(abs(geometry.roundedFrameSize.height - expected.height) < 1e-9)
+        #expect(abs(geometry.position.x - Self.container.width / 2) < 0.5 + 1e-9)
+        #expect(abs(geometry.position.y - Self.container.height / 2) < 0.5 + 1e-9)
     }
     
     /// The rule this is all built on. Content sits centred in the safe area, so the centre of the safe area has to stay where the rotation puts it for the whole turn or content drifts off axis part way through.
+    ///
+    /// The frame is rounded onto whole points so its edges line up with the container's, which moves the centre by up to half a point on each axis. That is the whole tolerance: anything larger is drift.
+    static let roundingTolerance: CGFloat = 0.5 * 1.4142135623730951 + 1e-9
     @Test func theSafeAreaCenterStaysOnTheAxisOfRotation() {
         let target = Self.screenInsets.centerOffset(layoutDirection: .leftToRight)
         
@@ -73,7 +76,7 @@ struct RotationWithSafeAreaViewModifierTests {
                     x: geometry.position.x + center.x * cosine - center.y * sine - Self.container.width / 2,
                     y: geometry.position.y + center.x * sine + center.y * cosine - Self.container.height / 2
                 )
-                #expect(hypot(onScreen.x - target.x, onScreen.y - target.y) < 1e-9, "\(from.degrees) to \(to.degrees) at \(geometry.angle.degrees)")
+                #expect(hypot(onScreen.x - target.x, onScreen.y - target.y) < Self.roundingTolerance, "\(from.degrees) to \(to.degrees) at \(geometry.angle.degrees)")
             }
         }
     }
