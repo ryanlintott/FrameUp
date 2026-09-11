@@ -88,11 +88,12 @@ struct AutoRotatingViewFullscreenExample: View {
         }
         .padding()
         .frame(maxWidth: .infinity)
+        .background(.ultraThinMaterial)
     }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            Text("A fullscreen AutoRotatingView gives its content the whole screen in every orientation. The gradient ignores the safe area so it goes edge to edge, the dashed frame and the labels respect it, and the content turns around the centre of the screen without stepping or drifting.")
+            Text("A fullscreen AutoRotatingView gives its content the whole screen in every orientation. The background ignores the safe area so it goes edge to edge, the dashed frame and the labels respect it, and the content turns around the centre of the screen without stepping or drifting.")
             
             Text("Rotate the device to an orientation the app does not support to see the view rotate on its own. Changing the allowed orientations rotates it without moving the device, which is the only way to see this in a simulator.")
             
@@ -107,34 +108,11 @@ struct AutoRotatingViewFullscreenExample: View {
         .frame(maxHeight: .infinity, alignment: .top)
         .navigationTitle("Fullscreen")
         .fullScreenCover(isPresented: $isPresented) {
-            GeometryReader { outer in
-                AutoRotatingView(allowedOrientations, animation: isAnimated ? .default : nil) {
-                    rotatingContent
-                                        .overlay {
-                                            GeometryReader { proxy in
-                                                let i = proxy.safeAreaInsets
-                                                Text(String(format: "%.0f×%.0f\nT%.0f L%.0f B%.0f R%.0f",
-                                                            proxy.size.width, proxy.size.height,
-                                                            i.top, i.leading, i.bottom, i.trailing))
-                                                    .font(.system(size: 13, weight: .bold, design: .monospaced))
-                                                    .padding(4)
-                                                    .background(.black)
-                                                    .foregroundStyle(.green)
-                                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                            }
-                                        }
-                }
-                .overlay(alignment: .bottom) {
-                    let i = outer.safeAreaInsets
-                    Text(String(format: "container %.0f×%.0f  T%.0f L%.0f B%.0f R%.0f",
-                                outer.size.width, outer.size.height,
-                                i.top, i.leading, i.bottom, i.trailing))
-                    .font(.system(size: 12, weight: .bold, design: .monospaced))
-                    .padding(4).background(.black).foregroundStyle(.yellow)
-                }
-                .overlay(alignment: .bottom) {
-                    controls
-                }
+            AutoRotatingView(allowedOrientations, animation: isAnimated ? .default : nil) {
+                rotatingContent
+            }
+            .overlay(alignment: .bottom) {
+                controls
             }
         }
     }

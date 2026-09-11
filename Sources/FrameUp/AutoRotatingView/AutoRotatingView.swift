@@ -81,7 +81,7 @@ public struct AutoRotatingView<Content: View>: View {
             } else {
                 changeAnimation = animation
             }
-            withAnimation(changeAnimation?.speed(0.1)) {
+            withAnimation(changeAnimation) {
                 if let newInterfaceOrientation {
                     interfaceOrientation = newInterfaceOrientation
                 }

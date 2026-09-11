@@ -71,10 +71,16 @@ struct AutoRotatingViewExample: View {
             VStack(alignment: .leading) {
                 Toggle("Animation", isOn: $isAnimated)
                 Section(header: Text("Allowed Orientations:").font(.headline)) {
-                    Toggle("Portrait", isOn: $portrait)
-                    Toggle("LandscapeLeft", isOn: $landscapeLeft)
-                    Toggle("LandscapeRight", isOn: $landscapeRight)
-                    Toggle("PortraitUpsideDown", isOn: $portraitUpsideDown)
+                    HStack {
+                        VStack {
+                            Toggle("Portrait", isOn: $portrait)
+                            Toggle("PortraitUpsideDown", isOn: $portraitUpsideDown)
+                        }
+                        VStack {
+                            Toggle("LandscapeLeft", isOn: $landscapeLeft)
+                            Toggle("LandscapeRight", isOn: $landscapeRight)
+                        }
+                    }
                 }
             }
             .padding()

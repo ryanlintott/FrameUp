@@ -63,6 +63,7 @@ internal struct RotationWithSafeAreaViewModifier: ViewModifier, Animatable {
             .rotationEffect(angle)
             .frame(roundedFrameSize)
             .position(position)
+            .offset(positionOffset)
     }
     
     /// The frame, with its width and height rounded to whole points.
@@ -72,22 +73,42 @@ internal struct RotationWithSafeAreaViewModifier: ViewModifier, Animatable {
         CGSize(width: frameSize.width.rounded(), height: frameSize.height.rounded())
     }
     
-    /// Where to put the centre of the frame so the safe area keeps the centre the rotation gives it, rounded so the frame's edges land on whole points.
+    /// Where to put the centre of the frame so the safe area keeps the centre the rotation gives it.
     ///
-    /// The centre of the safe area moves directly along with its insets, so part way through a turn it is not where turning it would have put it. Moving the frame by the difference puts it back. Rounding then moves it by up to half a point, which is far less than the drift it is correcting.
-    var position: CGPoint {
+    /// The centre of the safe area moves directly along with its insets, so part way through a turn it is not where turning it would have put it. This puts it back.
+    private var exactPosition: CGPoint {
         /// Where the centre of the safe area lands once the rotation is applied, and where it needs to land.
         let center = insets.centerOffset(layoutDirection: layoutDirection).rotated(by: angle)
         let target = containerSafeAreaInsets.centerOffset(layoutDirection: layoutDirection)
-        let wanted = CGPoint(
+        
+        return CGPoint(
             x: containerSize.width / 2 + target.x - center.x,
             y: containerSize.height / 2 + target.y - center.y
         )
-        /// Positioning is by centre, so the centre is moved to wherever puts the frame's edges on whole points.
+    }
+    
+    /// ``exactPosition``, moved to wherever puts the frame's edges on whole points. Positioning is by centre, so it is the edges that are rounded rather than the centre itself.
+    var position: CGPoint {
         let size = roundedFrameSize
         return CGPoint(
-            x: (wanted.x - size.width / 2).rounded() + size.width / 2,
-            y: (wanted.y - size.height / 2).rounded() + size.height / 2
+            x: (exactPosition.x - size.width / 2).rounded() + size.width / 2,
+            y: (exactPosition.y - size.height / 2).rounded() + size.height / 2
+        )
+    }
+    
+    /// The half point or less that rounding moved the frame by, put back after layout while the content is turning.
+    ///
+    /// Rounding the position on its own makes the frame sit still for several frames and then jump a whole point, because the correction it rounds only moves a fraction of a point per frame. Offsetting by the remainder smooths that out.
+    ///
+    /// It only exists to smooth motion, so it fades out as the rotation settles and is nothing at all at a quarter turn. A resting frame is left exactly where rounding put it, on whole points, which is where content that ignores the safe area needs it to be able to expand.
+    var positionOffset: CGSize {
+        /// How far past the nearest quarter turn the content is, from 0 at rest to 1 once it is two degrees past.
+        let pastQuarterTurn = angle.degrees - (angle.degrees / 90).rounded() * 90
+        let turning = min(abs(pastQuarterTurn) / 2, 1)
+        
+        return CGSize(
+            width: (exactPosition.x - position.x) * turning,
+            height: (exactPosition.y - position.y) * turning
         )
     }
 }
