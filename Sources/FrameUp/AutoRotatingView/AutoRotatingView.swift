@@ -101,38 +101,61 @@ public struct AutoRotatingView<Content: View>: View {
     
     public var body: some View {
         /// This outer GeometryReader is outside the rotation so its safe area insets are the only correct ones available.
-        GeometryReader { outerProxy in
-            Color.clear.overlay(
-                GeometryReader { proxy in
-                    content
-                        /// Fill in any remaining frame to fit the container
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        /// The container's safe area is carried through the rotation, moving directly from the shape it rests in at one end to the shape it rests in at the other.
-                        .modifier(
-                            RotationWithSafeAreaViewModifier(
-                                angle: rotation,
-                                containerSize: proxy.size,
-                                safeAreaInsets: outerProxy.safeAreaInsets,
-                                layoutDirection: layoutDirection
-                            )
-                        )
+        GeometryReader { safeProxy in
+            GeometryReader { fullProxy in
+                let safeAreaInsets = safeProxy.safeAreaInsets
+                let fullSize = fullProxy.size
+                let rotatedFullSize = fullSize.rotated(by: rotation)
+                let maxDimension = max(fullSize.width, fullSize.height)
+                let rotatedSafeAreaInsets = safeAreaInsets.rotated(by: rotation, layoutDirection: layoutDirection)
+                
+                Color.clear.overlay {
+                    ZStack {
+                        /// This clear view is larger than any content and it helps the rotation effect stay centered. The rotation point is not in the middle of the content due to the safe areas and the content changes sizes when rotating. Trying to keep track of all that in a rotation anchor would be too complicated. It's much easier to make a much larger canvas and rotate that instead.
+                        Color.clear
+                            .frame(width: maxDimension * 2, height: maxDimension * 2)
+                            .allowsHitTesting(false)
+                        
+                        content
+                            /// The content frame fills the available area
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            /// Safe areas are applied based on the rotation of the view
+                            .safeAreaInsets(rotatedSafeAreaInsets)
+                            /// The full area including safe areas is set so that a safe area can be inset inside it
+                            .frame(rotatedFullSize)
+                            /// Alignment guides are set to move the full size center point to the safe size center point at any rotation
+                            .alignmentGuide(VerticalAlignment.center) { d in
+                                d[VerticalAlignment.center] + ((rotatedSafeAreaInsets.top - rotatedSafeAreaInsets.bottom) / 2)
+                            }
+                            .alignmentGuide(HorizontalAlignment.center) { d in
+                                d[HorizontalAlignment.center] + ((rotatedSafeAreaInsets.leading - rotatedSafeAreaInsets.trailing) / 2)
+                            }
+                    }
+                    /// Rotation always occurs around the centre of the content (or a supplied anchor point). It doesn't care about alignment guides as those are for layout.
+                    .rotationEffect(rotation)
+                    /// These alignment guides move the centre point to the middle of the safe area instead of the
+                    .alignmentGuide(VerticalAlignment.center) { d in
+                        d[VerticalAlignment.center] + ((safeAreaInsets.bottom - safeAreaInsets.top) / 2)
+                    }
+                    .alignmentGuide(HorizontalAlignment.center) { d in
+                        d[HorizontalAlignment.center] + ((safeAreaInsets.trailing - safeAreaInsets.leading) / 2)
+                    }
                 }
-            )
-            /// The content frame is the full space including the safe area so it does not change when a rotation begins.
+            }
             .ignoresSafeArea()
-            .onChange(of: allowedOrientations) { newValue in
-                contentOrientation = nil
-                changeOrientations(allowedOrientations: newValue)
-            }
-            .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
-                changeOrientations()
-            }
-            .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
-                changeOrientations()
-            }
-            .onAppear {
-                changeOrientations()
-            }
+        }
+        .onChange(of: allowedOrientations) { newValue in
+            contentOrientation = nil
+            changeOrientations(allowedOrientations: newValue)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
+            changeOrientations()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+            changeOrientations()
+        }
+        .onAppear {
+            changeOrientations()
         }
     }
 }

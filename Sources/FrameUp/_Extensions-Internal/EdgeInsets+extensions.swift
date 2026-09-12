@@ -40,14 +40,4 @@ internal extension EdgeInsets {
             trailing: inset(edge: isLeftToRight ? 1 : 3)
         )
     }
-    
-    /// The centre of the rect these insets leave behind, measured from the centre of the rect they were taken from.
-    /// - Parameter layoutDirection: Layout direction used to resolve leading and trailing insets into left and right ones.
-    /// - Returns: An offset from the centre.
-    func centerOffset(layoutDirection: LayoutDirection) -> CGPoint {
-        let isLeftToRight = layoutDirection == .leftToRight
-        let left = isLeftToRight ? leading : trailing
-        let right = isLeftToRight ? trailing : leading
-        return CGPoint(x: (left - right) / 2, y: (top - bottom) / 2)
-    }
 }
