@@ -10,7 +10,7 @@ import SwiftUI
 #if os(iOS)
 /// A view that rotates and resizes the content frame to match device orientation.
 ///
-/// Content is laid out in all the available space including any safe area around it, and a matching safe area is re-created inside the rotation. Content can either respect that safe area or ignore it with `ignoresSafeArea()`, and in both cases it neither steps at the start of a rotation nor drifts off the axis of rotation part way through one.
+/// Content is laid out in all the available space including any safe area around it, and a matching safe area is re-created. Content can either respect that safe area or ignore it with `ignoresSafeArea()`, and in both cases it turns around the centre of the safe area rather than drifting off the axis of rotation part way through the turn.
 public struct AutoRotatingView<Content: View>: View {
     /// The current orientation of the content relative to the device.
     @State private var contentOrientation: FUInterfaceOrientation? = nil

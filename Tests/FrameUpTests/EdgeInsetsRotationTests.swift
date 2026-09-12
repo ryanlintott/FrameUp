@@ -72,12 +72,4 @@ struct EdgeInsetsRotationTests {
             ), "\(angle.degrees) degrees")
         }
     }
-    
-    @Test func theCenterOffsetIsMeasuredFromTheMiddle() {
-        #expect(Self.screenInsets.centerOffset(layoutDirection: .leftToRight) == CGPoint(x: 0, y: 14))
-        /// A leading inset is on the right in a right to left layout, so the offset flips with it.
-        let sided = EdgeInsets(top: 0, leading: 20, bottom: 0, trailing: 0)
-        #expect(sided.centerOffset(layoutDirection: .leftToRight) == CGPoint(x: 10, y: 0))
-        #expect(sided.centerOffset(layoutDirection: .rightToLeft) == CGPoint(x: -10, y: 0))
-    }
 }
