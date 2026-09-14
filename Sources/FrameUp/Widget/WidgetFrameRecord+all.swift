@@ -327,11 +327,11 @@ extension WidgetFrameRecord {
         (CGSize(width: 162, height: 197), 40),
         (CGSize(width: 176, height: 215), 41),
         (CGSize(width: 184, height: 224), 44),
-        (CGSize(width: 187, height: 223), 42),   // Series 10 and 11
+        (CGSize(width: 187, height: 223), 42),   // Series 10, 11 and 12
         (CGSize(width: 198, height: 242), 45),
         (CGSize(width: 205, height: 251), 49),   // Ultra and Ultra 2
-        (CGSize(width: 208, height: 248), 46),   // Series 10 and 11
-        (CGSize(width: 211, height: 257), 49)    // Ultra 3
+        (CGSize(width: 208, height: 248), 46),   // Series 10, 11 and 12
+        (CGSize(width: 211, height: 257), 49)    // Ultra 3 and Ultra 4
     ]
 
     /// Apple Watch Smart Stack frames, as published by Apple, keyed on case size the way Apple publishes them.
@@ -368,23 +368,27 @@ extension WidgetFrameRecord {
     ///
     /// Every family is pre-rendered at two frames during registration, and nothing readable at render time says which place a render came from. `showsWidgetLabel` does not separate them and neither does `disfavoredLocations`, which changes where a widget is offered but not what gets pre-rendered.
     ///
-    /// The placement of each frame was established by placing the probe, on the 40mm and again on the 44mm. In both cases a widget in the Smart Stack reported the smaller frame of the pair and the same widget as a complication reported the larger. On the 40mm this was the same widget in both places, reporting 152x69.5 and 162x69. Both watches' Smart Stack frames also match Apple's published rows exactly.
+    /// The placement of each frame was established by placing the probe, on every watch here. A widget in the Smart Stack reports the smaller frame of the pair and the same widget as a complication reports the larger, and where a watch was placed in both locations it reported both frames. Every Smart Stack frame matches Apple's published row where Apple publishes one.
     ///
-    /// > Important: the 46mm and Ultra 3 rows apply that rule rather than having been placed themselves. Two independent confirmations make it a well supported rule, but those two rows are still an inference.
+    /// The 42mm is why that is a habit rather than a law. Its two pre-rendered rectangular frames are the same size, and a placed complication confirms the watch face and the Smart Stack really are both 176x72.5. A watch face frame is therefore not always larger than its Smart Stack frame, so nothing asserts that it is.
+    ///
+    /// Nothing in this table is inferred any more, so a new watch is the only reason to reach for the rule again. `Measurements/watchplacement.swift` is how a row gets settled instead, and `Measurements/README.md` says what a run needs.
     ///
     /// > Note: `accessoryInline` reports a small square, 11x11 to 13.5x13.5, that never renders and is not a usable frame, so it is left out.
     ///
     /// > Note: `accessoryCorner` has a ``WidgetSize`` case but no frame here. It is measured, and the values are in `Measurements/`, but a corner complication is not a rectangle: it sits in the curve of the bezel, roughly triangular, and a label can curve around the frame and extend past it. The reported size is therefore not a box the content fits inside, which is what every other frame in this table means. It also explains why the values do not scale with the screen the way every other family does, 32 on a 162 point wide watch against 30 on a 187.
+    ///
+    /// > Note: `watchFaceRectangular` is optional for a watch that has been swept but never placed, which leaves it with a Smart Stack frame of its own and a watch face lookup that falls back to the nearest watch that has one.
     private static let watchMeasured: [(screenSize: (CGFloat, CGFloat), smartStackRectangular: (CGFloat, CGFloat), watchFaceRectangular: (CGFloat, CGFloat)?, watchFaceCircular: (CGFloat, CGFloat))] = [
         // Apple Watch SE 3 40mm. Both frames confirmed by placing the probe in both places, and the Smart Stack frame matches Apple's published 40mm row.
         (screenSize: (162, 197), smartStackRectangular: (152, 69.5), watchFaceRectangular: (162, 69), watchFaceCircular: (42, 42)),
-        // Apple Watch Series 11 42mm. Apple publishes no row for this case size. Only one rectangular frame is ever pre-rendered here, reproducibly across runs, so there is nothing to attribute to the watch face and no second value is invented for it. A watch face lookup falls back to the nearest watch that has one, the same as any other unknown.
-        (screenSize: (187, 223), smartStackRectangular: (176, 72.5), watchFaceRectangular: nil, watchFaceCircular: (47, 47)),
+        // Apple Watch Series 11 and Series 12 42mm. Apple publishes no row for this case size. Both frames confirmed by placing the probe, and they are the same: a rectangular complication on the watch face is 176x72.5, exactly what the Smart Stack reports. Its pair is pre-rendered twice at that size, which earlier sweeps mistook for a single frame.
+        (screenSize: (187, 223), smartStackRectangular: (176, 72.5), watchFaceRectangular: (176, 72.5), watchFaceCircular: (47, 47)),
         // Apple Watch SE 3 44mm. Both frames confirmed by placing the probe, and the Smart Stack frame matches Apple's published 44mm row. Its corner frame is confirmed by a placed widget too.
         (screenSize: (184, 224), smartStackRectangular: (173, 76.5), watchFaceRectangular: (184, 78), watchFaceCircular: (47, 47)),
-        // Apple Watch Series 11 46mm. Apple publishes no row for this case size.
+        // Apple Watch Series 11 and Series 12 46mm. Apple publishes no row for this case size. Both frames confirmed by placing the probe in each place in turn.
         (screenSize: (208, 248), smartStackRectangular: (194, 80.5), watchFaceRectangular: (196, 80.5), watchFaceCircular: (51, 51)),
-        // Apple Watch Ultra 3 49mm. Apple's published 49mm row describes the Ultra 2, which has a smaller screen in the same case.
+        // Apple Watch Ultra 3 and Ultra 4 49mm. Apple's published 49mm row describes the Ultra 2, which has a smaller screen in the same case. The watch face frames are confirmed by placed complications reporting 199x84.5 and 51x51, which leaves 197x84, the other half of the pre-rendered pair, as the Smart Stack frame.
         (screenSize: (211, 257), smartStackRectangular: (197, 84), watchFaceRectangular: (199, 84.5), watchFaceCircular: (51, 51))
     ]
 

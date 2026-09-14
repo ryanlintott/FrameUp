@@ -93,10 +93,12 @@ struct WidgetFrameWatchTests {
         #expect(try #require(ultra3[.accessoryRectangular]).canvasSize == CGSize(width: 197, height: 84))
     }
 
-    /// A watch face complication is a different size from a Smart Stack widget on the same watch. These are the two watches where a placed widget confirmed both frames.
+    /// A watch face complication is usually a different size from a Smart Stack widget on the same watch. Every one of these was confirmed by placing the probe in both places; the 42mm, where the two frames are the same size, is covered below.
     @Test(arguments: [
         (CGSize(width: 162, height: 197), CGSize(width: 152, height: 69.5), CGSize(width: 162, height: 69), CGSize(width: 42, height: 42)),
-        (CGSize(width: 184, height: 224), CGSize(width: 173, height: 76.5), CGSize(width: 184, height: 78), CGSize(width: 47, height: 47))
+        (CGSize(width: 184, height: 224), CGSize(width: 173, height: 76.5), CGSize(width: 184, height: 78), CGSize(width: 47, height: 47)),
+        (CGSize(width: 208, height: 248), CGSize(width: 194, height: 80.5), CGSize(width: 196, height: 80.5), CGSize(width: 51, height: 51)),
+        (CGSize(width: 211, height: 257), CGSize(width: 197, height: 84), CGSize(width: 199, height: 84.5), CGSize(width: 51, height: 51))
     ])
     func theWatchFaceFrameDiffersFromTheSmartStack(
         screenSize: CGSize,
@@ -125,29 +127,23 @@ struct WidgetFrameWatchTests {
         #expect(smartStack[.accessoryCircular] == nil)
     }
 
-    /// The 42mm watch pre-renders only one rectangular frame, so no watch face frame is invented for it. It resolves to the nearest watch that has one instead of duplicating its own Smart Stack value.
-    @Test func theFortyTwoMillimetreWatchHasNoOwnWatchFaceRectangle() {
+    /// The 42mm is the one watch measured so far where the two placements report the same frame. Both were confirmed by placing the probe, so it has a watch face row of its own rather than resolving to the 44mm's 184x78, and it is the reason nothing asserts that a watch face frame is the larger of its pair.
+    @Test func theFortyTwoMillimetreWatchFaceMatchesItsSmartStack() throws {
+        let screenSize = CGSize(width: 187, height: 223)
+        let watchFace = WidgetSize.frames(platform: .watch, screenSize: screenSize, majorOSVersion: 27, placement: .watchFace)
+        let smartStack = WidgetSize.frames(platform: .watch, screenSize: screenSize, majorOSVersion: 27, placement: .smartStack)
+        let frame = try #require(watchFace[.accessoryRectangular]).canvasSize
+        #expect(frame == CGSize(width: 176, height: 72.5))
+        #expect(frame == (try #require(smartStack[.accessoryRectangular]).canvasSize))
+
+        /// Its own row, not the nearest watch's.
         let stored = WidgetFrameRecord.all.filter {
             $0.platform == .watch
             && $0.placement == .watchFace
             && $0.widgetSize == .accessoryRectangular
-            && $0.screenSize == CGSize(width: 187, height: 223)
+            && $0.screenSize == screenSize
         }
-        #expect(stored.isEmpty)
-    }
-
-    /// Only the 44mm was measured with a placed widget. Every other watch face frame applies the rule that measurement established, so the rows must stay in step with it: the watch face frame is the larger of the pair.
-    @Test func everyWatchFaceFrameIsLargerThanItsSmartStackFrame() throws {
-        for row in WidgetFrameRecord.all where row.platform == .watch && row.placement == .watchFace && row.widgetSize == .accessoryRectangular {
-            let smartStack = WidgetSize.frames(
-                platform: .watch,
-                screenSize: row.screenSize,
-                majorOSVersion: 27,
-                placement: .smartStack
-            )
-            let paired = try #require(smartStack[.accessoryRectangular]).canvasSize
-            #expect(row.frame.width > paired.width, "\(row.screenSize)")
-        }
+        #expect(stored.count == 1)
     }
 
     /// The case size in millimetres routes to the same frames as the screen size.

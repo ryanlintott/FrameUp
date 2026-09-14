@@ -15,6 +15,7 @@ The probe is a widget extension embedded in `FrameUpExample`, so installing the 
 | `Example/WidgetSizeProbe/WidgetSizeProbe.swift` | The widget, its timeline provider, and the two measuring instruments |
 | `Example/WidgetSizeProbe/ProbeRecord.swift` | The record type, the device context, and log emission |
 | `Measurements/findwidget.swift` | Measures a placed widget from a screenshot |
+| `Measurements/watchplacement.swift` | Attributes a watchOS frame to the place the widget was in |
 | `Measurements/widget-frames.json` | Every raw record, kept unmerged |
 | `Sources/FrameUp/Widget/WidgetFrame+all.swift` | The lookup tables the measurements feed |
 
@@ -89,6 +90,7 @@ A match is a run of pixels that pass a colour threshold, so a partly covered edg
 | `viewSize` | Frame measured while rendering the widget body, with content margins disabled. On iPad this may be the design canvas while `displaySize` is the Home Screen frame. |
 | `widgetKind` | Which probe widget produced the record. Absent on records captured before the watchOS placement work added it. |
 | `showsWidgetLabel` | Whether the render happened somewhere that shows a widget label. Tried as a way to tell a watch face complication from a Smart Stack widget; it does not separate them. Absent on records captured before it was added, and always absent on macOS, which has no such value. |
+| `capturedPlacement` | Where the operator had placed the widget for that capture. Added by `watchplacement.swift` after the fact rather than read from the device, because no record reports a placement. Absent on every record captured before the tool existed. |
 
 The file keeps every distinct record rather than a merged summary. Deriving a single frame per device and family is deliberately left to the step that generates the lookup table, because the raw records disagree in ways that are still being investigated. See the notes below.
 
@@ -267,59 +269,117 @@ xcrun simctl launch <udid> com.apple.RealityWidgets
 
 No pointer or keyboard input is needed, which is why visionOS could be measured where CarPlay could not.
 
-### Apple Watch — watchOS 27
+### Apple Watch — watchOS 26 and 27
 
-Measured on every Apple Watch simulator, one per case size. Apple publishes one Smart Stack frame per case size and nothing for the watch face.
+Measured on every Apple Watch simulator, one per case size, on watchOS 26.5 and again on 27.0 with identical results. Apple publishes one Smart Stack frame per case size and nothing for the watch face.
 
 | Case | Screen | Smart Stack rectangular | Watch face rectangular | Watch face circular | Corner | Apple publishes |
 | --- | --- | --- | --- | --- | --- | --- |
-| 40mm | 162×197 | **152×69.5** | **162×69** | **42×42** | 32×32 | 152×69.5 |
-| 42mm | 187×223 | 176×72.5 | *none reported* | 47×47 | 30×30 | no row |
-| 44mm | 184×224 | **173×76.5** | **184×78** | **47×47** | **36×36** | 173×76.5 |
+| 40mm | 162×197 | 152×69.5 | 162×69 | 42×42 | 32×32 | 152×69.5 |
+| 42mm | 187×223 | 176×72.5 | 176×72.5 | 47×47 | 30×30 | no row |
+| 44mm | 184×224 | 173×76.5 | 184×78 | 47×47 | 36×36 | 173×76.5 |
 | 46mm | 208×248 | 194×80.5 | 196×80.5 | 51×51 | 34×34 | no row |
 | 49mm Ultra 3 | 211×257 | 197×84 | 199×84.5 | 51×51 | 39×39 | 191×81.5 |
 
-Launching the watch app is enough to capture the frame *values*. No gallery to open and no interaction, which makes watchOS the easiest platform to sweep, and all five case sizes above were swept that way.
+Every frame here was read from a widget placed in that location, with one exception: the Ultra 3's Smart Stack frame is the remaining half of a pair whose other half was placed. Each Smart Stack frame matches Apple's published row wherever Apple publishes one, and Apple's table is explicitly Smart Stack sizes. The corner values are measured but stored as no frame, for the reason under [Findings](#findings).
 
-**Which frame belongs to which placement is a separate question, and it was answered on two of the five watches.** Bold values are confirmed by a placed widget. The 46mm and Ultra 3 rows assign the smaller frame to the Smart Stack and the larger to the watch face by applying the rule those two established, rather than having been placed themselves.
+The 2027 models add nothing. Series 12 42mm and 46mm report 187×223 and 208×248 and the Ultra 4 reports 211×257, each with frames identical to the watch it shares a screen with, so they resolve to the rows above.
 
-The rule was tested as a prediction rather than assumed. After the 44mm established it, the 40mm frames were predicted in advance — Smart Stack 152×69.5, watch face 162×69, circular 42×42 — and all three came back as predicted. On the 40mm the same widget was placed in both locations and reported both frames, which is the cleanest form of the result: one widget, two places, two frames.
+Launching the watch app is enough to capture the frame *values*. No gallery to open and no interaction, which makes watchOS the easiest platform to sweep. Attributing a frame to a placement is the part that takes hands, and [Verifying a new watch](#verifying-a-new-watch) is how it is done.
 
-Both confirmed watches' Smart Stack frames also match Apple's published rows exactly, and Apple's table is explicitly Smart Stack sizes.
+#### Which frame belongs to which placement
 
-The 42mm is the one watch where the sweep reports a single rectangular frame rather than a pair. That reproduces across runs with a long settle, so it is not a truncated capture, but with only one frame there is nothing to attribute and no second value is recorded for it.
-
-#### Every family reports two frames, and which is which had to be established
-
-A registration sweep reports two frames for each family — for 44mm, `accessoryRectangular` at both 173×76.5 and 184×78. Nothing readable at render time says where a render came from, so the placement had to be established rather than assumed.
+A registration sweep reports two frames for each family — for 44mm, `accessoryRectangular` at both 173×76.5 and 184×78 — and nothing readable at render time says where a render came from.
 
 Two approaches failed. `showsWidgetLabel` does not separate them: both frames appear with it true and false. `disfavoredLocations` does not either, because it does not change what WidgetKit pre-renders — a probe disfavouring the Smart Stack still reported both frames.
 
-What worked is the method that settled the iPad Lock Screen: place the widget and read the `timeline` stage. On a 44mm watch:
+What worked is the method that settled the iPad Lock Screen: place the widget and read the `timeline` stage.
 
-| Watch | Placed | Family | `timeline` displaySize |
-| --- | --- | --- | --- |
-| 44mm | Smart Stack | `accessoryRectangular` | 173×76.5 |
-| 44mm | Watch face | `accessoryRectangular` | 184×78 |
-| 44mm | Watch face | `accessoryCircular` | 47×47 |
-| 44mm | Watch face | `accessoryCorner` | 36×36 |
-| 40mm | Smart Stack | `accessoryRectangular` | 152×69.5 |
-| 40mm | Watch face | `accessoryRectangular` | 162×69 |
-| 40mm | Watch face | `accessoryCircular` | 42×42 |
+**Where the two frames differ, the smaller is the Smart Stack and the larger is the watch face.** That holds on every watch measured. It is a habit rather than a law, though, because the 42mm reports the same frame in both places and so says nothing either way, which is why no test asserts it and why a new watch is placed rather than predicted.
 
-On both watches the smaller frame of each pair is the Smart Stack and the larger is the watch face.
+**A picker preview reports the frame of the place it is offering.** On the 46mm the complication picker previewed at 196×80.5 and the Smart Stack picker at 194×80.5, each matching what the widget reported once placed there, and the Ultra 3's face previews matched its face frame too. These are `snapshot` records with `isPreview` true, which `watchplacement.swift` keeps in a column of their own. It is a small sample and nothing relies on it, but if it holds then browsing a picker reads a placement's frame without placing anything.
 
-`disfavoredLocations` does work for what it is for, which both sessions showed: the probe disfavouring the Smart Stack was not offered in the Smart Stack gallery at all, while still appearing in the complications picker. It gates where a widget can be added, not what gets pre-rendered.
+`disfavoredLocations` does work for what it is for: a probe disfavouring the Smart Stack was not offered in the Smart Stack gallery at all, while still appearing in the complications picker. It gates where a widget can be added, not what gets pre-rendered.
+
+#### Verifying a new watch
+
+This is the procedure behind every value in the table above, and the one to run when a new watch ships. Step 2 alone answers whether it reports a screen size the table has never seen; the rest attributes its frames to a placement.
+
+Five older watches cannot be reached by it at all — 136×170, 156×195, 176×215, 198×242 and 205×251, which are the 38mm, the 42mm Series 1 to 3, the 41mm, the 45mm and the Ultra 2. No simulator for any of them ships in the watchOS 26 or 27 runtimes, so they would need an older runtime or real hardware, and they keep Apple's published Smart Stack row in the meantime.
+
+`Measurements/watchplacement.swift` does the reading for a run. It separates the frames a placed widget reported from the ones WidgetKit pre-rendered, and says where the placed frame sits among that pair:
+
+```sh
+Measurements/watchplacement.swift                                     # whatever the booted watch has logged
+Measurements/watchplacement.swift --placement watchFace --last 5m
+Measurements/watchplacement.swift --placement watchFace --records
+Measurements/watchplacement.swift --placement smartStack --json >> capture.json
+Measurements/watchplacement.swift --file console.log --placement watchFace
+```
+
+A run that reports one size per family may be reporting a pair whose halves are equal, which is why each size carries the number of records that reported it. The 42mm is that case.
+
+It cannot know where the widget was, so `--placement` is an assertion: the widget goes in one place and nowhere else, and the placed records in that window belong to that place. What the tool does know is which records a placed widget could have produced, which is finer than the stage alone:
+
+| Group | Records | What it means |
+| --- | --- | --- |
+| `placed` | `snapshot` or `timeline` with `isPreview` false | A provider callback for a widget that is really on the watch. The only group the verdict uses. |
+| `preview` | anything with `isPreview` true | A gallery browse, which produces `snapshot` records that look exactly like a placed widget's until this field is read. |
+| `pre-rendered` | `placeholder` | WidgetKit asking for each frame it intends to pre-render. This is where a family's pair of frames shows up, on a placed widget and during a gallery browse alike, so it attributes nothing on its own. |
+| `rendered` | `render` | The probe's own `Shape`, measuring the laid out body. Runs for a placed widget and a pre-render alike, with nothing to tell them apart. |
+
+A run, start to finish:
+
+1. Boot the watch, build, and install. The probe extension is embedded in the Watch App, so installing that installs the probe.
+
+   ```sh
+   xcrun simctl boot "Apple Watch Series 11 (42mm)"
+   xcodebuild -workspace Example/FrameUp.xcworkspace \
+     -scheme "FrameUpWatchExample Watch App" \
+     -destination 'platform=watchOS Simulator,name=Apple Watch Series 11 (42mm)' \
+     -derivedDataPath /tmp/probe build
+   xcrun simctl install booted "/tmp/probe/Build/Products/Debug-watchsimulator/FrameUpWatchExample Watch App.app"
+   xcrun simctl launch booted com.abetterwaytodo.FrameUpExample.watchkitapp
+   ```
+
+2. Take a baseline, with no placement asserted. Launching the app is enough to pre-render every family, so the pre-rendered column fills in and the placed column stays empty. That is the sweep: it records the screen size and the pair of frames, and confirms the probe is registered before any placing is attempted.
+3. Place the probe in **one** place and nowhere else. Use the Simulator from Xcode 26.6 rather than Xcode 27, which ships Device Hub instead and does not accept injected touches.
+   - **Watch face:** long press the face, tap Edit, swipe to the complications screen, tap the slot for the family being measured, and turn the crown to Widget Size Probe.
+   - **Smart Stack:** swipe up from the face, scroll to the bottom of the stack, tap Edit, and add Widget Size Probe.
+4. Let it render. Leave the face showing for a complication, or the stack open for a Smart Stack widget. A placed widget only reports a frame when the system asks it to draw.
+5. Run the tool again with the placement used and a window that starts after the placing. One placement reports one frame per family. Two frames for one family means the window covers both placements, and the tool lists the placed records with timestamps and widget kinds so they can be told apart — narrow `--last` and run it again rather than guessing.
+6. Capture that placement before making the next one. A widget already on the face keeps reporting every time the face redraws, so a window taken after the second placing contains records from both, and two placements that report the *same* frame cannot be separated by value either. Removing the first placement avoids the overlap entirely; capturing in order is enough if the frames differ.
+7. Place it in the other place and repeat from step 4. The cleanest result is one widget reporting two frames from two places on the same watch, which is how the 40mm was done.
+8. Capture with `--json`, paste the lines into `widget-frames.json`, and write the values and what they settle into this file. Turning records into a table row stays a judgment call rather than a transform, for the reason under [Fields](#fields).
+
+A watch keeps its face configuration across installs, so a watch that has ever been placed can be re-confirmed without placing anything again: install, launch, and the widgets already on the face reload and report. That is how the Ultra 3's watch face frames were read.
+
+The probe draws its own `displaySize` in the widget body, so a screenshot reads the frame back independently of the log, and shows where the widget is at the same time:
+
+```sh
+xcrun simctl io booted screenshot face.png
+```
+
+That is worth taking on any run that settles a row, because it is the one artefact that shows the frame and the placement together.
 
 #### Findings
 
-**Apple's table has no row for the 42mm and 46mm watches.** Series 10 and 11 case sizes. They resolved to rows meant for a smaller watch, 165×72.5 and 184×80.5, against measured 176×72.5 and 194×80.5.
+**Apple's table has no row for the 42mm and 46mm watches.** Series 10, 11 and 12 case sizes. They resolved to rows meant for a smaller watch, 165×72.5 and 184×80.5, against measured 176×72.5 and 194×80.5.
 
 **Case size does not identify a watch.** The Ultra 2 and Ultra 3 are both 49mm but report 205×251 and 211×257 screens and different Smart Stack frames, 191×81.5 against a measured 197×84. Apple's published 49mm row describes the Ultra 2. Any lookup keyed on case size alone returns the same answer for both and is wrong for one of them.
 
-**A complication is not the same size as a Smart Stack widget.** On the 44mm they are 184×78 and 173×76.5. Apple publishes only the Smart Stack figure, so the watch face frame exists nowhere else.
+**A complication is not the same size as a Smart Stack widget, except when it is.** On the 44mm they are 184×78 and 173×76.5, and on the 40mm 162×69 and 152×69.5. On the 42mm both are 176×72.5. Apple publishes only the Smart Stack figure, so the watch face frame exists nowhere else either way.
 
-**`accessoryCircular` was only ever observed placed on the watch face.** Placing it produced a watch face record and the Smart Stack offered rectangular widgets, so it is recorded against the watch face only. That it *cannot* appear in the Smart Stack was not tested. Its watch face frame is the larger of its pair on both the 40mm and the 44mm, and the larger is taken as the watch face frame on the other watches.
+**A sweep's pair can be two identical values.** The 42mm pre-renders `accessoryRectangular` twice at 176×72.5:
+
+```
+2026-09-11 22:58:43.181  placeholder  accessoryRectangular  176×72.5
+2026-09-11 22:58:43.185  placeholder  accessoryRectangular  176×72.5
+```
+
+Counting distinct sizes reads that as a family with one frame and invites the conclusion that the watch has no watch face frame at all. Count the records, not the sizes — `watchplacement.swift` prints both.
+
+**`accessoryCircular` was only ever observed placed on the watch face.** Placing it produced a watch face record and the Smart Stack offered rectangular widgets, so it is recorded against the watch face only. That it *cannot* appear in the Smart Stack was not tested. Its watch face frame is the larger of its pair on every watch, each read from a placed complication.
 
 **`accessoryInline` has no usable frame.** It reports a small square — 11×11 on the 40mm up to 13.5×13.5 on the 49mm — and never renders, producing only a placeholder record. It is left out of the table rather than recorded as a frame.
 
@@ -340,6 +400,8 @@ The probe extension needs `xros`-style treatment plus three things specific to w
 ```sh
 xcrun simctl launch <udid> com.abetterwaytodo.FrameUpExample.watchkitapp
 ```
+
+A full run, including the build and install that come before that launch, is in [Verifying a new watch](#verifying-a-new-watch).
 
 ### iPad Display Zoom, iPadOS 27
 
