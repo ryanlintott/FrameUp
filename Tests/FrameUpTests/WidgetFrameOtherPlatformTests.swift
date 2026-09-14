@@ -231,12 +231,33 @@ struct WidgetFrameMacTests {
         #expect(large.width == medium.width)
     }
 
+    /// `extraLargePortrait` arrived in macOS 27, measured at `extraLarge` turned on its side: one `large` wide and two `large` plus the gutter tall.
+    @Test func extraLargePortraitFromMacOS27() throws {
+        let frames = WidgetSize.frames(platform: .mac, majorOSVersion: 27)
+        let large = try #require(frames[.large]).canvasSize
+        let extraLarge = try #require(frames[.extraLarge]).canvasSize
+        let portrait = try #require(frames[.extraLargePortrait]).canvasSize
+        #expect(portrait == CGSize(width: 344, height: 704))
+        #expect(portrait.width == large.width)
+        #expect(portrait.height == large.height * 2 + 16)
+        #expect(portrait == CGSize(width: extraLarge.height, height: extraLarge.width))
+    }
+
+    /// macOS 27 kept every frame macOS 26 has.
+    @Test func macOS27KeepsTheMacOS26Frames() {
+        let v26 = WidgetSize.frames(platform: .mac, majorOSVersion: 26)
+        let v27 = WidgetSize.frames(platform: .mac, majorOSVersion: 27)
+        for (widgetSize, frame) in v26 {
+            #expect(v27[widgetSize] == frame, "\(widgetSize)")
+        }
+    }
+
     /// Measured on macOS 26, so an earlier version reports no frame rather than a value that may not hold.
     @Test func earlierVersionsHaveNoFrames() {
         #expect(WidgetSize.frames(platform: .mac, majorOSVersion: 15).isEmpty)
     }
 
-    /// macOS has no Lock Screen, so there are no accessory frames, and extraLargePortrait arrives in macOS 27 unmeasured.
+    /// macOS has no Lock Screen, so there are no accessory frames, and extraLargePortrait arrives in macOS 27.
     @Test func absentFamilies() {
         let frames = WidgetSize.frames(platform: .mac, majorOSVersion: 26)
         #expect(frames[.accessoryCircular] == nil)

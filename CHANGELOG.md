@@ -109,7 +109,7 @@ Before upgrading, resolve any deprecation warnings from `0.9.11` — `HFlowLegac
 
 ### Documentation
 
-- Documented, on `WidgetSize` and on every `sizeFor`/`sizesFor` lookup, which widget sizes a platform supports but FrameUp has no measured frame for yet, and that `minimumSize` and `maximumSize` can be used as a fallback. These notes are current as of the last measurement run: only CarPlay, macOS `.extraLargePortrait`, and the iPad Home Screen frames for sizes other than the system ones are still unmeasured, along with the StandBy placement. Apple Watch `.accessoryInline` is measured but has no usable frame: it reports a small square that never renders, so it is deliberately left out. `Measurements/README.md` records why each of those cannot be captured.
+- Documented, on `WidgetSize` and on every `sizeFor`/`sizesFor` lookup, which widget sizes a platform supports but FrameUp has no measured frame for yet, and that `minimumSize` and `maximumSize` can be used as a fallback. These notes are current as of the last measurement run: only CarPlay and the iPad Home Screen frames for sizes other than the system ones are still unmeasured, along with the StandBy placement. Apple Watch `.accessoryInline` is measured but has no usable frame: it reports a small square that never renders, so it is deliberately left out. `Measurements/README.md` records why each of those cannot be captured.
 - Corrected numerous README and doc comment errors, including `Text(item.value)` in every layout example, wrong type and parameter names, out-of-date deprecation versions, descriptions naming the wrong axis or default, and two broken README anchor links.
 
 ## [0.9.11] - 2025-05-06

@@ -298,11 +298,11 @@ extension WidgetFrameRecord {
 
     /// macOS frames, measured rather than published. Apple publishes no widget specifications for macOS at all.
     ///
-    /// Measured on macOS 26.6 with the widget in Notification Center. A Mac widget is not placed on a screen grid the way an iPhone widget is, so like visionOS there is no screen size to key on and the screen size is a placeholder that any lookup matches. The same widgets were confirmed to report the same frames on two displays of very different point sizes.
+    /// Measured on macOS 26.6 with the widget in Notification Center, and again on macOS 27 with the widget on the desktop, where the four sizes macOS 26 has report the same frames. A Mac widget is not placed on a screen grid the way an iPhone widget is, so like visionOS there is no screen size to key on and the screen size is a placeholder that any lookup matches. The same widgets were confirmed to report the same frames on two displays of very different point sizes.
     ///
-    /// The frames form a clean grid with a 16 point gutter: `medium` is two `small` plus a gutter, and `extraLarge` is two `large` plus a gutter.
+    /// The frames form a clean grid with a 16 point gutter: `medium` is two `small` plus a gutter, `extraLarge` is two `large` plus a gutter, and `extraLargePortrait` is `extraLarge` turned on its side.
     ///
-    /// > Note: measured on macOS 26 only, so they apply from there. Earlier versions report no frame rather than a value that may not hold, since iOS frames are known to have changed in its version 26. `extraLargePortrait` arrives in macOS 27 and has not been measured. The accessory sizes do not exist on macOS.
+    /// > Note: the frames apply from macOS 26, the earliest version measured. Earlier versions report no frame rather than a value that may not hold, since iOS frames are known to have changed in its version 26. `extraLargePortrait` arrives in macOS 27. The accessory sizes do not exist on macOS.
     private static let mac: [WidgetFrameRecord] = group(
         platform: .mac,
         minMajorOSVersion: 26,
@@ -315,6 +315,16 @@ extension WidgetFrameRecord {
             .medium: (344, 164),
             .large: (344, 344),
             .extraLarge: (704, 344)
+        ]
+    ) + group(
+        platform: .mac,
+        minMajorOSVersion: 27,
+        placement: .homeScreen,
+        screenSize: (0, 0),
+        displayScale: nil,
+        target: .designCanvas,
+        frames: [
+            .extraLargePortrait: (344, 704)
         ]
     )
 
@@ -388,7 +398,7 @@ extension WidgetFrameRecord {
         (screenSize: (184, 224), smartStackRectangular: (173, 76.5), watchFaceRectangular: (184, 78), watchFaceCircular: (47, 47)),
         // Apple Watch Series 11 and Series 12 46mm. Apple publishes no row for this case size. Both frames confirmed by placing the probe in each place in turn.
         (screenSize: (208, 248), smartStackRectangular: (194, 80.5), watchFaceRectangular: (196, 80.5), watchFaceCircular: (51, 51)),
-        // Apple Watch Ultra 3 and Ultra 4 49mm. Apple's published 49mm row describes the Ultra 2, which has a smaller screen in the same case. The watch face frames are confirmed by placed complications reporting 199x84.5 and 51x51, which leaves 197x84, the other half of the pre-rendered pair, as the Smart Stack frame.
+        // Apple Watch Ultra 3 and Ultra 4 49mm. Apple's published 49mm row describes the Ultra 2, which has a smaller screen in the same case. Both frames confirmed by placing the probe in each place.
         (screenSize: (211, 257), smartStackRectangular: (197, 84), watchFaceRectangular: (199, 84.5), watchFaceCircular: (51, 51))
     ]
 

@@ -87,7 +87,7 @@ public extension WidgetSize {
     ///
     /// A Mac widget is not placed on a screen grid, so its frame does not depend on the screen size, and it is not scaled, so ``WidgetFrame/canvasSize`` and ``WidgetFrame/renderedSize`` are equal.
     ///
-    /// > Note: measured on macOS 26 and applying from there. Earlier versions return nil, as does `extraLargePortrait`, which arrives in macOS 27 and could not be measured on a Mac running 26. The accessory sizes do not exist on macOS.
+    /// > Note: measured on macOS 26 and 27 and applying from 26. Earlier versions return nil. `extraLargePortrait` arrives in macOS 27, and the accessory sizes do not exist on macOS.
     /// - Returns: The frame for this widget on the current device. Nil if no frame is known, either because the current device does not support this widget size or because it has not been measured yet.
     func frameForCurrentDevice() -> WidgetFrame? {
         frame(platform: .mac)

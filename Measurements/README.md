@@ -281,7 +281,7 @@ Measured on every Apple Watch simulator, one per case size, on watchOS 26.5 and 
 | 46mm | 208×248 | 194×80.5 | 196×80.5 | 51×51 | 34×34 | no row |
 | 49mm Ultra 3 | 211×257 | 197×84 | 199×84.5 | 51×51 | 39×39 | 191×81.5 |
 
-Every frame here was read from a widget placed in that location, with one exception: the Ultra 3's Smart Stack frame is the remaining half of a pair whose other half was placed. Each Smart Stack frame matches Apple's published row wherever Apple publishes one, and Apple's table is explicitly Smart Stack sizes. The corner values are measured but stored as no frame, for the reason under [Findings](#findings).
+Every frame here was read from a widget placed in that location. Each Smart Stack frame matches Apple's published row wherever Apple publishes one, and Apple's table is explicitly Smart Stack sizes. The corner values are measured but stored as no frame, for the reason under [Findings](#findings).
 
 The 2027 models add nothing. Series 12 42mm and 46mm report 187×223 and 208×248 and the Ultra 4 reports 211×257, each with frames identical to the watch it shares a screen with, so they resolve to the rows above.
 
@@ -297,7 +297,7 @@ What worked is the method that settled the iPad Lock Screen: place the widget an
 
 **Where the two frames differ, the smaller is the Smart Stack and the larger is the watch face.** That holds on every watch measured. It is a habit rather than a law, though, because the 42mm reports the same frame in both places and so says nothing either way, which is why no test asserts it and why a new watch is placed rather than predicted.
 
-**A picker preview reports the frame of the place it is offering.** On the 46mm the complication picker previewed at 196×80.5 and the Smart Stack picker at 194×80.5, each matching what the widget reported once placed there, and the Ultra 3's face previews matched its face frame too. These are `snapshot` records with `isPreview` true, which `watchplacement.swift` keeps in a column of their own. It is a small sample and nothing relies on it, but if it holds then browsing a picker reads a placement's frame without placing anything.
+**A picker preview reports the frame of the place it is offering.** On the 46mm the complication picker previewed at 196×80.5 and the Smart Stack picker at 194×80.5, and on the Ultra 3 at 199×84.5 and 197×84, each matching what the widget reported once placed there. These are `snapshot` records with `isPreview` true, which `watchplacement.swift` keeps in a column of their own. It is a small sample and nothing relies on it, but if it holds then browsing a picker reads a placement's frame without placing anything.
 
 `disfavoredLocations` does work for what it is for: a probe disfavouring the Smart Stack was not offered in the Smart Stack gallery at all, while still appearing in the complications picker. It gates where a widget can be added, not what gets pre-rendered.
 
@@ -343,7 +343,7 @@ A run, start to finish:
    ```
 
 2. Take a baseline, with no placement asserted. Launching the app is enough to pre-render every family, so the pre-rendered column fills in and the placed column stays empty. That is the sweep: it records the screen size and the pair of frames, and confirms the probe is registered before any placing is attempted.
-3. Place the probe in **one** place and nowhere else. Use the Simulator from Xcode 26.6 rather than Xcode 27, which ships Device Hub instead and does not accept injected touches.
+3. Place the probe in **one** place and nowhere else, by hand. Xcode 27's Device Hub accepts clicks from a person even though it does not accept injected touches, so this step cannot be scripted but needs no older Xcode.
    - **Watch face:** long press the face, tap Edit, swipe to the complications screen, tap the slot for the family being measured, and turn the crown to Widget Size Probe.
    - **Smart Stack:** swipe up from the face, scroll to the bottom of the stack, tap Edit, and add Widget Size Probe.
 4. Let it render. Leave the face showing for a complication, or the stack open for a Smart Stack widget. A placed widget only reports a frame when the system asks it to draw.
@@ -431,18 +431,19 @@ The Lock Screen frames are stranger still. Zooming a 1024×1366 iPad grows its L
 
 ### macOS and Mac Catalyst
 
-Measured on macOS 26.6.2 with the widget in Notification Center. Apple publishes no widget specifications for macOS at all, so these values exist nowhere else.
+Measured on macOS 26.6.2 with the widgets in Notification Center, and on macOS 27.0 with them on the desktop. Apple publishes no widget specifications for macOS at all, so these values exist nowhere else.
 
-| Family | Frame | Pixels at 2x |
-| --- | --- | --- |
-| `small` | 164×164 | 328×328 |
-| `medium` | 344×164 | 688×328 |
-| `large` | 344×344 | 688×688 |
-| `extraLarge` | 704×344 | 1408×688 |
+| Family | Frame | Pixels at 2x | From |
+| --- | --- | --- | --- |
+| `small` | 164×164 | 328×328 | macOS 26 |
+| `medium` | 344×164 | 688×328 | macOS 26 |
+| `large` | 344×344 | 688×688 | macOS 26 |
+| `extraLarge` | 704×344 | 1408×688 | macOS 26 |
+| `extraLargePortrait` | 344×704 | 688×1408 | macOS 27 |
 
-The frames form a grid with a 16 point gutter: `medium` is two `small` plus a gutter, and `extraLarge` is two `large` plus a gutter.
+The frames form a grid with a 16 point gutter: `medium` is two `small` plus a gutter, `extraLarge` is two `large` plus a gutter, and `extraLargePortrait` is `extraLarge` turned on its side. In `small` cells that is two by four, where the iPad Home Screen grid makes it two by three, so the exact rotation is particular to macOS.
 
-`extraLargePortrait` did not appear because it arrives in macOS 27 and this Mac runs 26. The accessory sizes do not exist on macOS.
+macOS 27 reports the same four frames macOS 26 does, and moving the widgets from Notification Center to the desktop changes none of them. The accessory sizes do not exist on macOS.
 
 A Mac widget is not placed on a screen grid the way an iPhone widget is, so there is no screen size to key on, and the lookup ignores the screen size passed to it. This was checked: the same widgets report the same frames on a 2560×1440 point external display and on a roughly 1728×1117 point built-in one. Both displays are 2x, so a display of a different scale is still untested, though every Mac that runs macOS 26 has a 2x built-in display.
 
@@ -452,7 +453,7 @@ Widgets in a Mac Catalyst app are hosted by macOS, so the lookup resolves Cataly
 
 macOS needs more setup than a simulator. The widget extension has to build for macOS, which means gating the UIKit access, and both the app and the extension need the App Sandbox entitlement or the system will not register the extension at all. The extension's embed phase and target dependency also carry `platformFilter = ios` by default, which silently skips embedding it on macOS.
 
-The probe's unified log output did not appear on macOS and the reason is not yet understood, so these frames were read off the widgets on screen, which the probe view displays for exactly this reason.
+The probe's unified log output does not appear on macOS, on 26 or 27, and the reason is not yet understood, so these frames were read off the widgets on screen, which the probe view displays for exactly this reason.
 
 ### iPad
 

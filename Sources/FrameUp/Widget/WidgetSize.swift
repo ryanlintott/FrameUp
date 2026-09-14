@@ -22,7 +22,7 @@ import SwiftUI
 /// | --- | --- |
 /// | iPhone | none |
 /// | iPad | none |
-/// | macOS, Mac Catalyst | `extraLargePortrait`, which arrives in macOS 27 and could not be measured on macOS 26. Earlier than macOS 26 no size has a frame, since Apple publishes none and iOS frames are known to have changed at 26. |
+/// | macOS, Mac Catalyst | none from macOS 26. Earlier than macOS 26 no size has a frame, since Apple publishes none and iOS frames are known to have changed at 26. |
 /// | visionOS | none |
 /// | Apple Watch | `accessoryInline`, which reports a small square that never renders rather than a usable frame, and `accessoryCorner`, whose reported size does not bound what it draws. `accessoryCircular` has a watch face frame but none in the Smart Stack, where it does not appear. |
 /// | CarPlay | every size |
