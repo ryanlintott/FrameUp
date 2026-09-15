@@ -489,8 +489,7 @@ Returns an array of supported widget sizes based on the current platform and OS 
 #### `sizeForCurrentDevice(iPadTarget:)` (iOS Only)
 Returns the size of the widget based on the current device. On visionOS and watchOS use `sizeForCurrentDevice()`, which takes no target.
 
-All widget size information was sourced from:
-[Apple - Human Interface Guidelines](https://developer.apple.com/design/human-interface-guidelines/widgets#Specifications)
+Widget sizes come from [Apple's Human Interface Guidelines](https://developer.apple.com/design/human-interface-guidelines/widgets#Specifications) where Apple's values hold, and are measured everywhere else. See [Measurements](Measurements/README.md).
 
 ### WidgetDemoFrame
 Creates widget frames sized for a supplied screen size or the current device (iOS only). Used for showing example widgets from inside the app.

@@ -218,7 +218,7 @@ func findRegions(in bitmap: Bitmap, mode: FillMode, searchArea: PixelRect, minim
 
 // MARK: - Arguments
 
-/// Command line arguments, in the same order the Python script used so existing notes and `README.md` commands still work.
+/// Command line arguments.
 struct Arguments {
     let url: URL
     /// Pixels per point on the device the screenshot came from, used to convert the measured box to points.
@@ -279,7 +279,7 @@ struct Arguments {
 
 // MARK: - Output
 
-/// Formats a measurement without trailing zeros, matching the `%g` the Python script used so output is comparable with older notes.
+/// Formats a measurement without trailing zeros, matching `probelog.swift`.
 func shortestForm(_ value: Double) -> String {
     String(format: "%g", value)
 }

@@ -9,7 +9,7 @@ import SwiftUI
 
 /// The frame of one widget size, on one screen size, in one place, from one operating system version onward.
 ///
-/// Apple publishes widget frames in [Human Interface Guidelines: widget specifications](https://developer.apple.com/design/human-interface-guidelines/widgets#Specifications), but that table has not been updated since iOS 18. It has no row for several current iPhone screen sizes, no accessory row for iPad at all, and iOS 26 changed the frames for every iPhone screen size. Frames that Apple does not publish are measured instead. See `Measurements/` in the repository for the raw data and how it was captured.
+/// Apple publishes widget frames in [Human Interface Guidelines: widget specifications](https://developer.apple.com/design/human-interface-guidelines/widgets#Specifications), but that table has not been updated since iOS 18. It has no row for several current iPhone screen sizes, no accessory row for iPad at all, and iOS 26 changed the frames for every iPhone screen size. Frames that Apple does not publish are measured instead. See `Measurements/` in the repository for how they are captured.
 ///
 /// One frame per line means each value carries everything that qualifies it. A widget size that arrived in a later OS, or that only appears in one place, or that differs by display scale, is an ordinary row rather than a special case.
 struct WidgetFrameRecord: Sendable {

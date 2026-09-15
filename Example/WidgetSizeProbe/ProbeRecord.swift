@@ -18,11 +18,7 @@ import AppKit
 
 /// One measurement of the frame WidgetKit provides for a single widget family on a single device.
 ///
-/// Records are emitted to the unified log as one line of JSON prefixed with ``ProbeRecord/logPrefix``, so a sweep can be captured with:
-///
-/// ```
-/// xcrun simctl spawn booted log stream --predicate 'subsystem == "com.abetterwaytodo.FrameUpExample.WidgetSizeProbe"'
-/// ```
+/// Records are emitted to the unified log as one line of JSON prefixed with ``ProbeRecord/logPrefix``, and read back with `Measurements/probelog.swift`.
 struct ProbeRecord: Codable {
     /// Marker used to find records in a log stream.
     static let logPrefix = "WIDGET_SIZE_PROBE"
@@ -33,7 +29,7 @@ struct ProbeRecord: Codable {
     let systemVersion: String
     /// Widget family as reported by `WidgetFamily.description`, such as `systemLarge`.
     let family: String
-    /// Which probe widget produced the record. The watchOS placement probes use this to attribute a frame to a placement, since nothing readable at render time reports the location.
+    /// Which probe widget produced the record.
     let widgetKind: String
     /// Frame size WidgetKit reports in `TimelineProviderContext.displaySize`. Nil for records emitted while rendering.
     let displaySize: CGSize?
@@ -43,11 +39,11 @@ struct ProbeRecord: Codable {
     let stage: String
     /// Whether WidgetKit reported this render as a preview, such as in the widget gallery.
     let isPreview: Bool?
-    /// Rendering mode the widget was drawn with. The Lock Screen and StandBy in low light use `vibrant`, the Home Screen uses `fullColor` or `accented`, so this identifies where a render came from. Nil for provider callbacks, which have no environment.
+    /// Rendering mode the widget was drawn with. The Lock Screen and StandBy in low light use `vibrant`, the Home Screen uses `fullColor` or `accented`. It does not identify a placement on its own, see `Measurements/README.md`. Nil for provider callbacks, which have no environment.
     let renderingMode: String?
     /// Whether the widget was drawn with a container background. False on the Lock Screen and in StandBy. Nil for provider callbacks.
     let showsContainerBackground: Bool?
-    /// Whether the widget was drawn somewhere that shows its `widgetLabel`. On watchOS this separates a watch face complication, which shows one, from the Smart Stack, which does not. Nil for provider callbacks.
+    /// Whether the widget was drawn somewhere that shows its `widgetLabel`. It does not separate a watch face complication from the Smart Stack, see `Measurements/README.md`. Nil for provider callbacks.
     let showsWidgetLabel: Bool?
     /// Screen size ignoring orientation, the key the `WidgetSize` lookup tables switch on. Nil when it could not be read, see ``ProbeRecord/screenSize``.
     let screenSize: CGSize?

@@ -1,29 +1,28 @@
 #!/usr/bin/env swift
 
 //
-//  watchplacement.swift
+//  probelog.swift
 //  FrameUp
 //
 //  Created by Ryan Lintott on 2026-09-11.
 //
 
-/// Reads the widget size probe's log off an Apple Watch simulator and separates the frames a placed widget reported from the ones WidgetKit pre-rendered.
+/// Reads the widget size probe's log off a simulator and summarises the frames it reported, separating the frames a placed widget reported from the ones WidgetKit pre-rendered.
 ///
-/// Every watchOS family is pre-rendered at two frames when a widget registers, one for the Smart Stack and one for the watch face, and nothing readable at render time says which place a render came from. `disfavoredLocations` and `showsWidgetLabel` were both tried and neither separates them. What does separate them is placing the probe in one place and nowhere else: the frame that placed widget reports belongs to that place. See `Measurements/README.md`.
+/// A widget size can have a different frame in different places, such as an Apple Watch complication and the same widget in the Smart Stack, and nothing readable at render time says which place a render came from. What does separate them is placing the probe in one place and nowhere else: the frame that placed widget reports belongs to that place. See `Measurements/README.md`.
 ///
-/// This tool does the reading and the arithmetic around that. It cannot know where the widget was placed, so the placement is the operator's assertion, passed in with `--placement` and recorded in the output.
+/// This tool cannot know where the widget was placed, so the placement is the operator's assertion, passed in with `--placement` and recorded in the output.
 ///
 /// Runs directly with no build step:
 ///
 /// ```sh
-/// Measurements/watchplacement.swift                                     # whatever the booted watch has logged
-/// Measurements/watchplacement.swift --placement watchFace --last 5m
-/// Measurements/watchplacement.swift --device "Apple Watch Series 11 (42mm)" --records
-/// Measurements/watchplacement.swift --placement smartStack --json >> capture.json
-/// Measurements/watchplacement.swift --file console.log --placement watchFace
+/// Measurements/probelog.swift                                     # whatever the booted simulator has logged
+/// Measurements/probelog.swift --placement watchFace --last 5m
+/// Measurements/probelog.swift --device "Apple Watch Series 11 (42mm)" --records
+/// Measurements/probelog.swift --file console.log --placement lockScreen
 /// ```
 ///
-/// `--file` reads a saved log instead of a simulator, which is the only route for a physical watch: its records come out of Console.app rather than out of `simctl`.
+/// `--file` reads a saved log instead of a simulator, which is the only route for a physical device: its records come out of Console.app rather than out of `simctl`.
 
 import Foundation
 
@@ -62,8 +61,17 @@ struct Size: Hashable {
               let width = (pair[0] as? NSNumber)?.doubleValue,
               let height = (pair[1] as? NSNumber)?.doubleValue
         else { return nil }
-        self.width = width
-        self.height = height
+        self.width = Self.rounded(width)
+        self.height = Self.rounded(height)
+    }
+
+    /// Rounded to a thousandth of a point, so one frame is one size.
+    ///
+    /// A third of a pixel is not exact in floating point, and the same @3x frame arrives as both 164.33333333333331 and 164.33333333333334. Unrounded, those count as two sizes that print identically, and a placed frame reads as not matching its own pre-rendered frame.
+    ///
+    /// A thousandth is the precision the report prints, so a size can no longer differ from the way it reads. It is far finer than any real difference: frames land on whole pixels, so two of them are at least a third of a point apart.
+    static func rounded(_ value: Double) -> Double {
+        (value * 1_000).rounded() / 1_000
     }
 }
 
@@ -71,9 +79,9 @@ struct Size: Hashable {
 
 /// What a record can be trusted to say about where the widget was.
 ///
-/// Named after what the records have been observed to mean rather than after a placement, because no record reports a placement. The committed measurements are the evidence for each case: see `Measurements/README.md`.
+/// Named after what the records have been observed to mean rather than after a placement, because no record reports a placement. See `Measurements/README.md` for what each group has been observed to mean.
 enum StageGroup {
-    /// A provider callback for a widget that is really on the watch: `snapshot` or `timeline` with `isPreview` false. The only group attributable to wherever the operator put the widget.
+    /// A provider callback for a widget that is really on the device: `snapshot` or `timeline` with `isPreview` false. The only group attributable to wherever the operator put the widget.
     case placed
     /// Any callback WidgetKit flagged as a preview. A gallery browse produces `snapshot` records with `isPreview` true, which look exactly like a placed widget's until this field is read.
     case preview
@@ -109,8 +117,6 @@ enum StageGroup {
 }
 
 /// One line of the probe's log.
-///
-/// The original JSON is kept alongside the few fields this tool reads, so `--json` can emit a record unchanged apart from the placement added to it.
 struct Record {
     let timestamp: String
     let fields: [String: Any]
@@ -164,28 +170,22 @@ struct Options {
     var placement: String?
     /// Lists every record rather than only the summary.
     var showsRecords = false
-    /// Emits the placed records as JSON lines for `widget-frames.json`.
-    var emitsJSON = false
-    /// Keeps records from platforms other than watchOS, which are filtered out by default.
-    var keepsEveryIdiom = false
 
-    static let placements = ["smartStack", "watchFace"]
+    /// The cases of `WidgetPlacement` in the library.
+    static let placements = ["homeScreen", "lockScreen", "standBy", "carPlay", "watchFace", "smartStack", "iPhoneWidgetsOnMac"]
 
     static let usage = """
-        usage: watchplacement.swift [--placement smartStack|watchFace] [--device <udid|name>]
-                                    [--file <log>] [--last <window>] [--records] [--json]
-                                    [--all-idioms]
+        usage: probelog.swift [--placement <placement>] [--device <udid|name>]
+                              [--file <log>] [--last <window>] [--records]
 
-          --placement  Where the widget was placed for this capture. Asserted by you, since no
-                       record reports a placement. Required for --json.
+          --placement  Where the widget was placed for this capture, one of
+                       \(placements.joined(separator: ", ")).
+                       Asserted by you, since no record reports a placement.
           --device     Simulator to read the log from. Default: booted.
           --file       Read a saved log instead, as exported from Console.app for a physical
-                       watch. Use - for standard input.
+                       device. Use - for standard input.
           --last       Window to read, passed to log show. Default: 10m.
           --records    List every record with its timestamp, not just the summary.
-          --json       Emit the placed records as JSON lines to paste into widget-frames.json,
-                       each with the asserted placement added.
-          --all-idioms Keep records from other platforms. Only watchOS records are kept otherwise.
         """
 
     static func parse(_ arguments: [String]) throws -> Options {
@@ -208,16 +208,11 @@ struct Options {
             case "--file": options.file = try value(argument)
             case "--last": options.window = try value(argument)
             case "--records": options.showsRecords = true
-            case "--json": options.emitsJSON = true
-            case "--all-idioms": options.keepsEveryIdiom = true
             case "--help", "-h":
                 print(usage)
                 exit(0)
             default: throw ProbeError("unknown argument \(argument)\n\n\(usage)")
             }
-        }
-        if options.emitsJSON && options.placement == nil {
-            throw ProbeError("--json needs --placement, so the records it emits say where the widget was")
         }
         return options
     }
@@ -311,7 +306,7 @@ func table(_ rows: [[String]], indent: String = "") -> [String] {
     }
 }
 
-/// The report as lines, so the caller can choose where it goes. With `--json` it goes to standard error, leaving standard output to the records alone.
+/// The report as lines.
 func report(_ records: [Record], options: Options) -> [String] {
     var lines: [String] = []
     func print(_ text: String = "") { lines.append(text) }
@@ -319,11 +314,12 @@ func report(_ records: [Record], options: Options) -> [String] {
     let devices = Set(records.map(\.deviceModel)).sorted()
     let screens = Set(records.compactMap(\.screenSize)).sorted { $0.area < $1.area }
     let versions = Set(records.map(\.systemVersion)).sorted()
+    let idioms = Set(records.compactMap(\.idiom)).sorted()
     let scales = Set(records.compactMap(\.displayScale)).sorted()
     let source = options.file.map { "in \($0)" } ?? "in the last \(options.window)"
 
-    print("\(devices.joined(separator: ", "))  watchOS \(versions.joined(separator: ", "))")
-    print("screen \(screens.map(\.description).joined(separator: ", "))\(scales.isEmpty ? "" : " @\(scales.map { Size.number($0) }.joined(separator: ", "))x")")
+    print("\(devices.joined(separator: ", "))  \(idioms.joined(separator: ", ")) \(versions.joined(separator: ", "))")
+    print("screen \(screens.isEmpty ? "unknown" : screens.map(\.description).joined(separator: ", "))\(scales.isEmpty ? "" : " @\(scales.map { Size.number($0) }.joined(separator: ", "))x")")
     print("\(records.count) records \(source)")
     if devices.count > 1 || screens.count > 1 {
         print("WARNING: more than one device logged inside this window, so the frames below are mixed. Narrow --last.")
@@ -373,7 +369,7 @@ func report(_ records: [Record], options: Options) -> [String] {
     }
     if attributed.isEmpty {
         print("  nothing. This window has no placed record, which is a snapshot or timeline callback with isPreview false.")
-        print("  Place the probe, then wake the face or open the Smart Stack so it renders, and run this again.")
+        print("  Place the probe and leave it on screen so it renders, then run this again.")
     } else {
         print(table(attributed, indent: "  "))
     }
@@ -397,63 +393,20 @@ func report(_ records: [Record], options: Options) -> [String] {
     return lines
 }
 
-/// One JSON value in the style `widget-frames.json` is written in: a space after every colon and comma, and arrays on one line.
-///
-/// `JSONSerialization` can sort keys or pretty print, but not both in this shape, so the object is assembled here and only the values go through it.
-func jsonValue(_ value: Any) -> String {
-    if let array = value as? [Any] {
-        return "[" + array.map(jsonValue).joined(separator: ", ") + "]"
-    }
-    guard let data = try? JSONSerialization.data(withJSONObject: value, options: [.fragmentsAllowed, .withoutEscapingSlashes]),
-          let text = String(data: data, encoding: .utf8)
-    else { return "null" }
-    return text
-}
-
-/// Emits the placed records for pasting into `widget-frames.json`, each carrying the placement the operator asserted.
-///
-/// Pasting is deliberate. There is no merge step, because turning records into a table row is a judgment call rather than a transform. See `Measurements/README.md`.
-func emitJSON(_ records: [Record], placement: String) throws {
-    let placed = records.filter { $0.group == .placed }
-    guard !placed.isEmpty else {
-        throw ProbeError("no placed records to emit, so there is nothing to attribute to \(placement)")
-    }
-    FileHandle.standardError.write(Data("""
-
-        \(placed.count) placed record\(placed.count == 1 ? "" : "s") follow\(placed.count == 1 ? "s" : ""), ready to paste into the array in widget-frames.json.
-        Drop the trailing comma if a line lands at the end of the array.
-
-        """.utf8))
-    for record in placed {
-        var fields = record.fields
-        fields["capturedPlacement"] = placement
-        let pairs = fields.keys.sorted().map { "\"\($0)\": \(jsonValue(fields[$0] ?? NSNull()))" }
-        print("  {" + pairs.joined(separator: ", ") + "},")
-    }
-}
-
 // MARK: - Entry point
 
 do {
     let options = try Options.parse(CommandLine.arguments)
     let captured = try options.file.map(records(file:)) ?? records(device: options.device, window: options.window)
-    let watch = options.keepsEveryIdiom ? captured : captured.filter { $0.idiom == "watch" }
-    guard !watch.isEmpty else {
+    guard !captured.isEmpty else {
         let source = options.file.map { "in \($0)" } ?? "in the last \(options.window) on \(options.device)"
         throw ProbeError("""
             no probe records \(source).
-            Check that the example app is installed on the watch, that the widget has rendered since, and that the device is the one you think it is:
+            Check that the example app is installed, that the widget has rendered since, and that the device is the one you think it is:
               xcrun simctl list devices booted
             """)
     }
-    let lines = report(watch, options: options).joined(separator: "\n") + "\n"
-    if options.emitsJSON, let placement = options.placement {
-        /// The report goes to standard error so the records can be redirected on their own.
-        FileHandle.standardError.write(Data(lines.utf8))
-        try emitJSON(watch, placement: placement)
-    } else {
-        print(lines, terminator: "")
-    }
+    print(report(captured, options: options).joined(separator: "\n"))
 } catch let error as ProbeError {
     FileHandle.standardError.write(Data((error.description + "\n").utf8))
     exit(1)

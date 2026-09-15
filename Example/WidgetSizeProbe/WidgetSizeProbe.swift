@@ -64,10 +64,10 @@ struct FrameProbe: Shape {
 
 struct ProbeEntryView: View {
     let entry: ProbeEntry
-    /// Identifies where the widget is being drawn. The Lock Screen renders vibrant and without a container background.
+    /// The Lock Screen renders vibrant and without a container background, which decides the fill below. Neither identifies a placement on its own.
     @Environment(\.widgetRenderingMode) private var widgetRenderingMode
     @Environment(\.showsWidgetContainerBackground) private var showsWidgetContainerBackground
-    /// On watchOS this separates a watch face complication, which shows a widget label, from the Smart Stack, which does not. macOS has no such environment value.
+    /// Recorded for reference only, since it does not separate a watch face complication from the Smart Stack. macOS has no such environment value.
     #if !os(macOS)
     @Environment(\.showsWidgetLabel) private var widgetLabelShown
     #endif
@@ -106,10 +106,10 @@ struct ProbeEntryView: View {
                 showsContainerBackground: showsWidgetContainerBackground,
                 showsWidgetLabel: showsWidgetLabel
             )
-            /// Opaque white rather than clear so the frame is visible in a screenshot wherever the container background is not drawn.
+            /// Opaque white wherever the container background is not drawn, so the frame is still visible in a screenshot.
             ///
-            /// The Lock Screen removes the container background and renders vibrant, which turns ``Color/probeFill`` into a material keyed on luminance. White is the brightest that mode can produce, so a full bleed white fill is the one marking that survives it. Content margins are disabled, so this shape is exactly the widget frame.
-            .fill(.white)
+            /// The Lock Screen removes the container background and renders vibrant, which turns ``Color/probeFill`` into a material keyed on luminance. White is the brightest that mode can produce, so a full bleed white fill is the one marking that survives it. Content margins are disabled, so this shape is exactly the widget frame, which is also why it has to be clear wherever the container background is drawn: a full bleed white would hide the magenta completely.
+            .fill(showsWidgetContainerBackground ? .clear : .white)
         )
         .probeContainerBackground()
     }

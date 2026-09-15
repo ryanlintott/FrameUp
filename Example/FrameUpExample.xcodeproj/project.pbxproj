@@ -7,30 +7,33 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		CFB000000000000000000003 /* WidgetSizeProbeExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = CFB000000000000000000002 /* WidgetSizeProbeExtension.appex */; platformFilters = (ios, macos, xros, ); settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		CFB000000000000000000020 /* WidgetSizeProbeExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = CFB000000000000000000002 /* WidgetSizeProbeExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		CFB000000000000000000008 /* FrameUp in Frameworks */ = {isa = PBXBuildFile; productRef = CFB000000000000000000007 /* FrameUp */; };
 		CF1AB2B22CB5BF530049E553 /* FrameUp in Frameworks */ = {isa = PBXBuildFile; productRef = CF1AB2B12CB5BF530049E553 /* FrameUp */; };
 		CF1EEF3E274D4C4D00987595 /* WidgetFrameWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = CF1EEF2D274D4C4C00987595 /* WidgetFrameWidgetExtension.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		CF1EEF4D274D60E900987595 /* FrameUp in Frameworks */ = {isa = PBXBuildFile; productRef = CF1EEF4C274D60E900987595 /* FrameUp */; };
+		CF68E3843059D416003902AC /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = CF68E3833059D416003902AC /* AppIcon.icon */; };
+		CF68E3853059D416003902AC /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = CF68E3833059D416003902AC /* AppIcon.icon */; };
+		CF68E3863059D416003902AC /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = CF68E3833059D416003902AC /* AppIcon.icon */; };
+		CFB000000000000000000003 /* WidgetSizeProbeExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = CFB000000000000000000002 /* WidgetSizeProbeExtension.appex */; platformFilters = (ios, macos, xros, ); settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		CFB000000000000000000008 /* FrameUp in Frameworks */ = {isa = PBXBuildFile; productRef = CFB000000000000000000007 /* FrameUp */; };
+		CFB000000000000000000020 /* WidgetSizeProbeExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = CFB000000000000000000002 /* WidgetSizeProbeExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		CFF359C92C090B4100AFC57E /* FrameUpWatchExample Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = CFF359BC2C090B3F00AFC57E /* FrameUpWatchExample Watch App.app */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		CFF359CF2C090BEA00AFC57E /* FrameUp in Frameworks */ = {isa = PBXBuildFile; productRef = CFF359CE2C090BEA00AFC57E /* FrameUp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		CFB000000000000000000010 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CF48CC9326F131C200406F4E /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CFB000000000000000000009;
-			remoteInfo = WidgetSizeProbeExtension;
-		};
 		CF1EEF3C274D4C4D00987595 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = CF48CC9326F131C200406F4E /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = CF1EEF2C274D4C4C00987595;
 			remoteInfo = WidgetFrameWidgetExtension;
+		};
+		CFB000000000000000000010 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CF48CC9326F131C200406F4E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CFB000000000000000000009;
+			remoteInfo = WidgetSizeProbeExtension;
 		};
 		CFF359C72C090B4100AFC57E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -54,17 +57,6 @@
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		CFF359CA2C090B4100AFC57E /* Embed Watch Content */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
-			dstSubfolderSpec = 16;
-			files = (
-				CFF359C92C090B4100AFC57E /* FrameUpWatchExample Watch App.app in Embed Watch Content */,
-			);
-			name = "Embed Watch Content";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		CFB000000000000000000021 /* Embed Foundation Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -76,12 +68,24 @@
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CFF359CA2C090B4100AFC57E /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				CFF359C92C090B4100AFC57E /* FrameUpWatchExample Watch App.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		CFB000000000000000000002 /* WidgetSizeProbeExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = WidgetSizeProbeExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		CF1EEF2D274D4C4C00987595 /* WidgetFrameWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = WidgetFrameWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		CF48CC9B26F131C200406F4E /* FrameUpExample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FrameUpExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		CF68E3833059D416003902AC /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
+		CFB000000000000000000002 /* WidgetSizeProbeExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = WidgetSizeProbeExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		CFF359BC2C090B3F00AFC57E /* FrameUpWatchExample Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "FrameUpWatchExample Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -126,14 +130,6 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		CFB000000000000000000005 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				CFB000000000000000000008 /* FrameUp in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		CF1EEF2A274D4C4C00987595 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -147,6 +143,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				CF1AB2B22CB5BF530049E553 /* FrameUp in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CFB000000000000000000005 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CFB000000000000000000008 /* FrameUp in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -169,6 +173,7 @@
 				CFD05561302F8CBE00D0E96D /* WidgetFrameWidget */,
 				CFB000000000000000000001 /* WidgetSizeProbe */,
 				CFD05574302F8CC100D0E96D /* FrameUpWatchExample Watch App */,
+				CF68E3833059D416003902AC /* AppIcon.icon */,
 				CF48CC9C26F131C200406F4E /* Products */,
 			);
 			sourceTree = "<group>";
@@ -187,29 +192,6 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		CFB000000000000000000009 /* WidgetSizeProbeExtension */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = CFB000000000000000000014 /* Build configuration list for PBXNativeTarget "WidgetSizeProbeExtension" */;
-			buildPhases = (
-				CFB000000000000000000004 /* Sources */,
-				CFB000000000000000000005 /* Frameworks */,
-				CFB000000000000000000006 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				CFB000000000000000000001 /* WidgetSizeProbe */,
-			);
-			name = WidgetSizeProbeExtension;
-			packageProductDependencies = (
-				CFB000000000000000000007 /* FrameUp */,
-			);
-			productName = WidgetSizeProbeExtension;
-			productReference = CFB000000000000000000002 /* WidgetSizeProbeExtension.appex */;
-			productType = "com.apple.product-type.app-extension";
-		};
 		CF1EEF2C274D4C4C00987595 /* WidgetFrameWidgetExtension */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = CF1EEF3F274D4C4D00987595 /* Build configuration list for PBXNativeTarget "WidgetFrameWidgetExtension" */;
@@ -262,6 +244,29 @@
 			productName = FrameUpExample;
 			productReference = CF48CC9B26F131C200406F4E /* FrameUpExample.app */;
 			productType = "com.apple.product-type.application";
+		};
+		CFB000000000000000000009 /* WidgetSizeProbeExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CFB000000000000000000014 /* Build configuration list for PBXNativeTarget "WidgetSizeProbeExtension" */;
+			buildPhases = (
+				CFB000000000000000000004 /* Sources */,
+				CFB000000000000000000005 /* Frameworks */,
+				CFB000000000000000000006 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				CFB000000000000000000001 /* WidgetSizeProbe */,
+			);
+			name = WidgetSizeProbeExtension;
+			packageProductDependencies = (
+				CFB000000000000000000007 /* FrameUp */,
+			);
+			productName = WidgetSizeProbeExtension;
+			productReference = CFB000000000000000000002 /* WidgetSizeProbeExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 		CFF359BB2C090B3F00AFC57E /* FrameUpWatchExample Watch App */ = {
 			isa = PBXNativeTarget;
@@ -335,21 +340,23 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		CFB000000000000000000006 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		CF1EEF2B274D4C4C00987595 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CF68E3843059D416003902AC /* AppIcon.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		CF48CC9926F131C200406F4E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CF68E3863059D416003902AC /* AppIcon.icon in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CFB000000000000000000006 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -360,19 +367,13 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CF68E3853059D416003902AC /* AppIcon.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		CFB000000000000000000004 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		CF1EEF29274D4C4C00987595 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -381,6 +382,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		CF48CC9726F131C200406F4E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CFB000000000000000000004 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -397,17 +405,26 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		CFB000000000000000000011 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			platformFilters = (ios, macos, xros, );
-			target = CFB000000000000000000009 /* WidgetSizeProbeExtension */;
-			targetProxy = CFB000000000000000000010 /* PBXContainerItemProxy */;
-		};
 		CF1EEF3D274D4C4D00987595 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			platformFilter = ios;
 			target = CF1EEF2C274D4C4C00987595 /* WidgetFrameWidgetExtension */;
 			targetProxy = CF1EEF3C274D4C4D00987595 /* PBXContainerItemProxy */;
+		};
+		CFB000000000000000000011 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			platformFilters = (
+				ios,
+				macos,
+				xros,
+			);
+			target = CFB000000000000000000009 /* WidgetSizeProbeExtension */;
+			targetProxy = CFB000000000000000000010 /* PBXContainerItemProxy */;
+		};
+		CFB000000000000000000022 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CFB000000000000000000009 /* WidgetSizeProbeExtension */;
+			targetProxy = CFB000000000000000000010 /* PBXContainerItemProxy */;
 		};
 		CFF359C82C090B4100AFC57E /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -415,86 +432,9 @@
 			target = CFF359BB2C090B3F00AFC57E /* FrameUpWatchExample Watch App */;
 			targetProxy = CFF359C72C090B4100AFC57E /* PBXContainerItemProxy */;
 		};
-		CFB000000000000000000022 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CFB000000000000000000009 /* WidgetSizeProbeExtension */;
-			targetProxy = CFB000000000000000000010 /* PBXContainerItemProxy */;
-		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		CFB000000000000000000012 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = "Entitlements/macOS-widget.entitlements";
-				INFOPLIST_FILE = WidgetSizeProbe/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = WidgetSizeProbe;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/../../Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.abetterwaytodo.FrameUpExample.WidgetSizeProbe;
-				"PRODUCT_BUNDLE_IDENTIFIER[sdk=watch*]" = com.abetterwaytodo.FrameUpExample.watchkitapp.WidgetSizeProbe;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = auto;
-				SKIP_INSTALL = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx watchos watchsimulator xros xrsimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 6.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
-				"TARGETED_DEVICE_FAMILY[sdk=watch*]" = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 9.0;
-				XROS_DEPLOYMENT_TARGET = 26.0;
-			};
-			name = Debug;
-		};
-		CFB000000000000000000013 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = "Entitlements/macOS-widget.entitlements";
-				INFOPLIST_FILE = WidgetSizeProbe/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = WidgetSizeProbe;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/../../Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.abetterwaytodo.FrameUpExample.WidgetSizeProbe;
-				"PRODUCT_BUNDLE_IDENTIFIER[sdk=watch*]" = com.abetterwaytodo.FrameUpExample.watchkitapp.WidgetSizeProbe;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = auto;
-				SKIP_INSTALL = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx watchos watchsimulator xros xrsimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 6.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
-				"TARGETED_DEVICE_FAMILY[sdk=watch*]" = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 9.0;
-				XROS_DEPLOYMENT_TARGET = 26.0;
-			};
-			name = Release;
-		};
 		CF1EEF40274D4C4D00987595 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -693,6 +633,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
+				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = "Entitlements/macOS-app.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"FrameUpExample/Preview Content\"";
@@ -713,7 +654,6 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				MARKETING_VERSION = 1.0;
-				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = "Entitlements/macOS-app.entitlements";
 				PRODUCT_BUNDLE_IDENTIFIER = com.abetterwaytodo.FrameUpExample;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "appletvos appletvsimulator iphoneos iphonesimulator macosx xros xrsimulator";
@@ -734,6 +674,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
+				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = "Entitlements/macOS-app.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"FrameUpExample/Preview Content\"";
@@ -754,7 +695,6 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				MARKETING_VERSION = 1.0;
-				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = "Entitlements/macOS-app.entitlements";
 				PRODUCT_BUNDLE_IDENTIFIER = com.abetterwaytodo.FrameUpExample;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "appletvos appletvsimulator iphoneos iphonesimulator macosx xros xrsimulator";
@@ -766,6 +706,78 @@
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2,3,7";
 				TVOS_DEPLOYMENT_TARGET = 15.0;
+			};
+			name = Release;
+		};
+		CFB000000000000000000012 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = "Entitlements/macOS-widget.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WidgetSizeProbe/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = WidgetSizeProbe;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.abetterwaytodo.FrameUpExample.WidgetSizeProbe;
+				"PRODUCT_BUNDLE_IDENTIFIER[sdk=watch*]" = com.abetterwaytodo.FrameUpExample.watchkitapp.WidgetSizeProbe;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx watchos watchsimulator xros xrsimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				"TARGETED_DEVICE_FAMILY[sdk=watch*]" = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 9.0;
+				XROS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Debug;
+		};
+		CFB000000000000000000013 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = "Entitlements/macOS-widget.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WidgetSizeProbe/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = WidgetSizeProbe;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.abetterwaytodo.FrameUpExample.WidgetSizeProbe;
+				"PRODUCT_BUNDLE_IDENTIFIER[sdk=watch*]" = com.abetterwaytodo.FrameUpExample.watchkitapp.WidgetSizeProbe;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx watchos watchsimulator xros xrsimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				"TARGETED_DEVICE_FAMILY[sdk=watch*]" = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 9.0;
+				XROS_DEPLOYMENT_TARGET = 26.0;
 			};
 			name = Release;
 		};
@@ -837,15 +849,6 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		CFB000000000000000000014 /* Build configuration list for PBXNativeTarget "WidgetSizeProbeExtension" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				CFB000000000000000000012 /* Debug */,
-				CFB000000000000000000013 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		CF1EEF3F274D4C4D00987595 /* Build configuration list for PBXNativeTarget "WidgetFrameWidgetExtension" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -873,6 +876,15 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		CFB000000000000000000014 /* Build configuration list for PBXNativeTarget "WidgetSizeProbeExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CFB000000000000000000012 /* Debug */,
+				CFB000000000000000000013 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		CFF359CD2C090B4100AFC57E /* Build configuration list for PBXNativeTarget "FrameUpWatchExample Watch App" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -892,15 +904,15 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		CFB000000000000000000007 /* FrameUp */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = FrameUp;
-		};
 		CF1AB2B12CB5BF530049E553 /* FrameUp */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = FrameUp;
 		};
 		CF1EEF4C274D60E900987595 /* FrameUp */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FrameUp;
+		};
+		CFB000000000000000000007 /* FrameUp */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = FrameUp;
 		};

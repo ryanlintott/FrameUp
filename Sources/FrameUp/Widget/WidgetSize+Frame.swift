@@ -12,7 +12,7 @@ public extension WidgetSize {
     ///
     /// One lookup for every platform. Parameters that a platform does not vary by can be left out: macOS and visionOS take only a platform, since their frames do not depend on a screen size.
     ///
-    /// Frames for iOS 18 and earlier, and for iPad and Apple Watch, are sourced from [Apple Human Interface Guidelines: widget specifications](https://developer.apple.com/design/human-interface-guidelines/widgets#Specifications). Apple has not updated that table since iOS 18, and iOS 26 changed the frame of every iPhone widget, so iPhone frames from iOS 26, every macOS and visionOS frame, the iPad Lock Screen and `extraLargePortrait` everywhere are measured instead. See `Measurements/` in the repository.
+    /// Frames for iOS 18 and earlier and the iPad system frames are sourced from [Apple Human Interface Guidelines: widget specifications](https://developer.apple.com/design/human-interface-guidelines/widgets#Specifications). Apple has not updated that table since iOS 18, and iOS 26 changed the frame of every iPhone widget, so iPhone frames from iOS 26, every macOS, visionOS and current Apple Watch frame, the iPad Lock Screen and `extraLargePortrait` everywhere are measured instead. See `Measurements/` in the repository.
     ///
     /// A screen size with no exact entry resolves to the nearest known one by width, then by height, so a device released after this table was last updated still returns a usable frame.
     /// - Parameters:

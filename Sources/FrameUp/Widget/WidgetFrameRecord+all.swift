@@ -10,7 +10,7 @@ import SwiftUI
 extension WidgetFrameRecord {
     /// Every known set of widget frames.
     ///
-    /// iPhone sets from iOS 26 onward were measured with the `WidgetSizeProbe` widget in the example app. Everything else is sourced from [Apple Human Interface Guidelines: widget specifications](https://developer.apple.com/design/human-interface-guidelines/widgets#Specifications), which describes iOS 18 and earlier. Spot checks on iOS 18.6 confirmed the published iPhone values, including the 402 and 440 point wide screens that Apple never published a row for.
+    /// Rows are either published in [Apple Human Interface Guidelines: widget specifications](https://developer.apple.com/design/human-interface-guidelines/widgets#Specifications), which describes iOS 18 and earlier, or measured with the `WidgetSizeProbe` widget in the example app. Each set says which, and each measured or confirmed row names the device and OS it came from. `Measurements/README.md` describes how to measure a new one.
     static let all: [WidgetFrameRecord] = iPhoneiOS15 + iPhoneiOS15LockScreen + iPhoneiOS26 + iPhoneiOS26LockScreen + iPhoneiOS27Portrait + iPadDesignCanvas + iPadHomeScreen + iPadPortraitDesignCanvas + iPadPortraitHomeScreen + iPadLockScreen + visionOS + visionOSAccessory + watch + mac
 
     /// iPhone frames for iOS 18 and earlier, as published by Apple.
@@ -382,11 +382,11 @@ extension WidgetFrameRecord {
     ///
     /// The 42mm is why that is a habit rather than a law. Its two pre-rendered rectangular frames are the same size, and a placed complication confirms the watch face and the Smart Stack really are both 176x72.5. A watch face frame is therefore not always larger than its Smart Stack frame, so nothing asserts that it is.
     ///
-    /// Nothing in this table is inferred any more, so a new watch is the only reason to reach for the rule again. `Measurements/watchplacement.swift` is how a row gets settled instead, and `Measurements/README.md` says what a run needs.
+    /// Nothing in this table is inferred any more, so a new watch is the only reason to reach for the rule again. Placing the probe and reading it with `Measurements/probelog.swift` is how a row gets settled instead, and `Measurements/README.md` says what a run needs.
     ///
     /// > Note: `accessoryInline` reports a small square, 11x11 to 13.5x13.5, that never renders and is not a usable frame, so it is left out.
     ///
-    /// > Note: `accessoryCorner` has a ``WidgetSize`` case but no frame here. It is measured, and the values are in `Measurements/`, but a corner complication is not a rectangle: it sits in the curve of the bezel, roughly triangular, and a label can curve around the frame and extend past it. The reported size is therefore not a box the content fits inside, which is what every other frame in this table means. It also explains why the values do not scale with the screen the way every other family does, 32 on a 162 point wide watch against 30 on a 187.
+    /// > Note: `accessoryCorner` has a ``WidgetSize`` case but no frame here. It is measured, but a corner complication is not a rectangle: it sits in the curve of the bezel, roughly triangular, and a label can curve around the frame and extend past it. The reported size is therefore not a box the content fits inside, which is what every other frame in this table means. It also explains why the values do not scale with the screen the way every other family does, 32 on a 162 point wide watch against 30 on a 187.
     ///
     /// > Note: `watchFaceRectangular` is optional for a watch that has been swept but never placed, which leaves it with a Smart Stack frame of its own and a watch face lookup that falls back to the nearest watch that has one.
     private static let watchMeasured: [(screenSize: (CGFloat, CGFloat), smartStackRectangular: (CGFloat, CGFloat), watchFaceRectangular: (CGFloat, CGFloat)?, watchFaceCircular: (CGFloat, CGFloat))] = [
