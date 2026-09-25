@@ -32,8 +32,8 @@ struct ContainerGeometryProbeExample: View {
             }
             .navigationTitle("Container Geometry")
             .fullScreenCover(isPresented: $isInsideAutoRotatingView) {
-                AutoRotatingView([allowedOrientation]) {
-                    ContainerGeometryReadout(location: "inside \(allowedOrientation)")
+                AutoRotatingView([allowedOrientation]) { geometry in
+                    ContainerGeometryReadout(location: "inside \(allowedOrientation)", geometry: geometry)
                 }
                 .overlay(alignment: .bottom) {
                     /// Outside the rotation, so it stays with the interface.
@@ -64,10 +64,12 @@ struct ContainerGeometryProbeExample: View {
 private struct ContainerGeometryReadout: View {
     /// Where the values are read, for the log.
     let location: String
+    /// The geometry from an `AutoRotatingView`, when inside one.
+    var geometry: AutoRotatingGeometry? = nil
     
     var body: some View {
         GeometryReader { proxy in
-            let summary = "\(location) | " + Self.summary(proxy)
+            let summary = "\(location) | " + Self.summary(proxy) + frameUpSummary
             ZStack(alignment: .topLeading) {
                 Color.clear
 
@@ -93,6 +95,18 @@ private struct ContainerGeometryReadout: View {
                 .padding(.horizontal, 20)
 
                 offsetLabel
+
+                /// Readers inset from the edges by different amounts, to measure how SwiftUI resolves corner insets for a smaller frame.
+                ForEach(Self.readerInsets, id: \.short) { insets in
+                    let name = "inset reader \(insets.short)"
+                    GeometryReader { insetProxy in
+                        Color.clear
+                            .task(id: insetSummary(insetProxy)) {
+                                logger.info("\(location, privacy: .public) | \(name, privacy: .public) | \(insetSummary(insetProxy), privacy: .public)")
+                            }
+                    }
+                    .padding(insets)
+                }
             }
             .task(id: summary) {
                 logger.info("\(summary, privacy: .public)")
@@ -100,6 +114,41 @@ private struct ContainerGeometryReadout: View {
         }
         .ignoresSafeArea()
     }
+
+    /// Insets (top, leading, bottom, trailing) of the readers that compare corner insets for smaller frames: even, uneven, and past the width of the Duo's capsule but not its height.
+    static let readerInsets: [EdgeInsets] = [
+        EdgeInsets(top: 20, leading: 20, bottom: 20, trailing: 20),
+        EdgeInsets(top: 10, leading: 30, bottom: 10, trailing: 30),
+        EdgeInsets(top: 100, leading: 0, bottom: 0, trailing: 0),
+        EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 100),
+    ]
+
+    /// The geometry's corner insets, when inside an `AutoRotatingView`.
+    var frameUpSummary: String {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *), let geometry {
+            return " | frameup " + Self.corners(geometry.containerCornerInsets)
+        }
+        #endif
+        return ""
+    }
+
+    /// SwiftUI's corner insets for a reader.
+    func insetSummary(_ proxy: GeometryProxy) -> String {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *) {
+            return "swiftui " + Self.corners(proxy.containerCornerInsets)
+        }
+        #endif
+        return "needs iOS 26"
+    }
+
+    #if compiler(>=6.2)
+    @available(iOS 26, *)
+    static func corners(_ insets: RectangleCornerInsets) -> String {
+        "corners TL=\(insets.topLeading.short) TR=\(insets.topTrailing.short) BL=\(insets.bottomLeading.short) BR=\(insets.bottomTrailing.short)"
+    }
+    #endif
 
     /// A label that `containerCornerOffset` should move clear of the top leading corner.
     @ViewBuilder

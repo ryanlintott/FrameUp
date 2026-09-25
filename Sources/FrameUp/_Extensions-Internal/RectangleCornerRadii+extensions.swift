@@ -23,24 +23,13 @@ internal extension RectangleCornerRadii {
     ///   - layoutDirection: Layout direction used to resolve leading and trailing corners into left and right ones before rotating.
     /// - Returns: Radii moved to the corners they line up with after the rotation.
     func rotated(by angle: Angle, layoutDirection: LayoutDirection) -> RectangleCornerRadii {
-        let isLeftToRight = layoutDirection == .leftToRight
-        /// Radii in clockwise order starting at the top left.
-        let corners = isLeftToRight
-        ? [topLeading, topTrailing, bottomTrailing, bottomLeading]
-        : [topTrailing, topLeading, bottomLeading, bottomTrailing]
-        /// Quarter turns clockwise in the range 0 to 3.
-        let quarterTurns = (Int((angle.degrees / 90).rounded()) % 4 + 4) % 4
-
-        /// A corner takes the radius a quarter turn behind it.
-        func radius(corner: Int) -> CGFloat {
-            corners[(corner + quarterTurns) % 4]
-        }
-
+        let corners = FUCorners(topLeading: topLeading, topTrailing: topTrailing, bottomLeading: bottomLeading, bottomTrailing: bottomTrailing)
+            .rotated(by: angle, layoutDirection: layoutDirection)
         return RectangleCornerRadii(
-            topLeading: radius(corner: isLeftToRight ? 0 : 1),
-            bottomLeading: radius(corner: isLeftToRight ? 3 : 2),
-            bottomTrailing: radius(corner: isLeftToRight ? 2 : 3),
-            topTrailing: radius(corner: isLeftToRight ? 1 : 0)
+            topLeading: corners.topLeading,
+            bottomLeading: corners.bottomLeading,
+            bottomTrailing: corners.bottomTrailing,
+            topTrailing: corners.topTrailing
         )
     }
 }

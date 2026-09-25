@@ -201,7 +201,7 @@ These need measuring on the iPhone Duo (a Duo simulator running 27.1 is availabl
 
 ## Pitch: passing reserved regions and container corners through the rotation
 
-Status: steps 1 and 3a done (2026-09-25). Step 3b not started.
+Status: steps 1, 3a and 3b done (2026-09-25). Corner insets for views smaller than the content are deferred (step 3b results).
 
 ### Problem
 
@@ -350,13 +350,44 @@ AutoRotatingView([.portrait]) { geometry in
               .padding(.top, geometry.containerCornerInsets.topTrailing.height)
       }
       ```
-- **For views deeper in the content, or smaller than it:** like a proxy, the values describe the frame they came from, here the whole content. `AutoRotatingView` names the content's coordinate space, and the geometry has overloads that take the reader's own proxy and resolve the values for that reader's frame:
-  - `containerCornerInsets(in: proxy)` intersects the reader's frame with each corner area, as SwiftUI does. A reader that touches no corner gets zero.
-
-  Passing `geometry` down to those views is left to the caller, as with any value in SwiftUI.
+- **For views deeper in the content, or smaller than it:** like a proxy, the values describe the frame they came from, here the whole content. Passing `geometry` down is left to the caller, as with any value in SwiftUI. A `containerCornerInsets(in: proxy)` overload, resolving the insets for a smaller reader's own frame, was built and then dropped, because SwiftUI's rule for smaller frames isn't the plain overlap it used (step 3b results).
 - **Reserved regions aren't on the geometry.** Measured, SwiftUI already maps them through the rotation correctly (step 1 results), so content reads them from its own `GeometryProxy` as usual.
 - **Concentric corner radii aren't on the geometry.** Step 3a makes SwiftUI's own `concentricCornerRadii` correct inside the rotation, for system views too.
 - **Implementation:** the closure has to be stored and called in `body`, as `GeometryReader` does, rather than evaluated once in `init` as the content is today. A stored escaping `@ViewBuilder` closure in a custom container is where stale `@State` can appear (a view shows an old value the first time and the right one after), so follow the stale-closure guidance and test for it.
+
+**Built (2026-09-25):**
+
+- **`AutoRotatingGeometry`** holds `size`, `safeAreaInsets`, and the four corner insets, which it stores as FrameUp's own internal `FUCorners<CGSize>`. It exposes `containerCornerInsets: RectangleCornerInsets` from iOS 26, behind `#if compiler(>=6.2)`. It has no public initializer.
+- **Where the values come from:** the corner insets are the full-size reader's `containerCornerInsets` (outside the rotation), rotated with `FUCorners.rotatedInsets(by:layoutDirection:)`. Each inset moves corner by corner, as the radii do, and swaps width and height on a quarter turn. `RectangleCornerRadii.rotated` now uses the same `FUCorners` rotation.
+- **The new initializer** takes `@escaping (AutoRotatingGeometry) -> Content`. The existing initializer still calls its closure in `init` and wraps the built view, so its behaviour is unchanged.
+- **Stale state:** the geometry closure is called on every run of the inner `GeometryReader`'s body, never behind a condition, so state the caller reads in it is tracked from the first update (the stale-closure skill's third fix). The remaining gap is caller state read only inside a branch that depends on the geometry. The initializer's documentation describes it. No separate stale-state test was written, because the closure is never shown conditionally.
+- **Existing trailing-closure call sites** such as `AutoRotatingView { Text("") }` still pick the old initializer, and the example app builds unchanged.
+
+**Results (Duo outer screen, iOS 27.1, device in portrait), settled values from a full-size reader inside the content:**
+
+| Content orientation | SwiftUI `containerCornerInsets` (with 3a) TL / TR / BL / BR | `geometry.containerCornerInsets` TL / TR / BL / BR |
+|---|---|---|
+| Portrait | 8×8 / 84×170 / 8×8 / 59×59 | 8×8 / 84×170 / 8×8 / 59×59 |
+| landscapeLeft | 59×59 / 59×59 / 8×8 / 8×8 | **170×84** / 59×59 / 8×8 / 8×8 |
+| landscapeRight | 8×8 / 8×8 / 59×59 / 59×59 | 8×8 / 8×8 / 59×59 / **170×84** |
+| Upside down | 59×59 / 8×8 / 59×59 / 8×8 | 59×59 / 8×8 / **84×170** / 8×8 |
+
+The geometry puts the capsule's corner where the reserved regions put the capsule in every orientation (step 1 results).
+
+**Corner insets for smaller readers, measured.** The probe now has four readers padded inside the full-size one. They show that SwiftUI resolves corner insets for a smaller frame with a rule that isn't an overlap. Values from inside a portrait `AutoRotatingView`, which are the same with and without the 3a shape:
+
+| Reader padding (top, leading, bottom, trailing) | SwiftUI TR (capsule, 84×170) | SwiftUI BR (rounded, 59×59) | Overlap would give TR / BR |
+|---|---|---|---|
+| 20, 20, 20, 20 | 84×150 | 39×39 | 64×150 / 39×39 |
+| 10, 30, 10, 30 | 84×160 | 29×29 | 54×160 / 29×49 |
+| 100, 0, 0, 0 | 84×70 | 59×59 | 84×70 / 59×59 |
+| 0, 0, 0, 100 | 84×170 | 0×0 | 0×0 / 0×0 |
+
+- **Rounded corners shrink as squares,** by the larger of the reader's two distances from the corner, like a concentric radius.
+- **The capsule keeps its full width** and only loses height, even for a reader 100 pt clear of it horizontally.
+- **The same readers outside the `fullScreenCover`, under the navigation stack, read differently again,** for example 68×170 and 84×152 for the capsule. So the result depends on more than the frame.
+
+With only four readers on one device, the rule can't be pinned down, so the per-reader overload was dropped rather than shipped with values that disagree with SwiftUI's.
 
 **Limits:** views that call SwiftUI's `containerCornerInsets` or `containerCornerOffset` directly, including system views, still get SwiftUI's unrotated values, which are wrong inside a rotation (step 1 results). A FrameUp equivalent of `containerCornerOffset(_:sizeToFit:)` could be built on the geometry, but is a separate decision.
 
@@ -383,7 +414,11 @@ Below those versions, `AutoRotatingView` behaves as it does today.
 
 - **Regions dropped from the geometry.** Measured, SwiftUI rotates reserved regions correctly, so only corner insets (3b) and the container shape (3a) need FrameUp's help.
 
+- **No per-reader corner insets for now.** `containerCornerInsets(in:)` is dropped until SwiftUI's rule for smaller frames is understood (step 3b results). The geometry gives the full content frame's insets only, which match SwiftUI's own values exactly in portrait and are turned correctly in the other orientations.
+
 ### Questions still open
 
 1. Should FrameUp offer its own `containerCornerOffset` equivalent built on the geometry?
-2. Naming: the geometry type (`AutoRotatingGeometry`?) and the region type (`FUReservedRegion`?).
+2. Naming: the geometry type (`AutoRotatingGeometry`?). The region type is no longer needed.
+3. What rule does SwiftUI use to resolve corner insets for a view smaller than the container? This is needed before corner insets can be offered for views deeper in the content (step 3b results).
+4. Right to left layouts: the corner rotation is unit tested in right to left, but nothing has been measured in a right to left app.
