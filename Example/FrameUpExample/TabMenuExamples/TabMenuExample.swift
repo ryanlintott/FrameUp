@@ -20,22 +20,25 @@ struct TabMenuExample: View {
         self.onDoubleTap = onDoubleTap
     }
     
-    let items = [
+    static let items = [
         TabMenuItem(icon: AnyView(Circle().stroke().overlay(Text("i"))), name: "Info", tab: 0),
         TabMenuItem(image: Image(systemName: "star"), name: "Favourites", tab: 1),
         TabMenuItem(image: Image(systemName: "bookmark"), name: "Categories", tab: 2),
         TabMenuItem(image: Image(systemName: "books.vertical"), name: "About", tab: 3)
     ]
 
+    @ViewBuilder
+    static func maskedView(isSelected: Bool) -> some View {
+        if isSelected {
+            Color.accentColor
+        } else {
+            Color(.secondaryLabel)
+        }
+    }
+
     var body: some View {
-        TabMenu(selection: $selection, items: items, isShowingName: true) { isSelected in
-            Group {
-                if isSelected {
-                    Color.accentColor
-                } else {
-                    Color(.secondaryLabel)
-                }
-            }
+        TabMenu(selection: $selection, items: Self.items, isShowingName: true) { isSelected in
+            Self.maskedView(isSelected: isSelected)
         } onReselect: {
             NamedAction("Reselect") {
                 onReselect?()

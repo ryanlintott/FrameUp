@@ -459,6 +459,18 @@ TabMenu(selection: $selection, items: items) { isSelected in
 }
 ```
 
+Items share the full width by default. Pass `itemPositioning: .centered(maxItemWidth:spacing:)` to keep them at a fixed width, centred as a group.
+
+### Placing the menu with `tabMenu`
+Apply `tabMenu(selection:items:isShowingName:itemPositioning:maskedView:onReselect:onDoubleTap:)` to a view that fills the window, and the menu goes where the system would put its tab bar. On most screens that's a horizontal bar along the bottom, with the content moved up to make room. On the iPhone Duo (iOS 27.1 and later), wherever the system puts its bars in a vertical column beside the content, the menu stacks its items in that column, on the same edge as the system's tab bar and clear of the camera, the status items and the hinge. If the app turns the vertical bar off with `toolbarVerticalBehavior(.disabled)`, the menu stays along the bottom.
+
+```swift
+ContentView()
+    .tabMenu(selection: $selection, items: items) { isSelected in
+        isSelected ? Color.accentColor : Color(.secondaryLabel)
+    }
+```
+
 ## Widgets
 ### AccessoryInlineImage
 An image that will be scaled and have the rendering mode adjusted to work inside an `accessoryInline` widget. The image will scale to fit the frame and have the template rendering mode applied.
