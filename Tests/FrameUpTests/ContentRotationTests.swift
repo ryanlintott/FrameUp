@@ -71,3 +71,28 @@ struct AngleClosestEquivalentTests {
         }
     }
 }
+
+#if os(iOS)
+/// When a scene arrives on a screen that restricts orientations, such as folding a foldable iPhone, the system picks the supported orientation nearest to the device orientation.
+struct NearestOrientationTests {
+    /// Measured in the iPhone Duo simulator with portrait and `UIInterfaceOrientationLandscapeRight` supported: folding with the device upside down gives landscape, a quarter turn away, rather than portrait, a half turn away.
+    @Test func quarterTurnBeatsHalfTurn() {
+        #expect(FUInterfaceOrientation.portraitUpsideDown.nearest(in: [.portrait, .landscapeLeft]) == .landscapeLeft)
+    }
+
+    @Test(arguments: FUInterfaceOrientation.allCases)
+    func supportedOrientationIsItsOwnNearest(orientation: FUInterfaceOrientation) {
+        #expect(orientation.nearest(in: FUInterfaceOrientation.allCases) == orientation)
+    }
+
+    /// The system's tie-break isn't measured, so the first in the list wins.
+    @Test func firstWinsATie() {
+        #expect(FUInterfaceOrientation.portrait.nearest(in: [.landscapeRight, .landscapeLeft]) == .landscapeRight)
+        #expect(FUInterfaceOrientation.portrait.nearest(in: [.landscapeLeft, .landscapeRight]) == .landscapeLeft)
+    }
+
+    @Test func noOrientations() {
+        #expect(FUInterfaceOrientation.portrait.nearest(in: []) == nil)
+    }
+}
+#endif

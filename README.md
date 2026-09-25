@@ -124,10 +124,10 @@ LayoutThatFits(in: .horizontal, [HStackLayout(), VStackLayout()]) {
 ## AutoRotatingView
 *\*iOS only*
 
-A view that rotates any view to match the current device orientation if it's in an array of allowed orientations. This is most useful for allowing fullscreen image views to use landscape orientations while inside a portrait-only app. It can also be used to limit orientations such as landscape-only in an app that allows portrait. Rotations can be animated.
+A view that rotates any view to match the current device orientation if it's in an array of allowed orientations. This is most useful for allowing fullscreen image views to use landscape orientations while inside a portrait-only app. It can also be used to limit orientations such as landscape-only in an app that allows portrait. When the system rotates, the content turns in step with it. When the content turns on its own, it uses `animation`, which defaults to the system's rotation animation (`animation: nil` turns it off). Mid-turn the content's frame doesn't cover every corner of the screen, so give content that must fill the screen a background large enough to cover the safe area in every direction.
 
 ```swift
-AutoRotatingView([.portrait, .landscapeLeft, .landscapeRight], animation: .default) {
+AutoRotatingView([.portrait, .landscapeLeft, .landscapeRight]) {
     Image("MyFullscreenImage")
         .resizable()
         .scaledToFit()
@@ -135,6 +135,8 @@ AutoRotatingView([.portrait, .landscapeLeft, .landscapeRight], animation: .defau
 ```
 
 The content is laid out in all the available space including any safe area around it, with a matching safe area re-created inside the rotation. Content can use `ignoresSafeArea()` to go edge to edge, or respect the safe area and stay clear of the real unsafe regions, in every orientation, and it turns around the centre of the safe area.
+
+On the inner screen of a foldable iPhone the system ignores an app's supported orientations and always follows the device, so `AutoRotatingView` does the same there: its content matches the interface and the allowed orientations have no effect. Folding back to the outer screen picks the allowed orientation nearest the device orientation, as the system does.
 
 ## Frame Adjustment
 ### WidthReader

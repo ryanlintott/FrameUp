@@ -47,6 +47,11 @@ internal extension FUInterfaceOrientation {
         }
     }
     
+    /// The orientation in a list that is the smallest turn from this one. A quarter turn is nearer than a half turn, and the first in the list wins a tie.
+    func nearest(in orientations: [Self]) -> Self? {
+        orientations.min { abs(rotation(to: $0).degrees) < abs(rotation(to: $1).degrees) }
+    }
+    
     var name: String {
         switch self {
         case .portrait:
