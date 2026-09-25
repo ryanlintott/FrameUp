@@ -60,7 +60,7 @@ struct ContainerGeometryProbeExample: View {
     }
 }
 
-/// Draws the container geometry a full-size reader sees: reserved regions (red for occlusion, orange for division, dashed when inactive), container corner insets (blue), and a label moved by `containerCornerOffset`.
+/// Draws the container geometry a full-size reader sees: the container shape (purple), reserved regions (red for occlusion, orange for division, dashed when inactive), container corner insets (blue), and a label moved by `containerCornerOffset`.
 private struct ContainerGeometryReadout: View {
     /// Where the values are read, for the log.
     let location: String
@@ -70,6 +70,10 @@ private struct ContainerGeometryReadout: View {
             let summary = "\(location) | " + Self.summary(proxy)
             ZStack(alignment: .topLeading) {
                 Color.clear
+
+                /// The container shape, which should round the corners that sit on the display's rounded ones.
+                ContainerRelativeShape()
+                    .strokeBorder(.purple, lineWidth: 6)
 
                 reservedRegions(proxy)
 

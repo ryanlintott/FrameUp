@@ -201,7 +201,7 @@ These need measuring on the iPhone Duo (a Duo simulator running 27.1 is availabl
 
 ## Pitch: passing reserved regions and container corners through the rotation
 
-Status: pitch, not started. Nothing below has been measured yet except the SDK facts.
+Status: steps 1 and 3a done (2026-09-25). Step 3b not started.
 
 ### Problem
 
@@ -302,9 +302,25 @@ Inside the rotation, apply `.containerShape(UnevenRoundedRectangle(cornerRadii: 
 - **Where the radii come from:** `rotatedRadii` starts from the full-size reader's `concentricCornerRadii`. A reader that fills the container shares its corners, so its concentric radii are the container's own radii.
 - **Each corner moves with the rotation.** The radii aren't necessarily uniform: on a screen where only some corners are rounded, such as the Duo's (to be confirmed in step 1), a quarter turn has to move each radius to the content corner that now sits on that physical corner. `UnevenRoundedRectangle` takes a radius per corner, so this works. A single radius, or radii left unrotated, would round the wrong corners.
 - **Corners are named leading and trailing**, like the insets, so the mapping follows the layout direction in the same way.
-- **Only when it isn't nil.** If `concentricCornerRadii` is nil, the container shape is left alone.
+- **Always applied, square until the radii are known.** Leaving the shape off while `concentricCornerRadii` is nil would change the content's view identity when the radii arrive, and they settle over several layout passes (step 1), which would reset the content's state. So from iOS 27 the modifier is always there, and a nil reading gives square corners until the real radii arrive. In practice it isn't nil (step 1).
 
 This makes `ConcentricRectangle`, `ContainerRelativeShape` and `concentricCornerRadii` correct inside the rotation with no new API, and it reaches system views too. `UnevenRoundedRectangle` animates, so the shape can follow the turn. On the Duo's inner screen the content isn't rotated, so the radii pass through unchanged.
+
+**Built (2026-09-25):** `RectangleCornerRadii.rotated(by:layoutDirection:)` (tested, including right to left) and an internal `containerCornerRadii(of:rotatedBy:layoutDirection:)` modifier, applied to the content after its `rotatedFullSize` frame. Gated on `canImport(SwiftUICore, _version: 8.0.84)` and iOS 27, because the radii are read with `concentricCornerRadii`. The shape modifier itself exists from iOS 26, but there's nothing to read the radii from before 27.
+
+**Results (Duo outer screen, iOS 27.1, device in portrait), read by the probe's full-size reader inside the content once settled:**
+
+| Content orientation | Concentric radii TL / TR / BL / BR | Corner insets TL / TR / BL / BR |
+|---|---|---|
+| Portrait | 8 / 59 / 8 / 59 | not recorded |
+| landscapeLeft | **59 / 59 / 8 / 8** | 59×59 / 59×59 / 8×8 / 8×8 |
+| landscapeRight | **8 / 8 / 59 / 59** | not recorded |
+| Upside down | **59 / 8 / 59 / 8** | not recorded |
+
+- **The container shape overrides the device corners.** That was the untested assumption, and it holds. Every orientation now reports the physical corners in the content's own frame.
+- **It also fixes SwiftUI's `containerCornerInsets` for rounded corners, but not for system UI.** In landscapeLeft the insets used to read the unrotated 8 / 59 / 8 / 59 pattern. Now they follow the shape: 59×59 / 59×59 / 8×8 / 8×8. But the capsule's corner should read 170×84 at top leading, and it reads 59×59. The shape only carries radii, so the capsule's part of the inset is still lost. Step 3b still has to supply it, and `containerCornerOffset` still won't clear the capsule inside a rotation.
+- **During a turn the radii animate,** starting from zero, since the turning content's corners leave the container's corners. They settle on the rotated values at the end.
+- **Not checked yet:** the purple `ContainerRelativeShape` outline the probe now draws. The simulator's display showed only black to screenshots throughout this session, so everything here comes from the probe's log.
 
 ### Step 3b: corner insets, through a closure parameter
 

@@ -157,6 +157,8 @@ public struct AutoRotatingView<Content: View>: View {
                             .safeAreaInsets(rotatedSafeAreaInsets)
                             /// The full area including safe areas is set so that a safe area can be inset inside it
                             .frame(rotatedFullSize)
+                            /// The container's corners are not rotated by SwiftUI, and they can differ from each other, so the shape is re-created with each corner moved to the one it now sits on.
+                            .containerCornerRadii(of: fullProxy, rotatedBy: rotation, layoutDirection: layoutDirection)
                             /// Alignment guides are set to move the full size center point to the safe size center point at any rotation
                             .alignmentGuide(VerticalAlignment.center) { d in
                                 d[VerticalAlignment.center] + ((rotatedSafeAreaInsets.top - rotatedSafeAreaInsets.bottom) / 2)
