@@ -1,5 +1,5 @@
 //
-//  AutoRotatingGeometry.swift
+//  AutoRotatingGeometryProxy.swift
 //  FrameUp
 //
 //  Created by Ryan Lintott on 2026-09-25.
@@ -20,7 +20,7 @@ import SwiftUI
 /// Reserved regions and concentric corner radii don't need this. SwiftUI already maps reserved regions through the rotation, and `AutoRotatingView` sets a container shape that makes `concentricCornerRadii`, `ConcentricRectangle` and `ContainerRelativeShape` correct inside it.
 ///
 /// Like a `GeometryProxy`, the values describe one frame, here the whole content. Corner insets for smaller views inside the content aren't covered yet: SwiftUI's rule for resolving them isn't a plain overlap with the corners, and hasn't been worked out.
-public struct AutoRotatingGeometry: Equatable, Sendable {
+public struct AutoRotatingGeometryProxy: Equatable, Sendable {
     /// The size of the content frame, including any safe area.
     public let size: CGSize
     /// The safe area insets of the content, re-created inside the rotation.

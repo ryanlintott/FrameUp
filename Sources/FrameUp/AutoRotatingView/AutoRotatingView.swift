@@ -34,7 +34,7 @@ public struct AutoRotatingView<Content: View>: View {
     /// Animation to use when the content turns on its own. When the system rotates the interface, the content always turns with the system's own animation.
     let animation: Animation?
     /// Content for the view, built from the geometry of the content frame.
-    let content: (AutoRotatingGeometry) -> Content
+    let content: (AutoRotatingGeometryProxy) -> Content
     
     /// A view that rotates and resizes the content frame to match device orientation.
     ///
@@ -70,7 +70,7 @@ public struct AutoRotatingView<Content: View>: View {
     ///   - isOn: Toggles ability to rotate views.
     ///   - animation: Animation to use when the content turns on its own, or nil for no animation. Default is the system's rotation animation, measured as 0.3 seconds ease in and out.
     ///   - content: Content to be rotated to match a device orientations from an allowed orientation set, built from the geometry of the content frame.
-    public init(_ allowedOrientations: [FUInterfaceOrientation] = FUInterfaceOrientation.allCases, isOn: Bool = true, animation: Animation? = .easeInOut(duration: 0.3), @ViewBuilder content: @escaping (AutoRotatingGeometry) -> Content) {
+    public init(_ allowedOrientations: [FUInterfaceOrientation] = FUInterfaceOrientation.allCases, isOn: Bool = true, animation: Animation? = .easeInOut(duration: 0.3), @ViewBuilder content: @escaping (AutoRotatingGeometryProxy) -> Content) {
         self.allowedOrientations = allowedOrientations
         self.isOn = isOn
         self.animation = animation
@@ -167,7 +167,7 @@ public struct AutoRotatingView<Content: View>: View {
                 let maxDimension = max(fullSize.width, fullSize.height)
                 let rotatedSafeAreaInsets = safeAreaInsets.rotated(by: rotation, layoutDirection: layoutDirection)
                 /// The full size reader fills the container, so its corner insets are the container's own.
-                let geometry = AutoRotatingGeometry(
+                let geometry = AutoRotatingGeometryProxy(
                     size: rotatedFullSize,
                     safeAreaInsets: rotatedSafeAreaInsets,
                     cornerInsets: fullProxy.fuContainerCornerInsets.rotatedInsets(by: rotation, layoutDirection: layoutDirection)

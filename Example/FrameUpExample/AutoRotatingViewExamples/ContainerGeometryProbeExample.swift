@@ -65,7 +65,7 @@ private struct ContainerGeometryReadout: View {
     /// Where the values are read, for the log.
     let location: String
     /// The geometry from an `AutoRotatingView`, when inside one.
-    var geometry: AutoRotatingGeometry? = nil
+    var geometry: AutoRotatingGeometryProxy? = nil
     
     var body: some View {
         GeometryReader { proxy in
