@@ -1,6 +1,6 @@
 # AutoRotatingView on every screen
 
-Status: implemented (uncommitted), verified in the iPhone Duo simulator (no Duo hardware)
+Status: implemented, verified in the iPhone Duo simulator (no Duo hardware). Pitch pending: passing reserved regions and container corners through the rotation (last section)
 Target: FrameUp `AutoRotatingView`. The package stays iOS 15+. The inner-screen behaviour needs iOS 27.1 (`onHingeChange`); earlier versions keep today's logic.
 
 ## Decisions
@@ -23,7 +23,7 @@ on every screen the scene can appear on, including both screens of the iPhone Du
 
 ## Findings (iPhone Duo simulator, iOS 27.1, 2026-09-24)
 
-Measured with the Orientation Probe screen in the example app, whose iPhone Info.plist allows portrait and `UI.landscapeRight`, and whose iPad key allows all four. Interface orientations use UIKit's names (`UI.`); device orientations use `UIDeviceOrientation`'s.
+Measured with an Orientation Probe screen in the example app (removed once the measurements were done; it's in commit `7a62ca2`), whose iPhone Info.plist allows portrait and `UI.landscapeRight`, and whose iPad key allows all four. Interface orientations use UIKit's names (`UI.`); device orientations use `UIDeviceOrientation`'s.
 
 **Screens.** The simulator has two built-in screens, both with a native orientation of portrait: outer 466x678 pt (1398x2034 px) and inner 669x951 pt (2007x2853 px). A new `UIScreen` instance appears each time the device unfolds, so object identity can't tell them apart; native size can.
 
@@ -195,6 +195,179 @@ These need measuring on the iPhone Duo (a Duo simulator running 27.1 is availabl
 
 ## Verification plan
 
-- The Orientation Probe screen in the example app (UIKit, for measuring only) shows device orientation, scene interface orientation, their offset, screen size, hinge status and angle, live and in the unified log with timestamps. Add content orientation once `AutoRotatingView` is updated.
+- The Orientation Probe that took the measurements above is in commit `7a62ca2`, if they need repeating on hardware. It showed device orientation, scene interface orientation, their offset, screen size, and hinge status and angle, live and in the unified log with timestamps.
 - For each screen and each of the 4 × 4 combinations of (previous, new) orientation, with the app supporting all orientations and supporting only portrait, compare the system's result against `AutoRotatingView`'s. A side-by-side check: run the same content once as a plain view in an app restricted to the allowed set, and once inside `AutoRotatingView` in an app that allows all orientations. Record both and compare the timing and direction of the turn frame by frame, using the recording approach already used for the safe area work.
 - Existing checks stay: safe area insets map correctly at rest and mid-rotation, on an odd-width device (iPhone 15 Pro) as well as the Duo.
+
+## Pitch: passing reserved regions and container corners through the rotation
+
+Status: pitch, not started. Nothing below has been measured yet except the SDK facts.
+
+### Problem
+
+`AutoRotatingView` re-creates the safe area inside the rotation, so content that reads or respects the safe area gets values in its own, rotated frame. It doesn't do the same for the two other kinds of container geometry SwiftUI exposes:
+
+- **Reserved regions** (`GeometryProxy.reservedRegions(kind:options:layoutDirectionBehavior:)`, iOS 27.1). There are two kinds: `.occlusion`, an area covered by something the view doesn't own (the Dynamic Island, a camera, window controls), and `.division`, where content should split (the fold of a hinge). Each region has a `frame`, `margins`, `isActive` and an `id`.
+- **Container corners**:
+  - `GeometryProxy.containerCornerInsets` (iOS 26), the overlap of the view with the container's corners, which can include system UI and window or presentation corner radii. The `containerCornerOffset(_:sizeToFit:)` modifier (iOS 26) uses the same information to move a view clear of the corners.
+  - The container *shape*, which drives `GeometryProxy.concentricCornerRadii` (iOS 27.0), `ConcentricRectangle` and `ContainerRelativeShape`.
+
+A view inside the rotation that reads any of these may get values for the unrotated container. For example, portrait-only content shown in a landscape interface would find the camera on its left edge instead of its top. It might also get nothing, or axis-aligned bounds of rotated shapes. Which of these happens is unknown until measured (step 1).
+
+### What SwiftUI lets a view supply to its children
+
+| Value | Read with | Supply to children with |
+|---|---|---|
+| Safe area | `safeAreaInsets` | `safeAreaInset(edge:)`, already used by `AutoRotatingView` |
+| Reserved regions | `reservedRegions(kind:…)` | Nothing. There's no modifier, and `ReservedRegion` has no public initializer |
+| Container corner insets | `containerCornerInsets` | Nothing. `RectangleCornerInsets` has a public initializer, but no modifier accepts it |
+| Container shape | `concentricCornerRadii` | `containerShape(_:)`, which takes any `RoundedRectangularShape`, including `UnevenRoundedRectangle(cornerRadii:)` (iOS 26) |
+
+So only the container shape can be passed through so that SwiftUI's own APIs report the right values. The other two need a FrameUp API, or a documented limitation.
+
+### Step 1: measure what content sees today
+
+SwiftUI converts reserved regions and corner insets into the reading view's coordinate space. If that conversion includes `rotationEffect`'s transform, the values may already be right, or be close (for example, rotated frames reported as bounds). Before building anything:
+
+- Add a probe to the example app. Inside a portrait-only `AutoRotatingView`, draw each reserved region's `frame` and `margins`, and label the four `containerCornerInsets` and the `concentricCornerRadii`. Outside the rotation, draw the same values from an unrotated reader for comparison.
+- Devices, all simulator:
+  - **iPhone Duo outer screen:** the camera is an occlusion region, and it's the only screen where content rotates.
+  - **iPhone Duo inner screen:** has the fold as a division region. `AutoRotatingView` doesn't rotate here, so values should pass through unchanged, which confirms the baseline.
+  - **An iPhone with a Dynamic Island,** for a second occlusion shape.
+  - **iPad full screen,** where corner insets are expected to be zero, and **iPad windowed,** where they aren't.
+- Check each of the four resting content rotations against the unrotated reference.
+- Compare the reserved regions with the corner insets, to see whether corners already appear as regions. The docs overlap: occlusion regions include "window controls", and corner insets "may include pieces of system UI". An iPad window with its controls showing should appear in both if they're the same thing. Also check whether a screen's rounded display corners produce any occlusion region.
+- Read `concentricCornerRadii` from a full-size reader on each screen, corner by corner. The Duo's corners are expected to differ, with only some rounded. Also check whether it's nil when the app sets no `containerShape`. `ConcentricRectangle`'s docs say the device's own rounded corners act as a container shape, but `concentricCornerRadii` is documented as nil "if no container shape is set", and step 3a needs a value to rotate.
+
+If step 1 shows correct values, the work is documentation and a test. The rest of this pitch assumes they're wrong.
+
+**Results so far (2026-09-25, Container Geometry Probe in the example app, full-size reader, no rotation):**
+
+The iOS 27.1 simulator runtime only supports the iPhone Duo, so reserved regions (iOS 27.1) can only be read there. An iPad has to run iOS 27.0, where only the corner APIs exist.
+
+| Device | Size | Corner insets TL / TR / BL / BR | Occlusion regions | Division regions |
+|---|---|---|---|---|
+| iPad Pro 13" (M5), iOS 27.0, full screen | 1032×1376 | 32×32 on all four | not readable (27.0) | not readable |
+| Same iPad, windowed | 532×791 | **66×53** / 32×32 / 32×32 / 32×32 | not readable | not readable |
+| iPhone Duo outer screen, iOS 27.1, portrait | 466×678 | 8×8 / **84×170** / 8×8 / 59×59 | **(382, 0) 84×170**; (399.7, 29.3) 37×37 | none |
+
+- **System UI in a corner comes through as both.** On the Duo, the top-trailing capsule holding the camera, clock and Wi-Fi is an occlusion region *and* the top-trailing corner inset, with an identical 84×170 rectangle. The camera inside it is also its own, smaller occlusion region. By the same logic, the iPad's window controls (the 66×53 top-leading inset) are probably a region too, but that can't be checked until an iPad runs 27.1.
+- **Rounded display corners are corner insets but not regions.** The iPad's 32×32 and the Duo's 8×8 and 59×59 appear only as corner insets. The docs say full-screen corner insets are zero on iPad; measured, they're the display's corner radius.
+- **The Duo's outer screen corners are uneven:** 8×8 on the leading side (the fold side) and 59×59 at bottom trailing. So corner values rotated by `AutoRotatingView` have to move per corner (steps 2 and 3a).
+- **`containerCornerOffset([.top, .leading])`** moved a label clear of the iPad's window controls, to x = 66.
+- **The values settle over several layout passes.** On the Duo, the corners read all zero on the first pass, then the capsule's corner, then the radii, and the regions came last. Anything built on them must update as they change, not read them once.
+**Inside an `AutoRotatingView` (Duo outer screen, iOS 27.1, device in portrait).** The view's only allowed orientation was changed so that it turned its content without the device rotating. A full-size reader inside the content reported, once settled:
+
+| Content orientation | Occlusion regions | Corner insets TL / TR / BL / BR | Concentric radii TL / TR / BL / BR |
+|---|---|---|---|
+| Outside, for reference | capsule (382, 0) 84×170; camera (399.7, 29.3) 37×37 | 8×8 / 84×170 / 8×8 / 59×59 | 8 / 59 / 8 / 59 |
+| Inside, portrait | same as outside | same as outside | same as outside |
+| Inside, landscapeLeft | capsule (0, 0) 170×84; camera (29.3, 29.3) | 8×8 / 59×59 / 8×8 / 59×59 | 8 / 59 / 8 / 59 |
+| Inside, landscapeRight | capsule (508, 382) 170×84; camera (611.7, 399.7) | 8×8 / 59×59 / 8×8 / 59×59 | 8 / 59 / 8 / 59 |
+| Inside, upside down | capsule (0, 508) 84×170; camera (29.3, 611.7) | 8×8 / 59×59 / 8×8 / 59×59 | 8 / 59 / 8 / 59 |
+
+- **Reserved regions are already correct.** SwiftUI maps them through the rotation: in every orientation the capsule and camera land where they physically are, in the content's coordinates, with width and height swapped on a quarter turn. `AutoRotatingView` doesn't need to do anything for regions.
+- **Corner insets and concentric radii are wrong.** They're never rotated: every orientation reports the unrotated 8/59 pattern, and the capsule's 84×170 corner inset disappears altogether. Correct values for landscapeLeft, for example, would be corner insets 170×84 / 59×59 / 8×8 / 8×8 and radii 59 / 59 / 8 / 8.
+- **`containerCornerOffset` is wrong as a result.** With the content turned to landscapeLeft, the label it positions sat on top of the capsule instead of beside it.
+- **`concentricCornerRadii` isn't nil without a `containerShape`.** The device's rounded corners act as the container shape, so step 3a has values to rotate.
+- **Values change on every frame of a content turn.** A reader inside the rotation reports regions and corners of the turning content, as bounding boxes, for the whole animation.
+**Duo inner screen (iOS 27.1, unfolded, device in portrait, interface 951×669).** Outside and inside the `AutoRotatingView` reported identical values, as expected, since `AutoRotatingView` doesn't rotate on the inner screen:
+
+| Corner insets TL / TR / BL / BR | Concentric radii | Occlusion regions | Division regions |
+|---|---|---|---|
+| 55×55 / 84×120 / 55×55 / 55×55 | 55 on all four | capsule (867, 0) 84×120; an inactive region at (677.3, 21) 58×37 | the fold: (455.5, 0) 40×669, margins 0, 20, 0, 20 |
+
+- **The fold is a division region:** a 40 pt strip centred on the screen (475.5 = 951 ÷ 2), full height, with 20 pt margins on each side. It switched between active and inactive while the screen was open. What drives that (the hinge angle, or something else) isn't known.
+- **The inner screen's corners are uniform** (55 pt), unlike the outer screen's.
+- **The corner capsule is again both a region and a corner inset,** with an identical 84×120 rectangle, as on the outer screen.
+- **Values changed during the unfold,** passing through the outer screen's values and intermediate capsule sizes (such as 134×82) before settling.
+- Windowed apps on the inner screen: not checked.
+
+### Step 2: the transform
+
+Read everything outside the rotation from the full-size reader (the `fullProxy` that ignores the safe area, whose frame the content fills), and map it into the content's coordinate space. The content frame is `rotatedFullSize`, centred in `fullSize`, and turned by a whole number of quarter turns θ about the centre. So:
+
+- A point `p` in the container maps to `R(−θ)(p − fullSize/2) + rotatedFullSize/2` in the content.
+- Rectangles map corner to corner and stay axis-aligned, because θ is always a quarter turn at rest.
+- `EdgeInsets` (region margins) rotate exactly as the safe area does, with the existing `EdgeInsets.rotated(by:layoutDirection:)`.
+- Corners move one step per quarter turn, and each corner's `CGSize` swaps width and height on odd quarter turns. Leading and trailing follow the layout direction, as the insets helper already handles.
+- Read regions with `layoutDirectionBehavior: .fixed` before rotating, and mirror afterwards if the caller asks for `.mirrors`. That way the physical rotation and the right-to-left mirroring aren't mixed up.
+
+Values change at layout, once per turn, like the safe area (measured: layout runs once per turn, and SwiftUI interpolates the rendering).
+
+### Step 3a: container shape, through SwiftUI
+
+Inside the rotation, apply `.containerShape(UnevenRoundedRectangle(cornerRadii: rotatedRadii))`.
+
+- **Where the radii come from:** `rotatedRadii` starts from the full-size reader's `concentricCornerRadii`. A reader that fills the container shares its corners, so its concentric radii are the container's own radii.
+- **Each corner moves with the rotation.** The radii aren't necessarily uniform: on a screen where only some corners are rounded, such as the Duo's (to be confirmed in step 1), a quarter turn has to move each radius to the content corner that now sits on that physical corner. `UnevenRoundedRectangle` takes a radius per corner, so this works. A single radius, or radii left unrotated, would round the wrong corners.
+- **Corners are named leading and trailing**, like the insets, so the mapping follows the layout direction in the same way.
+- **Only when it isn't nil.** If `concentricCornerRadii` is nil, the container shape is left alone.
+
+This makes `ConcentricRectangle`, `ContainerRelativeShape` and `concentricCornerRadii` correct inside the rotation with no new API, and it reaches system views too. `UnevenRoundedRectangle` animates, so the shape can follow the turn. On the Duo's inner screen the content isn't rotated, so the radii pass through unchanged.
+
+### Step 3b: corner insets, through a closure parameter
+
+SwiftUI can't be given corner insets, and the only place they go wrong is inside the rotation. So `AutoRotatingView` hands them to its content, the way `GeometryReader` hands over a proxy:
+
+```swift
+AutoRotatingView([.portrait]) { geometry in
+    Content()
+        .padding(.leading, geometry.containerCornerInsets.topLeading.width)
+}
+```
+
+- **A new initializer overload** takes a `@ViewBuilder` closure with the geometry parameter. The existing initializer stays, so nothing breaks.
+- **The parameter is a FrameUp type,** for example `AutoRotatingGeometry`, because `GeometryProxy` has no public initializer. It holds, in the content's coordinate space and already mapped through the rotation (step 2):
+  - `size`, the content frame (`rotatedFullSize`);
+  - `safeAreaInsets`, the re-created safe area;
+  - `containerCornerInsets`, an inset amount for each corner of the content, rotated with it, for use as padding or offsets:
+    - **Why it's separate from the regions:** measured on the Duo, the corner areas aren't all reserved regions. Only the corner holding system UI (the top-trailing capsule) is also an occlusion region. The rounded display corners are corner insets only (step 1 results). So views that need to stay clear of the corners need these values as well as the regions.
+    - **Type:** SwiftUI's `RectangleCornerInsets`, a `CGSize` for each of `topLeading`, `topTrailing`, `bottomLeading` and `bottomTrailing`. It has a public initializer, and SwiftUI's `EdgeInsets.inset(by:edges:)` turns it into padding, so FrameUp's value works anywhere SwiftUI's does.
+    - **Availability:** `RectangleCornerInsets` needs iOS 26, while `AutoRotatingView` supports iOS 15. A stored property can't be limited by `@available`, so the geometry stores the four sizes itself and exposes `containerCornerInsets` as a computed property available from iOS 26. That matches where SwiftUI's own value exists.
+    - **Rotation:** each corner's inset moves to the content corner that now sits on that physical corner, and swaps width and height on a quarter turn (step 2). On the Duo's outer screen, a quarter turn moves the 84×170 capsule inset to another content corner as 170×84.
+    - **Using it:**
+
+      ```swift
+      AutoRotatingView([.portrait]) { geometry in
+          Content()
+              .padding(.top, geometry.containerCornerInsets.topTrailing.height)
+      }
+      ```
+- **For views deeper in the content, or smaller than it:** like a proxy, the values describe the frame they came from, here the whole content. `AutoRotatingView` names the content's coordinate space, and the geometry has overloads that take the reader's own proxy and resolve the values for that reader's frame:
+  - `containerCornerInsets(in: proxy)` intersects the reader's frame with each corner area, as SwiftUI does. A reader that touches no corner gets zero.
+
+  Passing `geometry` down to those views is left to the caller, as with any value in SwiftUI.
+- **Reserved regions aren't on the geometry.** Measured, SwiftUI already maps them through the rotation correctly (step 1 results), so content reads them from its own `GeometryProxy` as usual.
+- **Concentric corner radii aren't on the geometry.** Step 3a makes SwiftUI's own `concentricCornerRadii` correct inside the rotation, for system views too.
+- **Implementation:** the closure has to be stored and called in `body`, as `GeometryReader` does, rather than evaluated once in `init` as the content is today. A stored escaping `@ViewBuilder` closure in a custom container is where stale `@State` can appear (a view shows an old value the first time and the right one after), so follow the stale-closure guidance and test for it.
+
+**Limits:** views that call SwiftUI's `containerCornerInsets` or `containerCornerOffset` directly, including system views, still get SwiftUI's unrotated values, which are wrong inside a rotation (step 1 results). A FrameUp equivalent of `containerCornerOffset(_:sizeToFit:)` could be built on the geometry, but is a separate decision.
+
+**Considered and set aside: environment values.** One environment value for each feature, holding the container's values in a named coordinate space and resolved through the reader's proxy, with a public modifier to publish them anywhere in an app. It works deep in a tree without passing anything down. But the app-wide writer only exists for consistency, since SwiftUI's values are already correct outside a rotation. It also raises questions that the closure avoids: an empty default when there's no writer, and unique space names when writers nest. It could come back later as an optional convenience on top of the closure.
+
+### Availability
+
+| API | Runtime | Compile-time gate |
+|---|---|---|
+| `ReservedRegion`, `reservedRegions` | iOS 27.1 | `canImport(SwiftUICore, _version: 8.0.85)`, as `onDeviceScreenChange` uses |
+| `concentricCornerRadii` | iOS 27.0 | SwiftUICore 8.0.84 in the iOS 27.0 SDK; confirm the threshold |
+| `containerCornerInsets`, `containerShape(some RoundedRectangularShape)`, `UnevenRoundedRectangle` as that shape | iOS 26.0 | The iOS 26 SDK version, not yet looked up (no Xcode 26 installed) |
+
+Below those versions, `AutoRotatingView` behaves as it does today.
+
+### Decisions on this pitch
+
+- **Build 3b,** the closure parameter.
+- **No rotation on the geometry.** The content orientation and angle aren't included unless a need for them turns up.
+- **Corner insets stay separate from reserved regions.** SwiftUI's `ReservedRegion.Kind` has no public initializer, so FrameUp can't add a corner kind to SwiftUI's kinds. It could only add one to its own mirror type, which would then disagree with SwiftUI about what a region is. The two also answer different questions: a region is a fixed frame that any intersecting view avoids, while corner insets are resolved per reader as the overlap with each corner. Step 1 checks whether any corner geometry already appears as a region. If it does, the geometry passes it through like any other region.
+- **Naming** is to be reviewed later.
+
+- **Corner insets go on the geometry, per corner.** Measured, the corner areas aren't included in the reserved regions (step 1), so `containerCornerInsets` carries an inset for each corner, as SwiftUI's `RectangleCornerInsets`.
+
+- **Regions dropped from the geometry.** Measured, SwiftUI rotates reserved regions correctly, so only corner insets (3b) and the container shape (3a) need FrameUp's help.
+
+### Questions still open
+
+1. Should FrameUp offer its own `containerCornerOffset` equivalent built on the geometry?
+2. Naming: the geometry type (`AutoRotatingGeometry`?) and the region type (`FUReservedRegion`?).
