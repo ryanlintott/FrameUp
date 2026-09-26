@@ -65,13 +65,17 @@ struct AutoRotatingViewFullscreenExample: View {
             }
     }
     
-    /// The container's corners as the content sees them, turned with it: the corner insets as blue rectangles, and the container shape's rounded corners as a yellow outline.
+    /// The container's corners as the content sees them, turned with it: the corner insets as blue rectangles, and the rounded corners as a yellow outline.
     @ViewBuilder
     func containerCorners(_ geometry: AutoRotatingGeometryProxy) -> some View {
         ZStack {
-            /// The container shape, which AutoRotatingView turns with the content.
-            ContainerRelativeShape()
-                .strokeBorder(.yellow, lineWidth: 4)
+            #if canImport(SwiftUICore, _version: 8.0.84)
+            if #available(iOS 27, *), let radii = geometry.concentricCornerRadii {
+                /// The container's rounded corners, turned with the content.
+                UnevenRoundedRectangle(cornerRadii: radii, style: .continuous)
+                    .strokeBorder(.yellow, lineWidth: 4)
+            }
+            #endif
             
             #if compiler(>=6.2)
             if #available(iOS 26, *) {
@@ -84,7 +88,7 @@ struct AutoRotatingViewFullscreenExample: View {
             }
             #endif
             
-            cornerRadii
+            cornerRadii(geometry)
         }
     }
     
@@ -104,24 +108,20 @@ struct AutoRotatingViewFullscreenExample: View {
     
     /// The concentric corner radii of the content, listed in the middle of the screen.
     @ViewBuilder
-    var cornerRadii: some View {
+    func cornerRadii(_ geometry: AutoRotatingGeometryProxy) -> some View {
         #if canImport(SwiftUICore, _version: 8.0.84)
-        if #available(iOS 27, *) {
-            GeometryReader { proxy in
-                if let radii = proxy.concentricCornerRadii {
-                    VStack(alignment: .leading) {
-                        Text("Corner radii")
-                            .font(.caption.bold())
-                        Text("topLeading \(radii.topLeading.formatted())")
-                        Text("topTrailing \(radii.topTrailing.formatted())")
-                        Text("bottomLeading \(radii.bottomLeading.formatted())")
-                        Text("bottomTrailing \(radii.bottomTrailing.formatted())")
-                    }
-                    .font(.caption.monospaced())
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                }
+        if #available(iOS 27, *), let radii = geometry.concentricCornerRadii {
+            VStack(alignment: .leading) {
+                Text("Corner radii")
+                    .font(.caption.bold())
+                Text("topLeading \(radii.topLeading.formatted())")
+                Text("topTrailing \(radii.topTrailing.formatted())")
+                Text("bottomLeading \(radii.bottomLeading.formatted())")
+                Text("bottomTrailing \(radii.bottomTrailing.formatted())")
             }
+            .font(.caption.monospaced())
+            .foregroundColor(.white)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         #endif
     }
@@ -159,7 +159,7 @@ struct AutoRotatingViewFullscreenExample: View {
         VStack(alignment: .leading, spacing: 20) {
             Text("A fullscreen AutoRotatingView gives its content the whole screen in every orientation. The background ignores the safe area so it goes edge to edge, the dashed frame and the labels respect it, and the content turns around the centre of the screen without stepping or drifting.")
             
-            Text("The blue rectangles are the container's corner insets and the yellow outline is its container shape, both turned with the content, so they should always sit on the screen's own corners and camera.")
+            Text("The blue rectangles are the container's corner insets and the yellow outline its rounded corners, both turned with the content, so they should always sit on the screen's own corners and camera.")
             
             Text("Rotate the device to an orientation the app does not support to see the view rotate on its own. Changing the allowed orientations rotates it without moving the device, which is the only way to see this in a simulator.")
             

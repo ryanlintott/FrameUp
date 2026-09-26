@@ -73,7 +73,7 @@ private struct ContainerGeometryReadout: View {
             ZStack(alignment: .topLeading) {
                 Color.clear
 
-                /// The container shape, which should round the corners that sit on the display's rounded ones.
+                /// SwiftUI's container shape, which should round the corners that sit on the display's rounded ones outside a rotation. Inside an AutoRotatingView it isn't turned with the content.
                 ContainerRelativeShape()
                     .strokeBorder(.purple, lineWidth: 6)
 
@@ -148,14 +148,24 @@ private struct ContainerGeometryReadout: View {
         EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 100),
     ]
 
-    /// The geometry's corner insets, when inside an `AutoRotatingView`.
+    /// The geometry's corner insets and radii, when inside an `AutoRotatingView`.
     var frameUpSummary: String {
+        var summary = ""
         #if compiler(>=6.2)
         if #available(iOS 26, *), let geometry {
-            return " | frameup " + Self.corners(geometry.containerCornerInsets)
+            summary += " | frameup " + Self.corners(geometry.containerCornerInsets)
         }
         #endif
-        return ""
+        #if canImport(SwiftUICore, _version: 8.0.84)
+        if #available(iOS 27, *), let geometry {
+            if let radii = geometry.concentricCornerRadii {
+                summary += " | frameup concentric topLeading=\(radii.topLeading.formatted()) topTrailing=\(radii.topTrailing.formatted()) bottomLeading=\(radii.bottomLeading.formatted()) bottomTrailing=\(radii.bottomTrailing.formatted())"
+            } else {
+                summary += " | frameup concentric: nil"
+            }
+        }
+        #endif
+        return summary
     }
 
     /// SwiftUI's corner insets for a reader.

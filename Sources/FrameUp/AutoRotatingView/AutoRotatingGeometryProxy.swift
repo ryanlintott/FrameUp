@@ -10,19 +10,23 @@ import SwiftUI
 #if os(iOS)
 /// Container geometry that SwiftUI doesn't turn with an `AutoRotatingView`'s content, turned into the content's own rotated coordinate space.
 ///
-/// SwiftUI doesn't turn the container's corner insets with a rotation, so inside an `AutoRotatingView` its own `containerCornerInsets` and `containerCornerOffset` describe the unrotated container. Use these values instead.
+/// SwiftUI doesn't turn the container's corners with a rotation, so inside an `AutoRotatingView` its own `containerCornerInsets`, `containerCornerOffset` and `concentricCornerRadii` describe the unrotated container. Use these values instead.
 ///
 ///     AutoRotatingView([.portrait]) { geometry in
 ///         Content()
 ///             .padding(.top, geometry.containerCornerInsets.topTrailing.height)
 ///     }
 ///
-/// The proxy only holds values that don't rotate properly. Everything else is correct in a `GeometryReader` inside the content: its size and safe area insets match the rotated content frame, SwiftUI maps reserved regions through the rotation, and `AutoRotatingView` sets a container shape that makes `concentricCornerRadii`, `ConcentricRectangle` and `ContainerRelativeShape` correct inside it.
+/// The proxy only holds values that don't rotate properly. Everything else is correct in a `GeometryReader` inside the content: its size and safe area insets match the rotated content frame, and SwiftUI maps reserved regions through the rotation.
 ///
-/// The corner insets describe one frame, the whole content. Corner insets for smaller views inside the content aren't covered yet: SwiftUI's rule for resolving them isn't a plain overlap with the corners, and hasn't been worked out.
+/// Shapes that SwiftUI resolves from the container, such as `ConcentricRectangle` and `ContainerRelativeShape`, also see the unrotated container. On a screen whose corners all have the same radius they still look right. Where the corners differ, as on the iPhone Duo's outer screen, draw the content's corners from ``concentricCornerRadii`` instead. `AutoRotatingView` doesn't set a container shape of its own, since SwiftUI would then resolve every view inside against the content frame rather than the container, which changes the shape of style backgrounds and overlays even when nothing is turned.
+///
+/// The values describe one frame, the whole content. Values for smaller views inside the content aren't covered yet: SwiftUI's rule for resolving them isn't a plain overlap with the corners, and hasn't been worked out.
 public struct AutoRotatingGeometryProxy: Equatable, Sendable {
     /// The container's corner insets, moved to the content corners they sit on.
     let cornerInsets: FUCornerInsets
+    /// The container's corner radii, moved to the content corners they sit on, or nil where they can't be read.
+    let cornerRadii: FUCornerRadii?
 
     #if compiler(>=6.2)
     /// The container's corner insets for each corner of the content, turned with the content.
@@ -38,6 +42,24 @@ public struct AutoRotatingGeometryProxy: Equatable, Sendable {
         )
     }
     #endif
+
+    #if canImport(SwiftUICore, _version: 8.0.84)
+    /// The container's corner radii for each corner of the content, turned with the content, or nil if SwiftUI doesn't report any.
+    ///
+    /// Use these to round the content's corners to follow the display's, as you would SwiftUI's `GeometryProxy.concentricCornerRadii` outside a rotation.
+    ///
+    ///     AutoRotatingView { geometry in
+    ///         Content()
+    ///             .background {
+    ///                 UnevenRoundedRectangle(cornerRadii: geometry.concentricCornerRadii ?? .init(), style: .continuous)
+    ///                     .fill(.blue)
+    ///             }
+    ///     }
+    @available(iOS 27, *)
+    public var concentricCornerRadii: RectangleCornerRadii? {
+        cornerRadii.map(RectangleCornerRadii.init)
+    }
+    #endif
 }
 
 internal extension GeometryProxy {
@@ -50,6 +72,16 @@ internal extension GeometryProxy {
         }
         #endif
         return .zero
+    }
+
+    /// The concentric corner radii for this proxy's view, or nil where they can't be read.
+    var fuConcentricCornerRadii: FUCornerRadii? {
+        #if canImport(SwiftUICore, _version: 8.0.84)
+        if #available(iOS 27, *) {
+            return concentricCornerRadii.map(FUCornerRadii.init)
+        }
+        #endif
+        return nil
     }
 }
 #endif
