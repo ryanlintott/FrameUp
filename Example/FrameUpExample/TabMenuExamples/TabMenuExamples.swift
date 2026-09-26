@@ -8,11 +8,22 @@
 import SwiftUI
 
 struct TabMenuExamples: View {
+    @State private var isFullscreenPresented = false
+
     var body: some View {
         Section {
             #if os(iOS)
             NavigationLink(destination: TabMenuExampleView()) {
                 Label("TabMenu", systemImage: "squares.below.rectangle")
+            }
+
+            Button {
+                isFullscreenPresented = true
+            } label: {
+                Label("Fullscreen TabMenu", systemImage: "arrow.up.left.and.arrow.down.right")
+            }
+            .fullScreenCover(isPresented: $isFullscreenPresented) {
+                TabMenuFullscreenExampleView()
             }
             #else
             UnavailableView()

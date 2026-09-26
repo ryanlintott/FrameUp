@@ -101,41 +101,46 @@ fileprivate struct AdaptiveTabMenuModifier<Tab: Hashable, MaskedView: View>: Vie
     }
 
     func body(content: Content) -> some View {
+        let edge = toolbarVerticalEdge
+        let itemCount = menu.items.count
+
         /// The content keeps the same structure on both axes, so turning the device doesn't reset its state. Only the menu moves.
-        content
-            .overlay {
-                GeometryReader { proxy in
-                    let newLayout = TabMenuLayout(
-                        edge: toolbarVerticalEdge,
-                        proxy: proxy,
-                        itemCount: menu.items.count
-                    )
-                    Color.clear
-                        .onAppear {
-                            update(to: newLayout)
-                        }
-                        .onChange(of: newLayout) {
-                            update(to: newLayout)
-                        }
+        ZStack {
+            content
+                .safeAreaInset(edge: .bottom, spacing: 0) {
+                    /// Like the system's tab bar, it spans the full width even across an active fold (measured on the iPhone Duo with the vertical bar turned off).
+                    if isHorizontal {
+                        menu
+                    }
                 }
+        }
+        .overlay {
+            if let geometry, let toolbarVerticalEdge {
+                menu
+                    .vertical(itemHeight: geometry.itemHeight)
+                    .frame(width: geometry.width, height: geometry.height)
+                    .padding(toolbarVerticalEdge == .leading ? .leading : .trailing, geometry.horizontalEdgePadding)
+                    .padding(.bottom, geometry.bottomPadding)
+                /// Spans the whole window, so the menu can sit in the column, outside the content's safe area.
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: toolbarVerticalEdge == .leading ? .bottomLeading : .bottomTrailing)
+                    .ignoresSafeArea(.container)
             }
-            .overlay {
-                if let geometry, let toolbarVerticalEdge {
-                    menu
-                        .vertical(itemHeight: geometry.itemHeight)
-                        .frame(width: geometry.width, height: geometry.height)
-                        .padding(toolbarVerticalEdge == .leading ? .leading : .trailing, geometry.horizontalEdgePadding)
-                        .padding(.bottom, geometry.bottomPadding)
-                        /// Spans the whole window, so the menu can sit in the column, outside the content's safe area.
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: toolbarVerticalEdge == .leading ? .bottomLeading : .bottomTrailing)
-                        .ignoresSafeArea(.container)
-                }
-            }
-            .safeAreaInset(edge: .bottom, spacing: 0) {
-                if isHorizontal {
-                    menu
-                }
-            }
+        }
+        /// Measure the wrapper rather than `content`, so the horizontal menu's own safe-area inset cannot affect the next placement calculation.
+        .onGeometryChange(for: TabMenuLayout.self) { proxy in
+            /// A region's frame already includes its margins: SwiftUI reports the same frame and margins as UIKit's `reservedRegions(kind:)`, whose frame is documented to include them (measured on the iPhone Duo: a 40 point hinge frame with 20 point margins, centred on the fold).
+            let occlusionFrames = proxy.reservedRegions(kind: .occlusion).map(\.frame)
+            let divisionFrames = proxy.reservedRegions(kind: .division, options: .includeInactive).map(\.frame)
+            return TabMenuLayout(
+                edge: edge,
+                contentSize: proxy.size,
+                safeAreaInsets: proxy.safeAreaInsets,
+                reservedFrames: occlusionFrames + divisionFrames,
+                itemCount: itemCount
+            )
+        } action: {
+            update(to: $0)
+        }
     }
 
     /// Mid-turn, SwiftUI can report the new edge a layout pass before the safe area moves to it (measured on the iPhone Duo). Keeping the last layout through that pass stops the horizontal bar flashing up.
@@ -143,109 +148,6 @@ fileprivate struct AdaptiveTabMenuModifier<Tab: Hashable, MaskedView: View>: Vie
         guard newLayout != .unmeasured else { return }
         layout = newLayout
     }
-}
-
-@available(iOS 27.1, *)
-fileprivate enum TabMenuLayout: Equatable {
-    /// The column hasn't been measured, or is mid-change.
-    case unmeasured
-    case horizontal
-    case vertical(VerticalTabMenuGeometry)
-
-    /// Where the menu goes, measured from the content it's attached to.
-    ///
-    /// All values are in the content's own layout-relative coordinates, which is the space `toolbarVerticalEdge`, the safe area insets and the reserved regions (with their default `.mirrors` behaviour) share.
-    init(edge: HorizontalEdge?, proxy: GeometryProxy, itemCount: Int) {
-        guard let edge, itemCount > 0 else {
-            self = .horizontal
-            return
-        }
-
-        let insets = proxy.safeAreaInsets
-        let size = proxy.size
-        let width = edge == .leading ? insets.leading : insets.trailing
-        /// The environment names a column the safe area doesn't have yet.
-        guard width > 0 else {
-            self = .unmeasured
-            return
-        }
-
-        /// The column runs the window's full height, beside the content.
-        let columnMinX = edge == .leading ? -width : size.width
-        let columnMaxX = columnMinX + width
-        let windowTop = -insets.top
-        let windowBottom = size.height + insets.bottom
-
-        /// The camera and status items, and the hinge whether or not it's active, since it's physically there whenever the screen is open. Ignoring its active state also keeps the menu still when the hinge goes from fully to partly open.
-        let reservedRegions = proxy.reservedRegions(kind: .occlusion)
-            + proxy.reservedRegions(kind: .division, options: .includeInactive)
-
-        /// The column's free spans, top to bottom, once every region crossing it is taken out.
-        var freeSpans: [ClosedRange<CGFloat>] = [windowTop...(windowBottom - VerticalTabMenuGeometry.systemBarMargin)]
-        for region in reservedRegions where region.frame.maxX > columnMinX && region.frame.minX < columnMaxX {
-            freeSpans = freeSpans.flatMap { span -> [ClosedRange<CGFloat>] in
-                var remaining: [ClosedRange<CGFloat>] = []
-                if region.frame.minY > span.lowerBound {
-                    remaining.append(span.lowerBound...min(span.upperBound, region.frame.minY))
-                }
-                if region.frame.maxY < span.upperBound {
-                    remaining.append(max(span.lowerBound, region.frame.maxY)...span.upperBound)
-                }
-                return remaining
-            }
-        }
-
-        /// The menu sits at the bottom of the column, like the system's tab bar, so use the lowest span with room for the items. If there's none, or the column is too narrow to tap, the menu goes along the bottom.
-        let minimumMenuHeight = CGFloat(itemCount) * VerticalTabMenuGeometry.minimumItemHeight
-        guard
-            width >= VerticalTabMenuGeometry.minimumItemHeight,
-            let span = freeSpans.last(where: { $0.upperBound - $0.lowerBound >= minimumMenuHeight })
-        else {
-            self = .horizontal
-            return
-        }
-
-        let spanHeight = span.upperBound - span.lowerBound
-        let itemHeight = min(VerticalTabMenuGeometry.itemHeight, spanHeight / CGFloat(itemCount))
-
-        /// Centre the items where the system centres its buttons, if the column is wide enough to keep them tappable.
-        let centredWidth = 2 * (width - VerticalTabMenuGeometry.centreInset)
-        let menuWidth = centredWidth >= VerticalTabMenuGeometry.minimumItemHeight ? min(width, centredWidth) : width
-
-        self = .vertical(
-            VerticalTabMenuGeometry(
-                width: menuWidth,
-                horizontalEdgePadding: width - menuWidth,
-                itemHeight: itemHeight,
-                height: itemHeight * CGFloat(itemCount),
-                bottomPadding: windowBottom - span.upperBound
-            )
-        )
-    }
-}
-
-/// Where a vertical tab menu goes in the system's vertical bar.
-@available(iOS 27.1, *)
-fileprivate struct VerticalTabMenuGeometry: Equatable {
-    /// The system's natural item height, and the horizontal menu's height.
-    static let itemHeight: CGFloat = 50
-    /// The smallest item height before the menu gives up on the column. The minimum tap target.
-    static let minimumItemHeight: CGFloat = 44
-    /// How far the system keeps its vertical tab bar from the window's bottom edge and from the side it's on (measured on the iPhone Duo).
-    static let systemBarMargin: CGFloat = 24
-    /// How far the centre of the system's vertical tab bar is from the window's side: its margin plus half its 48 point width.
-    static let centreInset: CGFloat = 24 + 48 / 2
-
-    /// The menu's width.
-    let width: CGFloat
-    /// The distance from the menu to the window's side, so its items line up with the system's.
-    let horizontalEdgePadding: CGFloat
-    /// The height of each item.
-    let itemHeight: CGFloat
-    /// The menu's height.
-    let height: CGFloat
-    /// The distance from the menu's bottom to the window's bottom edge.
-    let bottomPadding: CGFloat
 }
 #endif
 #endif

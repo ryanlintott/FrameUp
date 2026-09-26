@@ -48,9 +48,9 @@ struct TabMenuExampleView: View {
                     .font(.body)
                     .fixedSize()
                     .padding(.horizontal)
-                
+
                 Spacer()
-                
+
                 if reselect {
                     Text("Reselect")
                 }
@@ -99,7 +99,7 @@ struct TabMenuExampleView: View {
 }
 
 /// Turns the iPhone Duo's vertical bar off. Only iOS 27.1 has the option.
-private struct VerticalBarBehaviorModifier: ViewModifier {
+struct VerticalBarBehaviorModifier: ViewModifier {
     let isEnabled: Bool
 
     func body(content: Content) -> some View {

@@ -54,6 +54,8 @@ Settled states. Frames are in window points. Interface orientations use UIKit's 
 - `reservedRegions(kind: .division)` reports the inner screen's hinge as a 40 pt strip across the middle, with a 20 pt margin on each side: `[455.5,0 40×669]` (vertical) with the inner screen in landscape, `[0,455.5 669×40]` (horizontal) in portrait. On the outer screen there is none.
 - It is **inactive when fully open**, and becomes **active about 1 s after the hinge reaches partly open** (`onHingeChange` status `.partiallyOpen`). It goes inactive again when fully open. Measured in both inner orientations.
 - **The system's bars never meet it**, and don't react to it. In landscape the hinge is vertical and the column runs parallel to it at the right edge. In portrait the hinge is horizontal and the tab bar sits at the bottom, in the lower half. Nothing in the system tab bar's frame or the safe area changed while the hinge was active.
+- A region's `frame` **already includes its margins**. SwiftUI's `reservedRegions(kind: .division)` returned the same frame and margins as UIKit's `UIView.reservedRegions(kind:)` for the same view, `[455.5,0 40×669]` with 20 pt margins each side, and UIKit documents that frame as including the margins. So the fold itself is a line at x 475.5, the middle of the 951 pt screen, and the frame should not be expanded again.
+- **With the vertical bar disabled, the system's tab bar ignores the hinge too.** Inner screen in landscape, `toolbarVerticalBehavior(.disabled)`: the system draws a horizontal 400×62 capsule centred on the full width, `[275.7,586 400×62]`, straight across the fold. It stayed there through fully open, partly open with the division inactive, partly open with it active (about 1 s later), and fully open again, with no change to the window's safe area or the content frame.
 ### SwiftUI APIs (iOS 27.1)
 
 | API | What it gave |
@@ -109,7 +111,9 @@ On the outer screen in portrait, `TabMenu` in a `VStack` below the content draws
 
 ### 4. Horizontal bar and the hinge
 
-The horizontal bar is placed as today and doesn't check division regions. On the Duo it only appears with the inner screen in portrait, where the hinge is horizontal across the middle and the bar is at the bottom.
+With the vertical bar enabled, the horizontal bar only appears with the inner screen in portrait, where the hinge is horizontal across the middle and the bar is at the bottom.
+
+If an app disables the vertical bar, a horizontal bar can also appear on the inner screen in landscape, where the hinge crosses it. The menu still spans the full width, whether the hinge is active or not, because the system's own tab bar does (Findings, The hinge): it stays centred across the fold through a partial fold. The horizontal bar doesn't check division regions.
 
 ### 5. Content and safe area
 
