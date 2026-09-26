@@ -17,8 +17,11 @@ struct AutoRotatingViewExamples: View {
             NavigationLink(destination: AutoRotatingViewFullscreenExample()) {
                 Label("Fullscreen", systemImage: "arrow.up.left.and.arrow.down.right")
             }
-            NavigationLink(destination: OrientationProbeExample()) {
-                Label("Orientation Probe", systemImage: "gyroscope")
+            NavigationLink(destination: ContainerGeometryProbeExample()) {
+                Label("Container Geometry Probe", systemImage: "rectangle.dashed")
+            }
+            NavigationLink(destination: RotationDirectionExample()) {
+                Label("Rotation Direction", systemImage: "arrow.clockwise")
             }
             #else
             UnavailableView()

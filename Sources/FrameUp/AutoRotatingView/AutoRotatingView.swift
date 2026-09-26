@@ -33,8 +33,8 @@ public struct AutoRotatingView<Content: View>: View {
     let isOn: Bool
     /// Animation to use when the content turns on its own. When the system rotates the interface, the content always turns with the system's own animation.
     let animation: Animation?
-    /// Content for the view
-    let content: Content
+    /// Content for the view, built from the geometry of the content frame.
+    let content: (AutoRotatingGeometryProxy) -> Content
     
     /// A view that rotates and resizes the content frame to match device orientation.
     ///
@@ -50,7 +50,31 @@ public struct AutoRotatingView<Content: View>: View {
         self.allowedOrientations = allowedOrientations
         self.isOn = isOn
         self.animation = animation
-        self.content = content()
+        /// Built here rather than stored as a closure, so state the caller reads in it is tracked from the caller's first update.
+        let content = content()
+        self.content = { _ in content }
+    }
+    
+    /// A view that rotates and resizes the content frame to match device orientation, and gives its content the container geometry turned with it.
+    ///
+    /// SwiftUI doesn't turn the container's corner insets with a rotation, so inside the content its own `containerCornerInsets` and `containerCornerOffset` describe the unrotated container. The geometry has them turned with the content.
+    ///
+    ///     AutoRotatingView([.portrait]) { geometry in
+    ///         Content()
+    ///             .padding(.top, geometry.containerCornerInsets.topTrailing.height)
+    ///     }
+    ///
+    /// The closure is called on every update of the view, like a `GeometryReader`'s. State the caller reads only inside a branch that depends on the geometry isn't tracked until that branch first runs, so it can be out of date the first time the branch appears. Read that state before the branch to avoid this.
+    /// - Parameters:
+    ///   - allowedOrientations: Set of allowed orientations for this view. Default is all.
+    ///   - isOn: Toggles ability to rotate views.
+    ///   - animation: Animation to use when the content turns on its own, or nil for no animation. Default is the system's rotation animation, measured as 0.3 seconds ease in and out.
+    ///   - content: Content to be rotated to match a device orientations from an allowed orientation set, built from the geometry of the content frame.
+    public init(_ allowedOrientations: [FUInterfaceOrientation] = FUInterfaceOrientation.allCases, isOn: Bool = true, animation: Animation? = .easeInOut(duration: 0.3), @ViewBuilder content: @escaping (AutoRotatingGeometryProxy) -> Content) {
+        self.allowedOrientations = allowedOrientations
+        self.isOn = isOn
+        self.animation = animation
+        self.content = content
     }
     
     /// - Parameters:
@@ -137,11 +161,19 @@ public struct AutoRotatingView<Content: View>: View {
         /// This outer GeometryReader is outside the rotation so its safe area insets are the only correct ones available.
         GeometryReader { safeProxy in
             GeometryReader { fullProxy in
+                /// Everything here is read and laid out left to right, so leading is always the left of the screen. Values handed to the content are named for the caller's layout direction.
                 let safeAreaInsets = safeProxy.safeAreaInsets
                 let fullSize = fullProxy.size
                 let rotatedFullSize = fullSize.rotated(by: rotation)
                 let maxDimension = max(fullSize.width, fullSize.height)
-                let rotatedSafeAreaInsets = safeAreaInsets.rotated(by: rotation, layoutDirection: layoutDirection)
+                let rotatedSafeAreaInsets = safeAreaInsets.rotated(by: rotation, layoutDirection: .leftToRight)
+                /// The full size reader fills the container, so its corner insets are the container's own.
+                let rotatedCornerInsets = fullProxy.fuContainerCornerInsets.rotatedInsets(by: rotation, layoutDirection: .leftToRight)
+                let geometry = AutoRotatingGeometryProxy(
+                    size: rotatedFullSize,
+                    safeAreaInsets: rotatedSafeAreaInsets.named(for: layoutDirection),
+                    cornerInsets: rotatedCornerInsets.named(for: layoutDirection)
+                )
                 
                 Color.clear.overlay {
                     ZStack {
@@ -150,13 +182,17 @@ public struct AutoRotatingView<Content: View>: View {
                             .frame(width: maxDimension * 2, height: maxDimension * 2)
                             .allowsHitTesting(false)
                         
-                        content
+                        content(geometry)
                             /// The content frame fills the available area
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                             /// Safe areas are applied based on the rotation of the view
-                            .safeAreaInsets(rotatedSafeAreaInsets)
+                            .safeAreaInsets(rotatedSafeAreaInsets.named(for: layoutDirection))
                             /// The full area including safe areas is set so that a safe area can be inset inside it
                             .frame(rotatedFullSize)
+                            /// The container's corners are not rotated by SwiftUI, and they can differ from each other, so the shape is re-created with each corner moved to the one it now sits on.
+                            .containerCornerRadii(of: fullProxy, rotatedBy: rotation, namedFor: layoutDirection)
+                            /// The content is laid out in the caller's direction, inside the left to right rotation.
+                            .environment(\.layoutDirection, layoutDirection)
                             /// Alignment guides are set to move the full size center point to the safe size center point at any rotation
                             .alignmentGuide(VerticalAlignment.center) { d in
                                 d[VerticalAlignment.center] + ((rotatedSafeAreaInsets.top - rotatedSafeAreaInsets.bottom) / 2)
@@ -176,8 +212,12 @@ public struct AutoRotatingView<Content: View>: View {
                     }
                 }
             }
+            /// Only needed until SwiftUI renames the container's corners when the layout direction changes. Applied inside the ignored safe area, so it covers the whole container.
+            .modifier(ContainerShapeLayoutDirectionFix(outerLayoutDirection: layoutDirection))
             .ignoresSafeArea()
         }
+        /// Laid out left to right so directions are fixed on screen. SwiftUI mirrors a right to left layout, which would turn the content the wrong way and move one of the alignment guides but not the other.
+        .environment(\.layoutDirection, .leftToRight)
         .onChange(of: allowedOrientations) { newValue in
             contentOrientation = nil
             changeOrientations(allowedOrientations: newValue)

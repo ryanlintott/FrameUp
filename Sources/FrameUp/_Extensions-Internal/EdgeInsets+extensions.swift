@@ -40,4 +40,14 @@ internal extension EdgeInsets {
             trailing: inset(edge: isLeftToRight ? 1 : 3)
         )
     }
+    
+    /// These insets with leading and trailing swapped, as seen from the opposite layout direction.
+    var flippedHorizontally: EdgeInsets {
+        EdgeInsets(top: top, leading: trailing, bottom: bottom, trailing: leading)
+    }
+    
+    /// These insets named for the supplied layout direction, where they're named for left to right.
+    func named(for layoutDirection: LayoutDirection) -> EdgeInsets {
+        layoutDirection == .rightToLeft ? flippedHorizontally : self
+    }
 }
