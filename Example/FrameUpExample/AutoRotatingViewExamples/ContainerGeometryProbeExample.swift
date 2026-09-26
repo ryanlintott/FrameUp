@@ -96,6 +96,31 @@ private struct ContainerGeometryReadout: View {
 
                 offsetLabel
 
+                /// Full-size readers with a forced layout direction, to log the raw corner values SwiftUI reports in each direction.
+                ForEach([("leftToRight", LayoutDirection.leftToRight), ("rightToLeft", .rightToLeft)], id: \.0) { name, direction in
+                    GeometryReader { directionProxy in
+                        let summary = Self.cornerSummary(directionProxy)
+                        Color.clear
+                            .task(id: summary) {
+                                logger.info("\(location, privacy: .public) | reader forced \(name, privacy: .public) | \(summary, privacy: .public)")
+                            }
+                    }
+                    .environment(\.layoutDirection, direction)
+                }
+
+                /// Markers at the content's top corners, logged in global coordinates, to show which way the content has physically turned.
+                ForEach([("topLeading", Alignment.topLeading), ("topTrailing", .topTrailing)], id: \.0) { name, alignment in
+                    GeometryReader { markerProxy in
+                        let frame = markerProxy.frame(in: .global)
+                        Color.clear
+                            .task(id: frame) {
+                                logger.info("\(location, privacy: .public) | marker \(name, privacy: .public) | global center=(\(frame.midX.rounded().formatted()),\(frame.midY.rounded().formatted()))")
+                            }
+                    }
+                    .frame(width: 10, height: 10)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: alignment)
+                }
+
                 /// Readers inset from the edges by different amounts, to measure how SwiftUI resolves corner insets for a smaller frame.
                 ForEach(Self.readerInsets, id: \.short) { insets in
                     let name = "inset reader \(insets.short)"
@@ -143,10 +168,30 @@ private struct ContainerGeometryReadout: View {
         return "needs iOS 26"
     }
 
+    /// A reader's raw concentric corner radii and corner insets.
+    static func cornerSummary(_ proxy: GeometryProxy) -> String {
+        var lines: [String] = []
+        #if canImport(SwiftUICore, _version: 8.0.84)
+        if #available(iOS 27.0, *) {
+            if let radii = proxy.concentricCornerRadii {
+                lines.append("concentric topLeading=\(radii.topLeading.formatted()) topTrailing=\(radii.topTrailing.formatted()) bottomLeading=\(radii.bottomLeading.formatted()) bottomTrailing=\(radii.bottomTrailing.formatted())")
+            } else {
+                lines.append("concentric: nil")
+            }
+        }
+        #endif
+        #if compiler(>=6.2)
+        if #available(iOS 26, *) {
+            lines.append(corners(proxy.containerCornerInsets))
+        }
+        #endif
+        return lines.isEmpty ? "needs iOS 26" : lines.joined(separator: " | ")
+    }
+
     #if compiler(>=6.2)
     @available(iOS 26, *)
     static func corners(_ insets: RectangleCornerInsets) -> String {
-        "corners TL=\(insets.topLeading.short) TR=\(insets.topTrailing.short) BL=\(insets.bottomLeading.short) BR=\(insets.bottomTrailing.short)"
+        "corners topLeading=\(insets.topLeading.short) topTrailing=\(insets.topTrailing.short) bottomLeading=\(insets.bottomLeading.short) bottomTrailing=\(insets.bottomTrailing.short)"
     }
     #endif
 
@@ -209,17 +254,17 @@ private struct ContainerGeometryReadout: View {
 
     /// One line per value, joined with " | ".
     static func summary(_ proxy: GeometryProxy) -> String {
-        var lines = ["size=\(proxy.size.width.formatted())x\(proxy.size.height.formatted())"]
+        var lines = ["size=\(proxy.size.width.formatted())x\(proxy.size.height.formatted()) global=\(proxy.frame(in: .global).short) safe=\(proxy.safeAreaInsets.short)"]
         #if compiler(>=6.2)
         if #available(iOS 26, *) {
             let insets = proxy.containerCornerInsets
-            lines.append("corners TL=\(insets.topLeading.short) TR=\(insets.topTrailing.short) BL=\(insets.bottomLeading.short) BR=\(insets.bottomTrailing.short)")
+            lines.append("corners topLeading=\(insets.topLeading.short) topTrailing=\(insets.topTrailing.short) bottomLeading=\(insets.bottomLeading.short) bottomTrailing=\(insets.bottomTrailing.short)")
         }
         #endif
         #if canImport(SwiftUICore, _version: 8.0.84)
         if #available(iOS 27.0, *) {
             if let radii = proxy.concentricCornerRadii {
-                lines.append("concentric TL=\(radii.topLeading.formatted()) TR=\(radii.topTrailing.formatted()) BL=\(radii.bottomLeading.formatted()) BR=\(radii.bottomTrailing.formatted())")
+                lines.append("concentric topLeading=\(radii.topLeading.formatted()) topTrailing=\(radii.topTrailing.formatted()) bottomLeading=\(radii.bottomLeading.formatted()) bottomTrailing=\(radii.bottomTrailing.formatted())")
             } else {
                 lines.append("concentric: nil")
             }

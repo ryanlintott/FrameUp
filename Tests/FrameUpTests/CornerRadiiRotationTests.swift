@@ -11,16 +11,14 @@ import Testing
 
 /// Radii are written as [topLeading, topTrailing, bottomTrailing, bottomLeading], clockwise in left to right.
 struct CornerRadiiRotationTests {
-    @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
-    static func radii(_ corners: [CGFloat]) -> RectangleCornerRadii {
-        RectangleCornerRadii(topLeading: corners[0], bottomLeading: corners[3], bottomTrailing: corners[2], topTrailing: corners[1])
+    static func radii(_ corners: [CGFloat]) -> FUCorners<CGFloat> {
+        FUCorners(topLeading: corners[0], topTrailing: corners[1], bottomLeading: corners[3], bottomTrailing: corners[2])
     }
 
     static let corners: [CGFloat] = [1, 2, 3, 4]
     /// The iPhone Duo's outer screen in portrait, measured: small corners on the fold side.
     static let duoOuter: [CGFloat] = [8, 59, 59, 8]
 
-    @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
     @Test(arguments: [
         (0, [1, 2, 3, 4]),
         (90, [2, 3, 4, 1]),
@@ -33,7 +31,6 @@ struct CornerRadiiRotationTests {
     }
 
     /// In right to left, leading is on the right, so the same physical rotation moves the named corners the other way.
-    @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
     @Test(arguments: [
         (0, [1, 2, 3, 4]),
         (90, [4, 1, 2, 3]),
@@ -45,15 +42,19 @@ struct CornerRadiiRotationTests {
     }
 
     /// Portrait content in a landscapeLeft interface puts the capsule's corner (top trailing) at the content's top leading, as measured with reserved regions.
-    @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
     @Test func duoOuterLandscapeLeft() {
         #expect(Self.radii(Self.duoOuter).rotated(by: .degrees(90), layoutDirection: .leftToRight) == Self.radii([59, 59, 8, 8]))
     }
 
-    @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
     @Test(arguments: Array(stride(from: -720.0, through: 720.0, by: 90)))
     func turningBackReturnsTheSameRadii(degrees: Double) {
         let once = Self.radii(Self.corners).rotated(by: .degrees(degrees), layoutDirection: .leftToRight)
         #expect(once.rotated(by: .degrees(-degrees), layoutDirection: .leftToRight) == Self.radii(Self.corners))
+    }
+    
+    @Test func flippingSwapsLeadingAndTrailing() {
+        #expect(Self.radii(Self.corners).flippedHorizontally == Self.radii([2, 1, 4, 3]))
+        #expect(Self.radii(Self.corners).named(for: .leftToRight) == Self.radii(Self.corners))
+        #expect(Self.radii(Self.corners).named(for: .rightToLeft) == Self.radii([2, 1, 4, 3]))
     }
 }

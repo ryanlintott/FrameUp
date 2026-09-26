@@ -243,9 +243,11 @@ If step 1 shows correct values, the work is documentation and a test. The rest o
 
 **Results so far (2026-09-25, Container Geometry Probe in the example app, full-size reader, no rotation):**
 
+Corner values are listed as SwiftUI names them, by leading and trailing, not left and right. In a left to right layout topLeading is the top left; in right to left it's the top right.
+
 The iOS 27.1 simulator runtime only supports the iPhone Duo, so reserved regions (iOS 27.1) can only be read there. An iPad has to run iOS 27.0, where only the corner APIs exist.
 
-| Device | Size | Corner insets TL / TR / BL / BR | Occlusion regions | Division regions |
+| Device | Size | Corner insets topLeading / topTrailing / bottomLeading / bottomTrailing | Occlusion regions | Division regions |
 |---|---|---|---|---|
 | iPad Pro 13" (M5), iOS 27.0, full screen | 1032×1376 | 32×32 on all four | not readable (27.0) | not readable |
 | Same iPad, windowed | 532×791 | **66×53** / 32×32 / 32×32 / 32×32 | not readable | not readable |
@@ -258,7 +260,7 @@ The iOS 27.1 simulator runtime only supports the iPhone Duo, so reserved regions
 - **The values settle over several layout passes.** On the Duo, the corners read all zero on the first pass, then the capsule's corner, then the radii, and the regions came last. Anything built on them must update as they change, not read them once.
 **Inside an `AutoRotatingView` (Duo outer screen, iOS 27.1, device in portrait).** The view's only allowed orientation was changed so that it turned its content without the device rotating. A full-size reader inside the content reported, once settled:
 
-| Content orientation | Occlusion regions | Corner insets TL / TR / BL / BR | Concentric radii TL / TR / BL / BR |
+| Content orientation | Occlusion regions | Corner insets topLeading / topTrailing / bottomLeading / bottomTrailing | Concentric radii topLeading / topTrailing / bottomLeading / bottomTrailing |
 |---|---|---|---|
 | Outside, for reference | capsule (382, 0) 84×170; camera (399.7, 29.3) 37×37 | 8×8 / 84×170 / 8×8 / 59×59 | 8 / 59 / 8 / 59 |
 | Inside, portrait | same as outside | same as outside | same as outside |
@@ -273,7 +275,7 @@ The iOS 27.1 simulator runtime only supports the iPhone Duo, so reserved regions
 - **Values change on every frame of a content turn.** A reader inside the rotation reports regions and corners of the turning content, as bounding boxes, for the whole animation.
 **Duo inner screen (iOS 27.1, unfolded, device in portrait, interface 951×669).** Outside and inside the `AutoRotatingView` reported identical values, as expected, since `AutoRotatingView` doesn't rotate on the inner screen:
 
-| Corner insets TL / TR / BL / BR | Concentric radii | Occlusion regions | Division regions |
+| Corner insets topLeading / topTrailing / bottomLeading / bottomTrailing | Concentric radii | Occlusion regions | Division regions |
 |---|---|---|---|
 | 55×55 / 84×120 / 55×55 / 55×55 | 55 on all four | capsule (867, 0) 84×120; an inactive region at (677.3, 21) 58×37 | the fold: (455.5, 0) 40×669, margins 0, 20, 0, 20 |
 
@@ -310,7 +312,7 @@ This makes `ConcentricRectangle`, `ContainerRelativeShape` and `concentricCorner
 
 **Results (Duo outer screen, iOS 27.1, device in portrait), read by the probe's full-size reader inside the content once settled:**
 
-| Content orientation | Concentric radii TL / TR / BL / BR | Corner insets TL / TR / BL / BR |
+| Content orientation | Concentric radii topLeading / topTrailing / bottomLeading / bottomTrailing | Corner insets topLeading / topTrailing / bottomLeading / bottomTrailing |
 |---|---|---|
 | Portrait | 8 / 59 / 8 / 59 | not recorded |
 | landscapeLeft | **59 / 59 / 8 / 8** | 59×59 / 59×59 / 8×8 / 8×8 |
@@ -365,7 +367,7 @@ AutoRotatingView([.portrait]) { geometry in
 
 **Results (Duo outer screen, iOS 27.1, device in portrait), settled values from a full-size reader inside the content:**
 
-| Content orientation | SwiftUI `containerCornerInsets` (with 3a) TL / TR / BL / BR | `geometry.containerCornerInsets` TL / TR / BL / BR |
+| Content orientation | SwiftUI `containerCornerInsets` (with 3a) topLeading / topTrailing / bottomLeading / bottomTrailing | `geometry.containerCornerInsets` topLeading / topTrailing / bottomLeading / bottomTrailing |
 |---|---|---|
 | Portrait | 8×8 / 84×170 / 8×8 / 59×59 | 8×8 / 84×170 / 8×8 / 59×59 |
 | landscapeLeft | 59×59 / 59×59 / 8×8 / 8×8 | **170×84** / 59×59 / 8×8 / 8×8 |
@@ -392,6 +394,50 @@ With only four readers on one device, the rule can't be pinned down, so the per-
 **Limits:** views that call SwiftUI's `containerCornerInsets` or `containerCornerOffset` directly, including system views, still get SwiftUI's unrotated values, which are wrong inside a rotation (step 1 results). FrameUp won't offer its own `containerCornerOffset(_:sizeToFit:)`. Inside a rotation, use the geometry's values as padding or offsets directly.
 
 **Considered and set aside: environment values.** One environment value for each feature, holding the container's values in a named coordinate space and resolved through the reader's proxy, with a public modifier to publish them anywhere in an app. It works deep in a tree without passing anything down. But the app-wide writer only exists for consistency, since SwiftUI's values are already correct outside a rotation. It also raises questions that the closure avoids: an empty default when there's no writer, and unique space names when writers nest. It could come back later as an optional convenience on top of the closure.
+
+### Right to left (2026-09-25)
+
+Measured on the Duo outer screen, iOS 27.1, with the example app launched with `-AppleLanguages (ar) -AppleTextDirection YES -NSForceRightToLeftWritingDirection YES`. The probe logs the global frame of the full-size reader and of markers at the content's top corners, so it can show where the content is on screen. The simulator's screenshots are black.
+
+**Two bugs, both older than this pitch.** The positioning code was unchanged from `dev`.
+
+- **The content was pushed sideways by the safe area.** In portrait, with nothing rotated, the content frame started at x = 84 instead of 0, the width of the Duo's system column on the right. So it ran 84 pt past the screen edge. Flipping only the inner horizontal alignment guide fixed portrait. So in a right to left layout SwiftUI mirrors one of the two guides that centre the content in the safe area and not the other.
+- **The content turned the wrong way.** In landscapeLeft the content's top edge ran down the left of the screen instead of the right, so someone holding the device in landscape saw it upside down. SwiftUI mirrors a right to left layout horizontally, and a rotation inside a mirror turns the opposite way.
+
+**Fix:** `AutoRotatingView` sets `.environment(\.layoutDirection, .leftToRight)` on its outermost view, so everything it reads and lays out uses screen directions. Leading is always the left of the screen. Values handed to the content are converted to the caller's direction in one place, at the end (`named(for:)`), and the content gets the caller's direction back:
+- The proxy's safe area and corner insets, and the safe area re-created inside the rotation, are named for the caller's direction.
+- The 3a container shape is set inside the content's layout direction, the direction that reads it. So the shape's setter and its reader always agree, whether or not SwiftUI has the bug below.
+
+**A workaround for a SwiftUI bug** (see "Confirmed with raw values" below) sits just inside the left to right environment. SwiftUI doesn't rename a container shape's corners when the layout direction changes. So in a right to left app, the left to right readers would get the display's rounded corners mirrored. `ContainerShapeLayoutDirectionFix` re-declares the container shape in the left to right environment. It takes radii read by a background reader in the caller's direction, renamed for left to right. The readers inside then get the right corners. It's the only code that deals with the bug.
+- **It stays correct if Apple fixes the bug.** The shape it re-declares is then the same as the one already there, so it can be removed without changing anything.
+- **It must cover the whole container.** It's applied before `.ignoresSafeArea()` on the full-size reader. Applied after, it measured the safe area frame (382×644) and read radii of 59 / 0 / 25 / 0.
+- **It tracks changes with `.task(id:)`.** An `onChange` inside the background reader never fired, so the first, unsettled radii stuck.
+
+**Results after the fix (right to left):**
+
+| Content orientation | Content frame on screen | Capsule region (`.fixed`) | SwiftUI corners (with 3a) topLeading / topTrailing / bottomLeading / bottomTrailing | Proxy corners topLeading / topTrailing / bottomLeading / bottomTrailing |
+|---|---|---|---|---|
+| Portrait | (0, 0) 466×678 | (382, 0) 84×170, as outside | 84×170 / 8×8 / 59×59 / 8×8, as outside | 84×170 / 8×8 / 59×59 / 8×8 |
+| landscapeLeft | (0, 0) | (0, 0) 170×84, as left to right | 59×59 / 59×59 / 8×8 / 8×8 | 59×59 / **170×84** / 8×8 / 8×8 |
+| landscapeRight | (0, 0) | (508, 382) 170×84, as left to right | 8×8 / 8×8 / 59×59 / 59×59 | 8×8 / 8×8 / **170×84** / 59×59 |
+| Upside down | (0, 0) | (0, 508) 84×170, as left to right | 8×8 / 59×59 / 8×8 / 59×59 | 8×8 / 59×59 / 8×8 / **84×170** |
+
+- **The content turns the same way as in left to right.** The content's top-left corner lands at the same point on screen in both directions: (461, 5) in landscapeLeft.
+- **The proxy's capsule corner sits where the capsule region is,** named for right to left, in every orientation. For example, the content's top left is its top trailing corner in right to left.
+- **Left to right is unchanged,** measured again in all four orientations after the fix and again after the workaround.
+- **The results table was measured again with the workaround in place,** with identical values.
+- **Reading the proxies left to right without the workaround** got the layout and the safe area right, but in right to left the rounded corners read mirrored while the capsule didn't: 84×170 / 59×59 / 8×8 / 59×59 in portrait, instead of 84×170 / 8×8 / 59×59 / 8×8. The corner insets combine the two, so no single flip at the end can fix them. Hence the workaround, which fixes the shape rather than the values.
+- **Confirmed with raw values.** The probe has two more full-size readers, forced to each layout direction. In portrait on the Duo's outer screen, physically 8 at top left, 59 at top right, 8 at bottom left and 59 at bottom right, with the capsule at top right, the values were identical outside and inside the `AutoRotatingView`:
+
+  | App direction | Reader forced to | `concentricCornerRadii` topLeading / topTrailing / bottomLeading / bottomTrailing | `containerCornerInsets`, same order |
+  |---|---|---|---|
+  | Left to right | Left to right | 8 / 59 / 8 / 59 (right) | 8×8 / 84×170 / 8×8 / 59×59 (right) |
+  | Left to right | Right to left | 8 / 59 / 8 / 59 (wrong) | 84×170 / 59×59 / 8×8 / 59×59 (wrong) |
+  | Right to left | Left to right | 59 / 8 / 59 / 8 (wrong) | 59×59 / 84×170 / 59×59 / 8×8 (wrong) |
+  | Right to left | Right to left | 59 / 8 / 59 / 8 (right) | 84×170 / 8×8 / 59×59 / 8×8 (right) |
+
+  `concentricCornerRadii` ignores the `layoutDirection` environment value and follows only the app's direction. In `containerCornerInsets`, the capsule follows the reader's direction and the rounded corners follow the app's. This looks like a SwiftUI bug. A Feedback Assistant report and a reproduction app are in `~/Dev/Apple Feedback/ConcentricCornerRadiiLayoutDirection/`. A custom `UnevenRoundedRectangle` container shape reproduces it on any iOS 27 device, so it isn't specific to the Duo.
+- **Not checked:** touches in right to left, and the Duo's inner screen in right to left.
 
 ### Availability
 
@@ -421,4 +467,3 @@ Below those versions, `AutoRotatingView` behaves as it does today.
 ### Questions still open
 
 1. What rule does SwiftUI use to resolve corner insets for a view smaller than the container? This is needed before corner insets can be offered for views deeper in the content (step 3b results).
-2. Right to left layouts: the corner rotation is unit tested in right to left, but nothing has been measured in a right to left app.

@@ -57,6 +57,18 @@ internal struct FUCorners<Value> {
     }
 }
 
+extension FUCorners {
+    /// These values with leading and trailing swapped, as seen from the opposite layout direction.
+    var flippedHorizontally: FUCorners {
+        FUCorners(topLeading: topTrailing, topTrailing: topLeading, bottomLeading: bottomTrailing, bottomTrailing: bottomLeading)
+    }
+    
+    /// These values named for the supplied layout direction, where they're named for left to right.
+    func named(for layoutDirection: LayoutDirection) -> FUCorners {
+        layoutDirection == .rightToLeft ? flippedHorizontally : self
+    }
+}
+
 extension FUCorners: Equatable where Value: Equatable {}
 extension FUCorners: Sendable where Value: Sendable {}
 
@@ -67,5 +79,19 @@ internal extension FUCorners where Value == CGSize {
     /// Corner insets as seen by a view that has been rotated by the supplied angle. Each inset moves to the corner it lines up with, and swaps its width and height on a quarter turn.
     func rotatedInsets(by angle: Angle, layoutDirection: LayoutDirection) -> FUCorners {
         rotated(by: angle, layoutDirection: layoutDirection).map { $0.rotated(by: angle) }
+    }
+}
+
+@available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
+internal extension FUCorners where Value == CGFloat {
+    init(_ radii: RectangleCornerRadii) {
+        self.init(topLeading: radii.topLeading, topTrailing: radii.topTrailing, bottomLeading: radii.bottomLeading, bottomTrailing: radii.bottomTrailing)
+    }
+}
+
+@available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
+internal extension RectangleCornerRadii {
+    init(_ corners: FUCorners<CGFloat>) {
+        self.init(topLeading: corners.topLeading, bottomLeading: corners.bottomLeading, bottomTrailing: corners.bottomTrailing, topTrailing: corners.topTrailing)
     }
 }

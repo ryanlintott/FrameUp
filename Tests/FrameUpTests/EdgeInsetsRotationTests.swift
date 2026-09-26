@@ -72,4 +72,14 @@ struct EdgeInsetsRotationTests {
             ), "\(angle.degrees) degrees")
         }
     }
+
+    /// Converting right to left insets to screen directions, rotating left to right, and converting back gives the same insets as rotating right to left. `AutoRotatingView` relies on this, since it lays out its rotation left to right.
+    @Test func rotatingOnScreenMatchesRightToLeft() {
+        for angle in Self.allAngles {
+            #expect(Self.isApproximatelyEqual(
+                Self.insets.flippedHorizontally.rotated(by: angle, layoutDirection: .leftToRight).flippedHorizontally,
+                Self.insets.rotated(by: angle, layoutDirection: .rightToLeft)
+            ), "\(angle.degrees) degrees")
+        }
+    }
 }

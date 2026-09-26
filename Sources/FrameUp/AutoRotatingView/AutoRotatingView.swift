@@ -161,16 +161,18 @@ public struct AutoRotatingView<Content: View>: View {
         /// This outer GeometryReader is outside the rotation so its safe area insets are the only correct ones available.
         GeometryReader { safeProxy in
             GeometryReader { fullProxy in
+                /// Everything here is read and laid out left to right, so leading is always the left of the screen. Values handed to the content are named for the caller's layout direction.
                 let safeAreaInsets = safeProxy.safeAreaInsets
                 let fullSize = fullProxy.size
                 let rotatedFullSize = fullSize.rotated(by: rotation)
                 let maxDimension = max(fullSize.width, fullSize.height)
-                let rotatedSafeAreaInsets = safeAreaInsets.rotated(by: rotation, layoutDirection: layoutDirection)
+                let rotatedSafeAreaInsets = safeAreaInsets.rotated(by: rotation, layoutDirection: .leftToRight)
                 /// The full size reader fills the container, so its corner insets are the container's own.
+                let rotatedCornerInsets = fullProxy.fuContainerCornerInsets.rotatedInsets(by: rotation, layoutDirection: .leftToRight)
                 let geometry = AutoRotatingGeometryProxy(
                     size: rotatedFullSize,
-                    safeAreaInsets: rotatedSafeAreaInsets,
-                    cornerInsets: fullProxy.fuContainerCornerInsets.rotatedInsets(by: rotation, layoutDirection: layoutDirection)
+                    safeAreaInsets: rotatedSafeAreaInsets.named(for: layoutDirection),
+                    cornerInsets: rotatedCornerInsets.named(for: layoutDirection)
                 )
                 
                 Color.clear.overlay {
@@ -184,11 +186,13 @@ public struct AutoRotatingView<Content: View>: View {
                             /// The content frame fills the available area
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                             /// Safe areas are applied based on the rotation of the view
-                            .safeAreaInsets(rotatedSafeAreaInsets)
+                            .safeAreaInsets(rotatedSafeAreaInsets.named(for: layoutDirection))
                             /// The full area including safe areas is set so that a safe area can be inset inside it
                             .frame(rotatedFullSize)
                             /// The container's corners are not rotated by SwiftUI, and they can differ from each other, so the shape is re-created with each corner moved to the one it now sits on.
-                            .containerCornerRadii(of: fullProxy, rotatedBy: rotation, layoutDirection: layoutDirection)
+                            .containerCornerRadii(of: fullProxy, rotatedBy: rotation, namedFor: layoutDirection)
+                            /// The content is laid out in the caller's direction, inside the left to right rotation.
+                            .environment(\.layoutDirection, layoutDirection)
                             /// Alignment guides are set to move the full size center point to the safe size center point at any rotation
                             .alignmentGuide(VerticalAlignment.center) { d in
                                 d[VerticalAlignment.center] + ((rotatedSafeAreaInsets.top - rotatedSafeAreaInsets.bottom) / 2)
@@ -208,8 +212,12 @@ public struct AutoRotatingView<Content: View>: View {
                     }
                 }
             }
+            /// Only needed until SwiftUI renames the container's corners when the layout direction changes. Applied inside the ignored safe area, so it covers the whole container.
+            .modifier(ContainerShapeLayoutDirectionFix(outerLayoutDirection: layoutDirection))
             .ignoresSafeArea()
         }
+        /// Laid out left to right so directions are fixed on screen. SwiftUI mirrors a right to left layout, which would turn the content the wrong way and move one of the alignment guides but not the other.
+        .environment(\.layoutDirection, .leftToRight)
         .onChange(of: allowedOrientations) { newValue in
             contentOrientation = nil
             changeOrientations(allowedOrientations: newValue)

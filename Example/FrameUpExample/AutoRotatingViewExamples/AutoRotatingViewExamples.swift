@@ -20,6 +20,9 @@ struct AutoRotatingViewExamples: View {
             NavigationLink(destination: ContainerGeometryProbeExample()) {
                 Label("Container Geometry Probe", systemImage: "rectangle.dashed")
             }
+            NavigationLink(destination: RotationDirectionExample()) {
+                Label("Rotation Direction", systemImage: "arrow.clockwise")
+            }
             #else
             UnavailableView()
             #endif
