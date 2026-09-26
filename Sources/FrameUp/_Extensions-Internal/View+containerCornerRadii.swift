@@ -25,7 +25,7 @@ internal extension View {
 #if canImport(SwiftUICore, _version: 8.0.84)
         if #available(iOS 27, macOS 27, tvOS 27, watchOS 27, visionOS 27, *) {
             let radii = proxy.concentricCornerRadii.map { radii in
-                RectangleCornerRadii(FUCorners(radii).rotated(by: angle, layoutDirection: .leftToRight).named(for: layoutDirection))
+                RectangleCornerRadii(FUCornerRadii(radii).rotated(by: angle, layoutDirection: .leftToRight).named(for: layoutDirection))
             } ?? RectangleCornerRadii()
             self.containerShape(UnevenRoundedRectangle(cornerRadii: radii, style: .continuous))
         } else {

@@ -33,7 +33,7 @@ public struct AutoRotatingView<Content: View>: View {
     let isOn: Bool
     /// Animation to use when the content turns on its own. When the system rotates the interface, the content always turns with the system's own animation.
     let animation: Animation?
-    /// Content for the view, built from the geometry of the content frame.
+    /// Content for the view, built from the container geometry that SwiftUI doesn't turn with it.
     let content: (AutoRotatingGeometryProxy) -> Content
     
     /// A view that rotates and resizes the content frame to match device orientation.
@@ -55,9 +55,9 @@ public struct AutoRotatingView<Content: View>: View {
         self.content = { _ in content }
     }
     
-    /// A view that rotates and resizes the content frame to match device orientation, and gives its content the container geometry turned with it.
+    /// A view that rotates and resizes the content frame to match device orientation, and gives its content the container geometry that SwiftUI doesn't turn with it.
     ///
-    /// SwiftUI doesn't turn the container's corner insets with a rotation, so inside the content its own `containerCornerInsets` and `containerCornerOffset` describe the unrotated container. The geometry has them turned with the content.
+    /// SwiftUI doesn't turn the container's corner insets with a rotation, so inside the content its own `containerCornerInsets` and `containerCornerOffset` describe the unrotated container. The geometry has them turned with the content. Other geometry, such as size, safe area insets and reserved regions, is correct in a `GeometryReader` inside the content.
     ///
     ///     AutoRotatingView([.portrait]) { geometry in
     ///         Content()
@@ -69,7 +69,7 @@ public struct AutoRotatingView<Content: View>: View {
     ///   - allowedOrientations: Set of allowed orientations for this view. Default is all.
     ///   - isOn: Toggles ability to rotate views.
     ///   - animation: Animation to use when the content turns on its own, or nil for no animation. Default is the system's rotation animation, measured as 0.3 seconds ease in and out.
-    ///   - content: Content to be rotated to match a device orientations from an allowed orientation set, built from the geometry of the content frame.
+    ///   - content: Content to be rotated to match a device orientations from an allowed orientation set, built from the container geometry that SwiftUI doesn't turn with it.
     public init(_ allowedOrientations: [FUInterfaceOrientation] = FUInterfaceOrientation.allCases, isOn: Bool = true, animation: Animation? = .easeInOut(duration: 0.3), @ViewBuilder content: @escaping (AutoRotatingGeometryProxy) -> Content) {
         self.allowedOrientations = allowedOrientations
         self.isOn = isOn
@@ -169,11 +169,7 @@ public struct AutoRotatingView<Content: View>: View {
                 let rotatedSafeAreaInsets = safeAreaInsets.rotated(by: rotation, layoutDirection: .leftToRight)
                 /// The full size reader fills the container, so its corner insets are the container's own.
                 let rotatedCornerInsets = fullProxy.fuContainerCornerInsets.rotatedInsets(by: rotation, layoutDirection: .leftToRight)
-                let geometry = AutoRotatingGeometryProxy(
-                    size: rotatedFullSize,
-                    safeAreaInsets: rotatedSafeAreaInsets.named(for: layoutDirection),
-                    cornerInsets: rotatedCornerInsets.named(for: layoutDirection)
-                )
+                let geometry = AutoRotatingGeometryProxy(cornerInsets: rotatedCornerInsets.named(for: layoutDirection))
                 
                 Color.clear.overlay {
                     ZStack {

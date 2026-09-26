@@ -11,7 +11,7 @@ import Testing
 
 struct CornerInsetsTests {
     /// The iPhone Duo's outer screen in portrait, measured: the capsule at top trailing and rounded corners elsewhere.
-    static let duoOuter = FUCorners(
+    static let duoOuter = FUCornerInsets(
         topLeading: CGSize(width: 8, height: 8),
         topTrailing: CGSize(width: 84, height: 170),
         bottomLeading: CGSize(width: 8, height: 8),
@@ -20,7 +20,7 @@ struct CornerInsetsTests {
 
     /// Portrait content in a landscapeLeft interface has the capsule at its top leading corner, lying on its side, as measured with reserved regions.
     @Test func duoOuterLandscapeLeft() {
-        let expected = FUCorners(
+        let expected = FUCornerInsets(
             topLeading: CGSize(width: 170, height: 84),
             topTrailing: CGSize(width: 59, height: 59),
             bottomLeading: CGSize(width: 8, height: 8),
@@ -30,7 +30,7 @@ struct CornerInsetsTests {
     }
 
     @Test func halfTurnKeepsSizes() {
-        let expected = FUCorners(
+        let expected = FUCornerInsets(
             topLeading: CGSize(width: 59, height: 59),
             topTrailing: CGSize(width: 8, height: 8),
             bottomLeading: CGSize(width: 84, height: 170),

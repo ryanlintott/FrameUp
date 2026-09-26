@@ -19,7 +19,7 @@ struct ContainerShapeLayoutDirectionFix: ViewModifier {
     /// The layout direction this modifier is applied in.
     @Environment(\.layoutDirection) private var layoutDirection
     /// The container's corner radii, named for the outer layout direction.
-    @State private var outerRadii: FUCorners<CGFloat>? = nil
+    @State private var outerRadii: FUCornerRadii? = nil
 
     func body(content: Content) -> some View {
         #if canImport(SwiftUICore, _version: 8.0.84)
@@ -31,7 +31,7 @@ struct ContainerShapeLayoutDirectionFix: ViewModifier {
                 /// The background isn't inside the shape set above, so it reads the container's own corners.
                 .background {
                     GeometryReader { proxy in
-                        let radii = proxy.concentricCornerRadii.map(FUCorners.init)
+                        let radii = proxy.concentricCornerRadii.map(FUCornerRadii.init)
                         Color.clear
                             /// The radii settle over several layout passes, so every change is kept. onChange didn't work.
                             .task(id: radii) {

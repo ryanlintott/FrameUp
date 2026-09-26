@@ -11,8 +11,8 @@ import Testing
 
 /// Radii are written as [topLeading, topTrailing, bottomTrailing, bottomLeading], clockwise in left to right.
 struct CornerRadiiRotationTests {
-    static func radii(_ corners: [CGFloat]) -> FUCorners<CGFloat> {
-        FUCorners(topLeading: corners[0], topTrailing: corners[1], bottomLeading: corners[3], bottomTrailing: corners[2])
+    static func radii(_ corners: [CGFloat]) -> FUCornerRadii {
+        FUCornerRadii(topLeading: corners[0], topTrailing: corners[1], bottomLeading: corners[3], bottomTrailing: corners[2])
     }
 
     static let corners: [CGFloat] = [1, 2, 3, 4]

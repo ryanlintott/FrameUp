@@ -57,6 +57,12 @@ internal struct FUCorners<Value> {
     }
 }
 
+/// A size at each corner, such as a container's corner insets.
+internal typealias FUCornerInsets = FUCorners<CGSize>
+
+/// A radius at each corner.
+internal typealias FUCornerRadii = FUCorners<CGFloat>
+
 extension FUCorners {
     /// These values with leading and trailing swapped, as seen from the opposite layout direction.
     var flippedHorizontally: FUCorners {
@@ -72,18 +78,18 @@ extension FUCorners {
 extension FUCorners: Equatable where Value: Equatable {}
 extension FUCorners: Sendable where Value: Sendable {}
 
-internal extension FUCorners where Value == CGSize {
+internal extension FUCornerInsets {
     /// No inset at any corner.
-    static let zero = FUCorners(topLeading: .zero, topTrailing: .zero, bottomLeading: .zero, bottomTrailing: .zero)
+    static let zero = FUCornerInsets(topLeading: .zero, topTrailing: .zero, bottomLeading: .zero, bottomTrailing: .zero)
 
     /// Corner insets as seen by a view that has been rotated by the supplied angle. Each inset moves to the corner it lines up with, and swaps its width and height on a quarter turn.
-    func rotatedInsets(by angle: Angle, layoutDirection: LayoutDirection) -> FUCorners {
+    func rotatedInsets(by angle: Angle, layoutDirection: LayoutDirection) -> FUCornerInsets {
         rotated(by: angle, layoutDirection: layoutDirection).map { $0.rotated(by: angle) }
     }
 }
 
 @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
-internal extension FUCorners where Value == CGFloat {
+internal extension FUCornerRadii {
     init(_ radii: RectangleCornerRadii) {
         self.init(topLeading: radii.topLeading, topTrailing: radii.topTrailing, bottomLeading: radii.bottomLeading, bottomTrailing: radii.bottomTrailing)
     }
@@ -91,7 +97,7 @@ internal extension FUCorners where Value == CGFloat {
 
 @available(iOS 16, macOS 13, tvOS 16, watchOS 9, *)
 internal extension RectangleCornerRadii {
-    init(_ corners: FUCorners<CGFloat>) {
+    init(_ corners: FUCornerRadii) {
         self.init(topLeading: corners.topLeading, bottomLeading: corners.bottomLeading, bottomTrailing: corners.bottomTrailing, topTrailing: corners.topTrailing)
     }
 }
