@@ -161,13 +161,13 @@ public struct AutoRotatingView<Content: View>: View {
         /// This outer GeometryReader is outside the rotation so its safe area insets are the only correct ones available.
         GeometryReader { safeProxy in
             GeometryReader { fullProxy in
-                /// Everything here is laid out left to right, so leading is always the left of the screen. Values handed to the content are named for the caller's layout direction.
-                let safeAreaInsets = safeProxy.safeAreaInsets
+                /// The readers are read in the caller's direction, and their values renamed left to right here, by swapping leading and trailing for a right to left caller. The rotation below is laid out left to right, so leading is always the left of the screen. Values handed to the content are named for the caller's direction again.
+                let safeAreaInsets = safeProxy.safeAreaInsets.named(for: layoutDirection)
                 let fullSize = fullProxy.size
                 let rotatedFullSize = fullSize.rotated(by: rotation)
                 let maxDimension = max(fullSize.width, fullSize.height)
                 let rotatedSafeAreaInsets = safeAreaInsets.rotated(by: rotation, layoutDirection: .leftToRight)
-                /// The full size reader's corners are the container's own. It's read in the caller's direction, since SwiftUI names the rounded corners for the app's direction whatever the reader's (iOS 27.1). Swapping leading and trailing for a right to left caller names them left to right.
+                /// The full size reader's corners are the container's own. It has to be read in the caller's direction: in any other direction SwiftUI names system UI in a corner for the reader's direction but the rounded corners for the app's (iOS 27.1), and no single swap can fix that.
                 let cornerInsets = fullProxy.fuContainerCornerInsets.named(for: layoutDirection)
                 let cornerRadii = fullProxy.fuConcentricCornerRadii?.named(for: layoutDirection)
                 let geometry = AutoRotatingGeometryProxy(
@@ -209,14 +209,11 @@ public struct AutoRotatingView<Content: View>: View {
                         d[HorizontalAlignment.center] + ((safeAreaInsets.trailing - safeAreaInsets.leading) / 2)
                     }
                 }
+                /// Laid out left to right so directions are fixed on screen. SwiftUI mirrors a right to left layout, which would turn the content the wrong way and move one of the alignment guides but not the other. The readers above fill their space, so their layout is the same in either direction.
                 .environment(\.layoutDirection, .leftToRight)
             }
-            /// The full size reader alone is read in the caller's direction, where SwiftUI names the container's corners consistently. It fills its space, so its layout is the same in either direction.
-            .environment(\.layoutDirection, layoutDirection)
             .ignoresSafeArea()
         }
-        /// Laid out left to right so directions are fixed on screen. SwiftUI mirrors a right to left layout, which would turn the content the wrong way and move one of the alignment guides but not the other.
-        .environment(\.layoutDirection, .leftToRight)
         .onChange(of: allowedOrientations) { newValue in
             contentOrientation = nil
             changeOrientations(allowedOrientations: newValue)
