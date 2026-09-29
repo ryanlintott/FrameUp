@@ -102,7 +102,15 @@ extension WidgetFrameRecord {
     /// Values are written in pixels because every measured frame lands on a whole number of pixels. Dividing by the display scale reproduces the fractional point values exactly. The frames themselves are stored in points.
     ///
     /// > Note: only the system sizes are here. The accessory sizes changed in iOS 26 too and are in ``iPhoneiOS26LockScreen``, kept separate because they appear on the Lock Screen rather than the Home Screen. `extraLargePortrait` does not exist until iOS 27 and is in ``iPhoneiOS27Portrait``.
+    ///
+    /// > Note: the iPhone Duo has two screens, 466x678 folded and 669x951 unfolded, and gives a widget the same frame on both. Each has a row of its own because a lookup resolves an unknown screen to the nearest row by width, and for either Duo screen that would be a 440x956 iPhone with different frames.
     private static let iPhoneiOS26: [WidgetFrameRecord] = [
+        // Measured on iPhone Duo (iPhone19,4), iOS 27.1, on the inner screen held in its own portrait orientation, read from the probe's drawn size. 1.2036 times the frames every other Duo interface uses.
+        iPhoneiOS26(screenSize: (669, 951), displayScale: 3, interface: .innerPortrait, small: (570, 570), medium: (1206, 570), large: (1206, 1278)),
+        // Measured on iPhone Duo (iPhone19,4), iOS 27.1, on the inner screen in landscape, which reports the same frames as the outer screen below.
+        iPhoneiOS26(screenSize: (669, 951), displayScale: 3, small: (474, 474), medium: (1002, 474), large: (1002, 1062)),
+        // Measured on iPhone Duo (iPhone19,4), iOS 27.1, on the outer screen, confirmed by a placed widget. Its inner screen is 669x951 and reports these same frames, which is why both screens have a row rather than one resolving to the other: the nearest row by width would otherwise be a 440x956 iPhone, whose frames are different.
+        iPhoneiOS26(screenSize: (466, 678), displayScale: 3, small: (474, 474), medium: (1002, 474), large: (1002, 1062)),
         // Measured on iPhone 17 Pro Max (iPhone18,2), iOS 27.0
         iPhoneiOS26(screenSize: (440, 956), displayScale: 3, small: (530, 530), medium: (1134, 530), large: (1134, 1182)),
         // Measured on iPhone 16 Plus (iPhone17,4), iOS 26.5
@@ -130,6 +138,7 @@ extension WidgetFrameRecord {
     private static func iPhoneiOS26(
         screenSize: (CGFloat, CGFloat),
         displayScale: CGFloat,
+        interface: WidgetInterface = .main,
         small: (CGFloat, CGFloat),
         medium: (CGFloat, CGFloat),
         large: (CGFloat, CGFloat)
@@ -141,6 +150,7 @@ extension WidgetFrameRecord {
             screenSize: screenSize,
             displayScale: displayScale,
             target: .designCanvas,
+            interface: interface,
             frames: framesFromPixels(displayScale: displayScale, [
                 .small: small,
                 .medium: medium,
@@ -157,6 +167,10 @@ extension WidgetFrameRecord {
     ///
     /// Values are written in pixels for the same reason as the system frames, and 414x896 splits by display scale here too.
     private static let iPhoneiOS26LockScreen: [WidgetFrameRecord] = [
+        // Measured on iPhone Duo (iPhone19,4), iOS 27.1. The Lock Screen frames do not change with the interface, so there is no `innerPortrait` row here.
+        iPhoneiOS26Lock(screenSize: (669, 951), displayScale: 3, circular: (179, 179), rectangular: (429, 179), inline: (930, 108)),
+        // Measured on iPhone Duo (iPhone19,4), iOS 27.1, on the outer screen. The circular and rectangular frames are confirmed by placed widgets; `accessoryInline` is the pre-rendered frame, since the Lock Screen offers no slot to place one in.
+        iPhoneiOS26Lock(screenSize: (466, 678), displayScale: 3, circular: (179, 179), rectangular: (429, 179), inline: (930, 108)),
         // Measured on iPhone 17 Pro Max (iPhone18,2), iOS 26.5
         iPhoneiOS26Lock(screenSize: (440, 956), displayScale: 3, circular: (180, 180), rectangular: (474, 180), inline: (1110, 108)),
         // Measured on iPhone 16 Plus (iPhone17,4), iOS 26.5
@@ -209,6 +223,12 @@ extension WidgetFrameRecord {
     ///
     /// On every device the width is identical to `systemMedium` and `systemLarge`, so this is the same column made taller rather than a differently proportioned frame. 414x896 splits by display scale here as it does for the system and accessory frames.
     private static let iPhoneiOS27Portrait: [WidgetFrameRecord] = [
+        // Measured on iPhone Duo (iPhone19,4), iOS 27.1, on the inner screen in its own portrait orientation
+        iPhoneiOS27Portrait(screenSize: (669, 951), displayScale: 3, interface: .innerPortrait, portrait: (1206, 1986)),
+        // Measured on iPhone Duo (iPhone19,4), iOS 27.1, on the inner screen in landscape, matching the outer screen below
+        iPhoneiOS27Portrait(screenSize: (669, 951), displayScale: 3, portrait: (1002, 1650)),
+        // Measured on iPhone Duo (iPhone19,4), iOS 27.1, on the outer screen, confirmed by a placed widget
+        iPhoneiOS27Portrait(screenSize: (466, 678), displayScale: 3, portrait: (1002, 1650)),
         // Measured on iPhone 17 Pro Max (iPhone18,2), iOS 27.0
         iPhoneiOS27Portrait(screenSize: (440, 956), displayScale: 3, portrait: (1134, 1834)),
         // Measured on iPhone 16 Plus (iPhone17,4), iOS 27.0
@@ -236,6 +256,7 @@ extension WidgetFrameRecord {
     private static func iPhoneiOS27Portrait(
         screenSize: (CGFloat, CGFloat),
         displayScale: CGFloat,
+        interface: WidgetInterface = .main,
         portrait: (CGFloat, CGFloat)
     ) -> [WidgetFrameRecord] {
         group(
@@ -245,6 +266,7 @@ extension WidgetFrameRecord {
             screenSize: screenSize,
             displayScale: displayScale,
             target: .designCanvas,
+            interface: interface,
             frames: framesFromPixels(displayScale: displayScale, [.extraLargePortrait: portrait])
         )
     }
@@ -388,8 +410,7 @@ extension WidgetFrameRecord {
     ///
     /// > Note: `accessoryCorner` has a ``WidgetSize`` case but no frame here. It is measured, but a corner complication is not a rectangle: it sits in the curve of the bezel, roughly triangular, and a label can curve around the frame and extend past it. The reported size is therefore not a box the content fits inside, which is what every other frame in this table means. It also explains why the values do not scale with the screen the way every other family does, 32 on a 162 point wide watch against 30 on a 187.
     ///
-    /// > Note: `watchFaceRectangular` is optional for a watch that has been swept but never placed, which leaves it with a Smart Stack frame of its own and a watch face lookup that falls back to the nearest watch that has one.
-    private static let watchMeasured: [(screenSize: (CGFloat, CGFloat), smartStackRectangular: (CGFloat, CGFloat), watchFaceRectangular: (CGFloat, CGFloat)?, watchFaceCircular: (CGFloat, CGFloat))] = [
+    private static let watchMeasured: [(screenSize: (CGFloat, CGFloat), smartStackRectangular: (CGFloat, CGFloat), watchFaceRectangular: (CGFloat, CGFloat), watchFaceCircular: (CGFloat, CGFloat))] = [
         // Apple Watch SE 3 40mm. Both frames confirmed by placing the probe in both places, and the Smart Stack frame matches Apple's published 40mm row.
         (screenSize: (162, 197), smartStackRectangular: (152, 69.5), watchFaceRectangular: (162, 69), watchFaceCircular: (42, 42)),
         // Apple Watch Series 11 and Series 12 42mm. Apple publishes no row for this case size. Both frames confirmed by placing the probe, and they are the same: a rectangular complication on the watch face is 176x72.5, exactly what the Smart Stack reports. Its pair is pre-rendered twice at that size, which earlier sweeps mistook for a single frame.
@@ -409,13 +430,10 @@ extension WidgetFrameRecord {
     /// Storing them against screen size means a watch released after ``watchDevices`` was last updated resolves to the nearest known one rather than to nothing.
     private static let watch: [WidgetFrameRecord] = {
         let measured = watchMeasured.flatMap { row -> [WidgetFrameRecord] in
-            var watchFace: [WidgetSize: (CGFloat, CGFloat)] = [.accessoryCircular: row.watchFaceCircular]
-            if let rectangular = row.watchFaceRectangular {
-                watchFace[.accessoryRectangular] = rectangular
-            }
-            return group(
+            group(
                 platform: .watch,
-                minMajorOSVersion: 9,
+                /// The Smart Stack arrived in watchOS 10. These were measured on watchOS 26 and 27, and no version between has been checked.
+                minMajorOSVersion: 10,
                 placement: .smartStack,
                 screenSize: row.screenSize,
                 displayScale: nil,
@@ -423,12 +441,16 @@ extension WidgetFrameRecord {
                 frames: [.accessoryRectangular: row.smartStackRectangular]
             ) + group(
                 platform: .watch,
+                /// Complications on the watch face are as old as WidgetKit on the watch, which is watchOS 9, FrameUp's minimum.
                 minMajorOSVersion: 9,
                 placement: .watchFace,
                 screenSize: row.screenSize,
                 displayScale: nil,
                 target: .designCanvas,
-                frames: watchFace
+                frames: [
+                    .accessoryCircular: row.watchFaceCircular,
+                    .accessoryRectangular: row.watchFaceRectangular
+                ]
             )
         }
 
@@ -440,8 +462,8 @@ extension WidgetFrameRecord {
             guard !isMeasured, let frame = watchRectangular(caseSize: device.caseSize) else { return [] }
             return group(
                 platform: .watch,
-                /// FrameUp supports watchOS 9 and later, which is also where widgets in the Smart Stack arrived.
-                minMajorOSVersion: 9,
+                /// The Smart Stack arrived in watchOS 10, and Apple publishes these as Smart Stack sizes.
+                minMajorOSVersion: 10,
                 placement: .smartStack,
                 screenSize: (device.screenSize.width, device.screenSize.height),
                 displayScale: nil,

@@ -31,6 +31,10 @@ struct WidgetFrameRecord: Sendable {
     let displayScale: CGFloat?
     /// Where the widget appears. A widget size can have a different frame in different places on the same device.
     let placement: WidgetPlacement
+    /// Which of a device's interfaces this frame applies to.
+    ///
+    /// Only a foldable has more than one. See ``WidgetInterface``.
+    let interface: WidgetInterface
     /// Which of an iPad's two frames this is.
     ///
     /// Every platform lays a widget out on a design canvas, so that is the default. Only the iPad Home Screen scales that canvas into a smaller slot, so `.homeScreen` rows exist for iPad alone.
@@ -53,6 +57,7 @@ extension WidgetFrameRecord {
         screenSize: (CGFloat, CGFloat),
         displayScale: CGFloat?,
         target: WidgetTarget,
+        interface: WidgetInterface = .main,
         frames: [WidgetSize: (CGFloat, CGFloat)]
     ) -> [WidgetFrameRecord] {
         frames.map { widgetSize, frame in
@@ -64,6 +69,7 @@ extension WidgetFrameRecord {
                 minMajorOSVersion: minMajorOSVersion,
                 displayScale: displayScale,
                 placement: placement,
+                interface: interface,
                 target: target
             )
         }
@@ -97,6 +103,7 @@ extension WidgetFrameRecord {
         majorOSVersion: Int,
         displayScale: CGFloat? = nil,
         placement: WidgetPlacement? = nil,
+        interface: WidgetInterface = .main,
         target: WidgetTarget = .designCanvas
     ) -> [WidgetSize: CGSize] {
         /// Widgets in a Mac Catalyst app are hosted by macOS, so they use the same frames.
@@ -104,6 +111,8 @@ extension WidgetFrameRecord {
         let candidates = all.filter { candidate in
             guard candidate.platform == platform,
                   candidate.target == target,
+                  /// A second interface is a foldable's inner screen, and only the frames that change there have a row for it. Rows for the interface asked for are preferred below, and ``WidgetInterface/main`` stands in for everything that does not change, such as the Duo's Lock Screen frames.
+                  candidate.interface == interface || candidate.interface == .main,
                   candidate.minMajorOSVersion <= majorOSVersion
             else { return false }
             if let placement {
@@ -121,18 +130,22 @@ extension WidgetFrameRecord {
                 }) else { return nil }
                 return candidates
                     .filter { $0.placement == preferredPlacement }
-                    .min { a, b in a.isBetterThan(b, for: screenSize, displayScale: displayScale) }?
+                    .min { a, b in a.isBetterThan(b, for: screenSize, displayScale: displayScale, interface: interface) }?
                     .frame
             }
     }
 
     /// Ordering used to pick one frame from several that could apply.
-    private func isBetterThan(_ other: WidgetFrameRecord, for screenSize: CGSize, displayScale: CGFloat?) -> Bool {
+    private func isBetterThan(_ other: WidgetFrameRecord, for screenSize: CGSize, displayScale: CGFloat?, interface: WidgetInterface) -> Bool {
         let widthDelta = (abs(self.screenSize.width - screenSize.width), abs(other.screenSize.width - screenSize.width))
         if widthDelta.0 != widthDelta.1 { return widthDelta.0 < widthDelta.1 }
 
         let heightDelta = (abs(self.screenSize.height - screenSize.height), abs(other.screenSize.height - screenSize.height))
         if heightDelta.0 != heightDelta.1 { return heightDelta.0 < heightDelta.1 }
+
+        /// Compared after the screen, so a device with no row for the interface asked for keeps its own frames rather than taking a foldable's by nearest width.
+        let matchesInterface = (self.interface == interface, other.interface == interface)
+        if matchesInterface.0 != matchesInterface.1 { return matchesInterface.0 }
 
         if minMajorOSVersion != other.minMajorOSVersion { return minMajorOSVersion > other.minMajorOSVersion }
 

@@ -21,20 +21,23 @@ public extension WidgetSize {
     ///   - majorOSVersion: Major OS version to look up frames for. Nil uses the version currently running.
     ///   - displayScale: Pixels per point on the display, matching SwiftUI's `displayScale` environment value. Only needed for a 414x896 screen, which is 2x on an iPhone 11 and 3x on an iPhone 11 Pro Max and from iOS 26 gives different frames for each. Nil still returns a stable answer, preferring the 2x frames for that screen size.
     ///   - placement: Where the widget appears. Nil reports Home Screen frames for the system sizes and Lock Screen frames for the accessory sizes, which is where each of them actually appears.
+    ///   - interface: Which of a device's interfaces the widget is drawn in. Only a foldable has more than one, and a device without the interface asked for reports the frames it does have.
     /// - Returns: The frame for this widget size. Nil if no frame is known, either because the platform does not support this widget size or because it has not been measured yet. ``minimumSize`` and ``maximumSize`` are a useful fallback in that case.
     func frame(
         platform: Platform,
         screenSize: CGSize = .zero,
         majorOSVersion: Int? = nil,
         displayScale: CGFloat? = nil,
-        placement: WidgetPlacement? = nil
+        placement: WidgetPlacement? = nil,
+        interface: WidgetInterface = .main
     ) -> WidgetFrame? {
         Self.frames(
             platform: platform,
             screenSize: screenSize,
             majorOSVersion: majorOSVersion,
             displayScale: displayScale,
-            placement: placement
+            placement: placement,
+            interface: interface
         )[self]
     }
 
@@ -47,7 +50,8 @@ public extension WidgetSize {
         screenSize: CGSize = .zero,
         majorOSVersion: Int? = nil,
         displayScale: CGFloat? = nil,
-        placement: WidgetPlacement? = nil
+        placement: WidgetPlacement? = nil,
+        interface: WidgetInterface = .main
     ) -> [WidgetSize: WidgetFrame] {
         let majorOSVersion = majorOSVersion ?? WidgetFrameRecord.currentMajorOSVersion
 
@@ -58,6 +62,7 @@ public extension WidgetSize {
                 majorOSVersion: majorOSVersion,
                 displayScale: displayScale,
                 placement: placement,
+                interface: interface,
                 target: target
             )
         }

@@ -28,9 +28,10 @@ public extension WidgetSize {
                 [.small, .medium, .large]
             }
         case .pad:
+            /// The accessory sizes appear on the Lock Screen, which iPad did not get until iPadOS 17, a release after iPhone.
             if majorOSVersion >= 27 {
                 [.small, .medium, .large, .extraLarge, .extraLargePortrait, .accessoryCircular, .accessoryRectangular, .accessoryInline]
-            } else if majorOSVersion >= 16 {
+            } else if majorOSVersion >= 17 {
                 [.small, .medium, .large, .extraLarge, .accessoryCircular, .accessoryRectangular, .accessoryInline]
             } else {
                 [.small, .medium, .large, .extraLarge]
@@ -55,9 +56,10 @@ public extension WidgetSize {
                 []
             }
         case .watch:
-            /// Every size an Apple Watch shows arrived with the Smart Stack in watchOS 9, which is FrameUp's minimum.
+            /// Every size an Apple Watch shows is a complication family, and those arrived with WidgetKit in watchOS 9, which is FrameUp's minimum. The Smart Stack, which shows some of them in a second place, arrived in watchOS 10.
             [.accessoryCircular, .accessoryRectangular, .accessoryInline, .accessoryCorner]
         case .carPlay:
+            /// Unverified. CarPlay has never been reached in a simulator, so this list is read from Apple's documentation rather than from a device, and no CarPlay frame has been measured.
             if majorOSVersion >= 26 {
                 [.small, .medium, .accessoryCircular, .accessoryRectangular, .accessoryInline]
             } else {

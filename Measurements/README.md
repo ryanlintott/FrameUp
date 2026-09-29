@@ -86,6 +86,8 @@ Trust `displaySize`. Count records rather than distinct sizes: the 42mm watch pr
 - **StandBy** needs the device locked, charging and in landscape. The simulator's charging state is cosmetic, so `WidgetPlacement.standBy` needs real hardware.
 - **CarPlay** runs in the simulator as an external display, but touches never reached it in the Xcode 26 Simulator. It has not been retried with Device Hub.
 - **Older Apple Watches** (the 38mm, the Series 1 to 3 42mm, 41mm, 45mm and Ultra 2) have no simulator in the watchOS 26 or 27 runtimes. They keep Apple's published Smart Stack frame.
+- **The iPhone Duo's inner screen** cannot be screenshotted or tapped: the tools return a black image and injected touches never arrive, and nothing folds the simulator from the command line. Its frames are read off the probe's own drawn size by a person looking at the screen. The log is no help either, since a widget extension reports `UIScreen.main`, which is the outer screen whichever one is in use, and an unfold does not make a placed widget render again. Reinstalling the app does.
+- **Duo StandBy** has no way to be reached in the simulator at all, so those frames are unknown even by eye.
 
 ## Rules the table relies on
 
@@ -109,10 +111,15 @@ Trust `displaySize`. Count records rather than distinct sizes: the 42mm watch pr
 
 **visionOS frames sit on a 158 point grid with a 38 point gutter.** Apple's published visionOS row is wrong for every family but `small`, and 26.5 and 27.0 agree, so it was never right. The accessory families arrive in visionOS 27, and visionOS has no `accessoryInline`. visionOS records have no screen size or scale.
 
+**A foldable iPhone has two screens and three interfaces.** The iPhone Duo is 466x678 folded and 669x951 unfolded. Its outer screen does not rotate, and its inner screen is a quarter turn from the device, so the device held in portrait shows the inner screen in landscape. The outer screen and the inner screen in landscape report the same frames; the inner screen in its own portrait orientation reports frames 1.2036 times larger for every system size, while the Lock Screen accessory frames do not change. Both screen sizes need a row, since either would otherwise resolve to a 440x956 iPhone, and the portrait interface needs rows of its own, which is what `WidgetInterface.innerPortrait` is for.
+
+A sweep sees this as a pair of pre-rendered frames per family, the way a watch's two placements do, and only the frames in use while folded. The interface a frame belongs to is settled by reading the probe's drawn size on the screen in question: the inner screen cannot be screenshotted, so a person reads it.
+
 **macOS frames sit on a grid with a 16 point gutter** and do not depend on the display. `extraLargePortrait` arrives in macOS 27 as `extraLarge` turned on its side. Mac Catalyst widgets are hosted by macOS and use the same frames.
 
 ## Open questions
 
 - **Seven of the ten iOS 18 iPhone rows are unverified.** The iOS 17.5 and 18.6 runtimes support every older device type except those reporting 414×736, 320×568 and 360×780. Measuring an iPhone 11 and an iPhone 11 Pro Max on 18.6 would also show whether the 414×896 scale split predates iOS 26.
 - **Why the probe's log does not appear on macOS** is not understood.
+- **Whether any other device changes frames with orientation.** The Duo's inner screen does. Every iPad checked does not, and no iPhone Home Screen rotates, but iPad landscape has never been swept family by family.
 - **A Mac display at a scale other than 2x** is untested.

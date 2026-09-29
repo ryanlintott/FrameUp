@@ -24,10 +24,10 @@ import SwiftUI
 /// | iPad | none |
 /// | macOS, Mac Catalyst | none from macOS 26. Earlier than macOS 26 no size has a frame, since Apple publishes none and iOS frames are known to have changed at 26. |
 /// | visionOS | none |
-/// | Apple Watch | `accessoryInline`, which reports a small square that never renders rather than a usable frame, and `accessoryCorner`, whose reported size does not bound what it draws. `accessoryCircular` has a watch face frame but none in the Smart Stack, where it does not appear. |
+/// | Apple Watch | `accessoryInline`, which reports a small square that never renders rather than a usable frame, and `accessoryCorner`, whose reported size does not bound what it draws. `accessoryCircular` has a watch face frame and no Smart Stack frame: it was only ever observed placed on a watch face, and whether the Smart Stack can show one was not tested. |
 /// | CarPlay | every size |
 ///
-/// Frames are also known for two of the places a widget can appear, the Home Screen and the Lock Screen, and for the Apple Watch Smart Stack. The other ``WidgetPlacement`` cases have no frames: StandBy and CarPlay cannot be reached in a simulator, and the rest have not been measured.
+/// Frames are also known for four of the places a widget can appear: the Home Screen, the Lock Screen, and on Apple Watch both the Smart Stack and the watch face. The other ``WidgetPlacement`` cases have no frames: StandBy and CarPlay cannot be reached in a simulator, and the rest have not been measured.
 ///
 /// ``minimumSize`` and ``maximumSize`` return a value for every case that has a frame somewhere, so they are a useful fallback when no device frame is known. ``accessoryCorner`` is the exception and returns zero, because no frame is stored for it on any platform.
 public enum WidgetSize: String, Identifiable, CaseIterable, Sendable {

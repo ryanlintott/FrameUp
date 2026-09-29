@@ -133,7 +133,8 @@ struct WidgetFrameTests {
                 screenSize: stored.screenSize,
                 majorOSVersion: stored.minMajorOSVersion,
                 displayScale: stored.displayScale,
-                placement: stored.placement
+                placement: stored.placement,
+                interface: stored.interface
             )
             #expect(
                 try #require(frames[stored.widgetSize]).canvasSize == stored.frame,
@@ -164,6 +165,7 @@ struct WidgetFrameTests {
                 "\(stored.screenSize)",
                 String(describing: stored.displayScale),
                 "\(stored.placement)",
+                "\(stored.interface)",
                 String(describing: stored.target),
                 "\(stored.minMajorOSVersion)"
             ].joined(separator: "-")
@@ -262,16 +264,41 @@ struct WidgetFrameTests {
     @Test func extraLargePortraitSharesTheMediumWidth() throws {
         for stored in WidgetFrameRecord.all
         where stored.platform == .phone && stored.widgetSize == .extraLargePortrait {
+            /// A foldable's second interface has its own medium and large, so the comparison stays within one interface.
             let frames = WidgetSize.frames(platform: .phone, 
                 screenSize: stored.screenSize,
                 majorOSVersion: 27,
-                displayScale: stored.displayScale
+                displayScale: stored.displayScale,
+                interface: stored.interface
             )
             let medium = try #require(frames[.medium]).canvasSize
             let large = try #require(frames[.large]).canvasSize
             #expect(stored.frame.width == medium.width, "\(stored.screenSize)")
             #expect(stored.frame.width == large.width, "\(stored.screenSize)")
             #expect(stored.frame.height > large.height, "\(stored.screenSize)")
+        }
+    }
+
+    /// The iPhone Duo's inner screen in portrait has frames of its own, 1.2036 times the ones every other Duo interface uses.
+    @Test func theDuoInnerScreenInPortraitHasLargerFrames() throws {
+        let inner = CGSize(width: 669, height: 951)
+        let main = WidgetSize.frames(platform: .phone, screenSize: inner, majorOSVersion: 27, displayScale: 3)
+        let portrait = WidgetSize.frames(platform: .phone, screenSize: inner, majorOSVersion: 27, displayScale: 3, interface: .innerPortrait)
+        #expect(try #require(main[.small]).canvasSize == CGSize(width: 158, height: 158))
+        #expect(try #require(portrait[.small]).canvasSize == CGSize(width: 190, height: 190))
+        #expect(try #require(portrait[.medium]).canvasSize == CGSize(width: 402, height: 190))
+        /// The Lock Screen frames do not change with the interface.
+        let mainLock = WidgetSize.frames(platform: .phone, screenSize: inner, majorOSVersion: 27, displayScale: 3, placement: .lockScreen)
+        let portraitLock = WidgetSize.frames(platform: .phone, screenSize: inner, majorOSVersion: 27, displayScale: 3, placement: .lockScreen, interface: .innerPortrait)
+        #expect(try #require(mainLock[.accessoryRectangular]) == #require(portraitLock[.accessoryRectangular]))
+    }
+
+    /// Only the Duo's inner screen has a second interface. Asking any other device for one reports the frames it does have rather than resolving to the Duo by nearest width.
+    @Test func askingForASecondInterfaceElsewhereFallsBackToMain() throws {
+        for screenSize in [CGSize(width: 402, height: 874), CGSize(width: 466, height: 678), CGSize(width: 440, height: 956)] {
+            let main = WidgetSize.frames(platform: .phone, screenSize: screenSize, majorOSVersion: 27, displayScale: 3)
+            let asked = WidgetSize.frames(platform: .phone, screenSize: screenSize, majorOSVersion: 27, displayScale: 3, interface: .innerPortrait)
+            #expect(try #require(asked[.small]) == #require(main[.small]), "\(screenSize)")
         }
     }
 

@@ -40,18 +40,48 @@ extension WidgetSize.Platform {
 
 #if os(iOS)
 public extension WidgetSize {
-    /// The screen size ignoring orientation.
+    /// The screen the app is on now.
+    ///
+    /// Which screen that is can change while the app runs: an iPhone Duo moves a scene between its outer and inner screens when the hinge opens or closes, and the two screens have different sizes. The scene is asked rather than `UIScreen.main`, which names the device's main screen rather than the one this scene is displayed on. Nil when there is no window scene, such as in a widget extension.
     @available(iOS, deprecated: 26)
     @MainActor
-    internal static let currentScreenSize =
-        UIScreen.main.fixedCoordinateSpace.bounds.size
+    internal static var currentScreen: UIScreen? {
+        currentWindowScene?.screen
+    }
+
+    /// The scene the app is showing, preferring an active one.
+    @MainActor
+    internal static var currentWindowScene: UIWindowScene? {
+        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+        return scenes.first { $0.activationState == .foregroundActive } ?? scenes.first
+    }
+
+    /// Which of the device's interfaces is on screen.
+    ///
+    /// A foldable's inner screen has its own frames in portrait. Reported as ``WidgetInterface/innerPortrait`` whenever the interface is portrait, since a device with no second interface has no frames stored for one and the lookup answers with ``WidgetInterface/main``. The Duo's inner screen is a quarter turn from the device, and `interfaceOrientation` is relative to the screen, so this needs no knowledge of the hinge.
+    @MainActor
+    internal static var currentInterface: WidgetInterface {
+        guard let scene = currentWindowScene else { return .main }
+        return scene.interfaceOrientation.isPortrait ? .innerPortrait : .main
+    }
+
+    /// The screen size ignoring orientation.
+    ///
+    /// Computed on every lookup rather than stored once, so a device that changes screens reports the one it is on rather than the one it started on.
+    @available(iOS, deprecated: 26)
+    @MainActor
+    internal static var currentScreenSize: CGSize {
+        (currentScreen ?? UIScreen.main).fixedCoordinateSpace.bounds.size
+    }
 
     /// Pixels per point on the current display.
     ///
-    /// Needed because a 414x896 screen is 2x on an iPhone 11 and 3x on an iPhone 11 Pro Max, and from iOS 26 those report different widget frames.
+    /// Needed because a 414x896 screen is 2x on an iPhone 11 and 3x on an iPhone 11 Pro Max, and from iOS 26 those report different widget frames. Computed for the same reason as ``currentScreenSize``: two screens on one device need not share a scale.
     @available(iOS, deprecated: 26)
     @MainActor
-    internal static let currentDisplayScale = UIScreen.main.scale
+    internal static var currentDisplayScale: CGFloat {
+        (currentScreen ?? UIScreen.main).scale
+    }
 
     /// Find the supported sizes for a specified device
     /// - Parameter device: iPhone or iPad
@@ -77,7 +107,8 @@ public extension WidgetSize {
             platform: .current,
             screenSize: Self.currentScreenSize,
             displayScale: Self.currentDisplayScale,
-            placement: placement
+            placement: placement,
+            interface: Self.currentInterface
         )
     }
 }
