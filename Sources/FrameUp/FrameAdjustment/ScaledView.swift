@@ -22,8 +22,6 @@ public struct ScaledView: ViewModifier {
     let scaleMode: ScaleMode
     
     /// Creates a view modifier that scales a view using `scaleEffect` to match a desired frame size
-    ///
-    /// Used in ``WidgetDemoFrame``
     /// - Parameters:
     ///   - frameSize: A preferred frame size for the final view. Actual frame size may be different depending on modes chosen.
     ///   - contentMode: A flag that indicates whether this view fits, fills, or stretches to fit the parent context.

@@ -19,11 +19,7 @@ A collection of SwiftUI tools to help with layout.
 - [`FlippingView`](#flippingview) and [`rotation3DEffect(back:)`](#rotation3deffectangleaxisanchoranchorzperspectivebacksideflipback) for making flippable views with a different view on the back side.
 - [`TabMenu`](#tabmenu), a customizable iOS tab menu with `onReselect` and `onDoubleTap` functions.
 
-Some widget-related tools
-
-- [`AccessoryInlineImage`](#accessoryinlineimage) to use any image inside an `accessoryInline` widget
-- [`WidgetSize`](#widgetsize) - Similar to WidgetFamily but returns widget frame sizes by device and doesn't require `WidgetKit`
-- [`WidgetDemoFrame`](#widgetdemoframe) creates accurately sized widget frames you can use in an iOS or macOS app.
+The widget tools (`WidgetSize`, `WidgetDemoFrame`, `AccessoryInlineImage` and `WidgetRelativeShape`) have moved to [WidgetFrames](https://github.com/ryanlintott/WidgetFrames).
 
 Additional SwiftUI tools for iOS 15, macOS 12, and tvOS 15
 
@@ -31,7 +27,6 @@ Additional SwiftUI tools for iOS 15, macOS 12, and tvOS 15
 - FULayouts: [`HFlow`](#hflow), [`VFlow`](#vflow), [`HMasonry`](#hmasonry), [`VMasonry`](#vmasonry), [`FULayoutThatFits`](#fulayoutthatfits), and [`FUViewThatFits`](#fuviewthatfits)
 - [`AnyFULayout`](#anyfulayout) to wrap multiple layouts and switch between with animation.
 - Make your own [`Custom FULayout`](#custom-fulayout) and add a SwiftUI `Layout` version using [`LayoutFromFULayout`](#layoutfromfulayout)
-- [`WidgetRelativeShape`](#widgetrelativeshape) fixes a `ContainerRelativeShape` bug on iPad.
 
 
 # Demo App
@@ -472,51 +467,7 @@ ContentView()
 ```
 
 ## Widgets
-### AccessoryInlineImage
-An image that will be scaled and have the rendering mode adjusted to work inside an `accessoryInline` widget. The image will scale to fit the frame and have the template rendering mode applied.
-
-Use inside a Label's icon property.
-
-```swift
-Label {
-    Text("Label Text")
-} icon: {
-    AccessoryInlineImage("myImage")
-}
-```
-
-### WidgetSize
-An enum similar to WidgetFamily but returns widget frame sizes by device and doesn't require `WidgetKit` so it can be used inside your main iOS or macOS app.
-
-#### `sizeForiPhone(screenSize:)`
-Returns the size of the widget based on the screen size provided.
-
-#### `sizeForiPad(screenSize:target:)`
-Returns either the design canvas or the home screen size (depending on the supplied target) of the widget based on the screen size provided. On iPads widget content is put on the design canvas then scaled to fit the home screen size. (The `WidgetDemoFrame` will do this scaling for you)
-
-#### `sizeForVisionOS()`
-Returns the size of the widget on visionOS.
-
-#### `supportedSizesForCurrentDevice`
-Returns an array of supported widget sizes based on the current platform and OS version.
-
-#### `sizeForCurrentDevice(iPadTarget:)` (iOS Only)
-Returns the size of the widget based on the current device. On visionOS and watchOS use `sizeForCurrentDevice()`, which takes no target.
-
-Widget sizes come from [Apple's Human Interface Guidelines](https://developer.apple.com/design/human-interface-guidelines/widgets#Specifications) where Apple's values hold, and are measured everywhere else. See [Measurements](Measurements/README.md).
-
-### WidgetDemoFrame
-Creates widget frames sized for a supplied screen size or the current device (iOS only). Used for showing example widgets from inside the app.
-
-Corner radius size defaults to 20 and may not be the same as the actual widget corner radius.
-
-For iPad, widget views use a design size and are scaled to a smaller Home Screen size using `ScaledView`. This demo frame uses the same scaling to properly preview the widget. All sizes will work on all devices and all versions of iOS (even extraLarge on iPhone with iOS 14.0).
-
-```swift
-WidgetDemoFrame(.medium, cornerRadius: 20) { size, cornerRadius in
-    Text("Demo Widget")
-}
-```
+The widget tools moved to their own package, [WidgetFrames](https://github.com/ryanlintott/WidgetFrames), in FrameUp 1.0.0. `WidgetSize`, `WidgetDemoFrame`, `AccessoryInlineImage` and `WidgetRelativeShape` are still declared in FrameUp but are unavailable, and each one's error message names its replacement in WidgetFrames.
 
 ## Additional Tools
 ### Proportionable
@@ -760,24 +711,4 @@ struct CustomLayout: LayoutFromFULayout {
         )
     }
 }
-```
-
-## Widget bugfixes
-
-### WidgetRelativeShape
-*\*iOS only*
-
-A re-scaled version of `ContainerRelativeShape` used to fix a bug with the corner radius on iPads running iOS 15 and earlier. It acts exactly the same as ContainerRelativeShape for iOS 16 and up.
-
-This example has a blue background with a 1 point inset. On an iPad running iOS 15 or earlier, the red background will show on the corners as the corner radius does not match.
-
-```swift
-Text("Example widget")
-    .background(.blue)
-    .clipShape(WidgetRelativeShape(.systemSmall))
-    .background(
-        ContainerRelativeShape()
-            .fill(.red)
-    )
-    .padding(1)
 ```

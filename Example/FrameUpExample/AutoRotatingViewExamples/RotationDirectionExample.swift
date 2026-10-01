@@ -43,11 +43,20 @@ struct RotationDirectionExample: View {
 
     /// A slider for the angle of rotation about one axis.
     func slider(_ axis: String, value: Binding<Double>) -> some View {
+        #if os(tvOS)
+        HStack {
+            Text("\(axis): \(Int(value.wrappedValue))°")
+                .font(.body.monospaced())
+            Button("-") { value.wrappedValue = max(-180, value.wrappedValue - 15) }
+            Button("+") { value.wrappedValue = min(180, value.wrappedValue + 15) }
+        }
+        #else
         VStack(alignment: .leading, spacing: 0) {
             Text("\(axis): \(Int(value.wrappedValue))°")
                 .font(.body.monospaced())
             Slider(value: value, in: -180...180, step: 1)
         }
+        #endif
     }
 
     func panel(_ title: String) -> some View {

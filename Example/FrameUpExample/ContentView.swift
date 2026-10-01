@@ -33,8 +33,6 @@ struct ContentView: View {
         
         TabMenuExamples()
         
-        WidgetExamples()
-        
         FULayoutExamples()
         
         /// These likely won't work

@@ -8,33 +8,13 @@
 
 /* Begin PBXBuildFile section */
 		CF1AB2B22CB5BF530049E553 /* FrameUp in Frameworks */ = {isa = PBXBuildFile; productRef = CF1AB2B12CB5BF530049E553 /* FrameUp */; };
-		CF1EEF3E274D4C4D00987595 /* WidgetFrameWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = CF1EEF2D274D4C4C00987595 /* WidgetFrameWidgetExtension.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		CF1EEF4D274D60E900987595 /* FrameUp in Frameworks */ = {isa = PBXBuildFile; productRef = CF1EEF4C274D60E900987595 /* FrameUp */; };
-		CF68E3843059D416003902AC /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = CF68E3833059D416003902AC /* AppIcon.icon */; };
 		CF68E3853059D416003902AC /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = CF68E3833059D416003902AC /* AppIcon.icon */; };
 		CF68E3863059D416003902AC /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = CF68E3833059D416003902AC /* AppIcon.icon */; };
-		CFB000000000000000000003 /* WidgetSizeProbeExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = CFB000000000000000000002 /* WidgetSizeProbeExtension.appex */; platformFilters = (ios, macos, xros, ); settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		CFB000000000000000000008 /* FrameUp in Frameworks */ = {isa = PBXBuildFile; productRef = CFB000000000000000000007 /* FrameUp */; };
-		CFB000000000000000000020 /* WidgetSizeProbeExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = CFB000000000000000000002 /* WidgetSizeProbeExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		CFF359C92C090B4100AFC57E /* FrameUpWatchExample Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = CFF359BC2C090B3F00AFC57E /* FrameUpWatchExample Watch App.app */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		CFF359CF2C090BEA00AFC57E /* FrameUp in Frameworks */ = {isa = PBXBuildFile; productRef = CFF359CE2C090BEA00AFC57E /* FrameUp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		CF1EEF3C274D4C4D00987595 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CF48CC9326F131C200406F4E /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CF1EEF2C274D4C4C00987595;
-			remoteInfo = WidgetFrameWidgetExtension;
-		};
-		CFB000000000000000000010 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CF48CC9326F131C200406F4E /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CFB000000000000000000009;
-			remoteInfo = WidgetSizeProbeExtension;
-		};
 		CFF359C72C090B4100AFC57E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = CF48CC9326F131C200406F4E /* Project object */;
@@ -45,29 +25,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		CF1EEF42274D4C4D00987595 /* Embed Foundation Extensions */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 13;
-			files = (
-				CF1EEF3E274D4C4D00987595 /* WidgetFrameWidgetExtension.appex in Embed Foundation Extensions */,
-				CFB000000000000000000003 /* WidgetSizeProbeExtension.appex in Embed Foundation Extensions */,
-			);
-			name = "Embed Foundation Extensions";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		CFB000000000000000000021 /* Embed Foundation Extensions */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 13;
-			files = (
-				CFB000000000000000000020 /* WidgetSizeProbeExtension.appex in Embed Foundation Extensions */,
-			);
-			name = "Embed Foundation Extensions";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		CFF359CA2C090B4100AFC57E /* Embed Watch Content */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -82,75 +39,23 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		CF1EEF2D274D4C4C00987595 /* WidgetFrameWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = WidgetFrameWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		CF48CC9B26F131C200406F4E /* FrameUpExample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FrameUpExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CF68E3833059D416003902AC /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
-		CFB000000000000000000002 /* WidgetSizeProbeExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = WidgetSizeProbeExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		CFF359BC2C090B3F00AFC57E /* FrameUpWatchExample Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "FrameUpWatchExample Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		CFB000000000000000000015 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = CFB000000000000000000009 /* WidgetSizeProbeExtension */;
-		};
-		CFD05555302F8CBB00D0E96D /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				"_Extensions/View+IfAvailable.swift",
-				WidgetExamples/WidgetRelativeShapeDemo.swift,
-			);
-			target = CF1EEF2C274D4C4C00987595 /* WidgetFrameWidgetExtension */;
-		};
-		CFD0556D302F8CBF00D0E96D /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				OpenAppAppIntent.swift,
-			);
-			target = CF48CC9A26F131C200406F4E /* FrameUpExample */;
-		};
-		CFD0556E302F8CBF00D0E96D /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = CF1EEF2C274D4C4C00987595 /* WidgetFrameWidgetExtension */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		CFB000000000000000000001 /* WidgetSizeProbe */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (CFB000000000000000000015 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = WidgetSizeProbe; sourceTree = "<group>"; };
 		CFD054AD302F8C9200D0E96D /* Shared */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Shared; sourceTree = "<group>"; };
-		CFD0550B302F8CBA00D0E96D /* FrameUpExample */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (CFD05555302F8CBB00D0E96D /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = FrameUpExample; sourceTree = "<group>"; };
-		CFD05561302F8CBE00D0E96D /* WidgetFrameWidget */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (CFD0556D302F8CBF00D0E96D /* PBXFileSystemSynchronizedBuildFileExceptionSet */, CFD0556E302F8CBF00D0E96D /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = WidgetFrameWidget; sourceTree = "<group>"; };
+		CFD0550B302F8CBA00D0E96D /* FrameUpExample */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = FrameUpExample; sourceTree = "<group>"; };
 		CFD05574302F8CC100D0E96D /* FrameUpWatchExample Watch App */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "FrameUpWatchExample Watch App"; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		CF1EEF2A274D4C4C00987595 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				CF1EEF4D274D60E900987595 /* FrameUp in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		CF48CC9826F131C200406F4E /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				CF1AB2B22CB5BF530049E553 /* FrameUp in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		CFB000000000000000000005 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				CFB000000000000000000008 /* FrameUp in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -170,8 +75,6 @@
 			children = (
 				CFD054AD302F8C9200D0E96D /* Shared */,
 				CFD0550B302F8CBA00D0E96D /* FrameUpExample */,
-				CFD05561302F8CBE00D0E96D /* WidgetFrameWidget */,
-				CFB000000000000000000001 /* WidgetSizeProbe */,
 				CFD05574302F8CC100D0E96D /* FrameUpWatchExample Watch App */,
 				CF68E3833059D416003902AC /* AppIcon.icon */,
 				CF48CC9C26F131C200406F4E /* Products */,
@@ -182,8 +85,6 @@
 			isa = PBXGroup;
 			children = (
 				CF48CC9B26F131C200406F4E /* FrameUpExample.app */,
-				CF1EEF2D274D4C4C00987595 /* WidgetFrameWidgetExtension.appex */,
-				CFB000000000000000000002 /* WidgetSizeProbeExtension.appex */,
 				CFF359BC2C090B3F00AFC57E /* FrameUpWatchExample Watch App.app */,
 			);
 			name = Products;
@@ -192,30 +93,6 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		CF1EEF2C274D4C4C00987595 /* WidgetFrameWidgetExtension */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = CF1EEF3F274D4C4D00987595 /* Build configuration list for PBXNativeTarget "WidgetFrameWidgetExtension" */;
-			buildPhases = (
-				CF1EEF29274D4C4C00987595 /* Sources */,
-				CF1EEF2A274D4C4C00987595 /* Frameworks */,
-				CF1EEF2B274D4C4C00987595 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				CFD054AD302F8C9200D0E96D /* Shared */,
-				CFD05561302F8CBE00D0E96D /* WidgetFrameWidget */,
-			);
-			name = WidgetFrameWidgetExtension;
-			packageProductDependencies = (
-				CF1EEF4C274D60E900987595 /* FrameUp */,
-			);
-			productName = WidgetFrameWidgetExtension;
-			productReference = CF1EEF2D274D4C4C00987595 /* WidgetFrameWidgetExtension.appex */;
-			productType = "com.apple.product-type.app-extension";
-		};
 		CF48CC9A26F131C200406F4E /* FrameUpExample */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = CF48CCA926F131C300406F4E /* Build configuration list for PBXNativeTarget "FrameUpExample" */;
@@ -223,14 +100,11 @@
 				CF48CC9726F131C200406F4E /* Sources */,
 				CF48CC9826F131C200406F4E /* Frameworks */,
 				CF48CC9926F131C200406F4E /* Resources */,
-				CF1EEF42274D4C4D00987595 /* Embed Foundation Extensions */,
 				CFF359CA2C090B4100AFC57E /* Embed Watch Content */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				CF1EEF3D274D4C4D00987595 /* PBXTargetDependency */,
-				CFB000000000000000000011 /* PBXTargetDependency */,
 				CFF359C82C090B4100AFC57E /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
@@ -245,29 +119,6 @@
 			productReference = CF48CC9B26F131C200406F4E /* FrameUpExample.app */;
 			productType = "com.apple.product-type.application";
 		};
-		CFB000000000000000000009 /* WidgetSizeProbeExtension */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = CFB000000000000000000014 /* Build configuration list for PBXNativeTarget "WidgetSizeProbeExtension" */;
-			buildPhases = (
-				CFB000000000000000000004 /* Sources */,
-				CFB000000000000000000005 /* Frameworks */,
-				CFB000000000000000000006 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				CFB000000000000000000001 /* WidgetSizeProbe */,
-			);
-			name = WidgetSizeProbeExtension;
-			packageProductDependencies = (
-				CFB000000000000000000007 /* FrameUp */,
-			);
-			productName = WidgetSizeProbeExtension;
-			productReference = CFB000000000000000000002 /* WidgetSizeProbeExtension.appex */;
-			productType = "com.apple.product-type.app-extension";
-		};
 		CFF359BB2C090B3F00AFC57E /* FrameUpWatchExample Watch App */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = CFF359CD2C090B4100AFC57E /* Build configuration list for PBXNativeTarget "FrameUpWatchExample Watch App" */;
@@ -275,12 +126,10 @@
 				CFF359B82C090B3F00AFC57E /* Sources */,
 				CFF359B92C090B3F00AFC57E /* Frameworks */,
 				CFF359BA2C090B3F00AFC57E /* Resources */,
-				CFB000000000000000000021 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				CFB000000000000000000022 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				CFD054AD302F8C9200D0E96D /* Shared */,
@@ -304,9 +153,6 @@
 				LastSwiftUpdateCheck = 1540;
 				LastUpgradeCheck = 2710;
 				TargetAttributes = {
-					CF1EEF2C274D4C4C00987595 = {
-						CreatedOnToolsVersion = 13.1;
-					};
 					CF48CC9A26F131C200406F4E = {
 						CreatedOnToolsVersion = 13.0;
 					};
@@ -332,34 +178,17 @@
 			projectRoot = "";
 			targets = (
 				CF48CC9A26F131C200406F4E /* FrameUpExample */,
-				CF1EEF2C274D4C4C00987595 /* WidgetFrameWidgetExtension */,
-				CFB000000000000000000009 /* WidgetSizeProbeExtension */,
 				CFF359BB2C090B3F00AFC57E /* FrameUpWatchExample Watch App */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		CF1EEF2B274D4C4C00987595 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				CF68E3843059D416003902AC /* AppIcon.icon in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		CF48CC9926F131C200406F4E /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				CF68E3863059D416003902AC /* AppIcon.icon in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		CFB000000000000000000006 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -374,21 +203,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		CF1EEF29274D4C4C00987595 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		CF48CC9726F131C200406F4E /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		CFB000000000000000000004 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -405,27 +220,6 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		CF1EEF3D274D4C4D00987595 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			platformFilter = ios;
-			target = CF1EEF2C274D4C4C00987595 /* WidgetFrameWidgetExtension */;
-			targetProxy = CF1EEF3C274D4C4D00987595 /* PBXContainerItemProxy */;
-		};
-		CFB000000000000000000011 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			platformFilters = (
-				ios,
-				macos,
-				xros,
-			);
-			target = CFB000000000000000000009 /* WidgetSizeProbeExtension */;
-			targetProxy = CFB000000000000000000010 /* PBXContainerItemProxy */;
-		};
-		CFB000000000000000000022 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CFB000000000000000000009 /* WidgetSizeProbeExtension */;
-			targetProxy = CFB000000000000000000010 /* PBXContainerItemProxy */;
-		};
 		CFF359C82C090B4100AFC57E /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			platformFilter = ios;
@@ -435,68 +229,6 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		CF1EEF40274D4C4D00987595 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = WidgetFrameWidget/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = WidgetFrameWidget;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/../../Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.abetterwaytodo.FrameUpExample.WidgetFrameWidget;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SKIP_INSTALL = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 6.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
-		};
-		CF1EEF41274D4C4D00987595 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = WidgetFrameWidget/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = WidgetFrameWidget;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/../../Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.abetterwaytodo.FrameUpExample.WidgetFrameWidget;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SKIP_INSTALL = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 6.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Release;
-		};
 		CF48CCA726F131C300406F4E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -711,78 +443,6 @@
 			};
 			name = Release;
 		};
-		CFB000000000000000000012 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = "Entitlements/macOS-widget.entitlements";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = WidgetSizeProbe/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = WidgetSizeProbe;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/../../Frameworks",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.abetterwaytodo.FrameUpExample.WidgetSizeProbe;
-				"PRODUCT_BUNDLE_IDENTIFIER[sdk=watch*]" = com.abetterwaytodo.FrameUpExample.watchkitapp.WidgetSizeProbe;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = auto;
-				SKIP_INSTALL = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx watchos watchsimulator xros xrsimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 6.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
-				"TARGETED_DEVICE_FAMILY[sdk=watch*]" = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 9.0;
-				XROS_DEPLOYMENT_TARGET = 26.0;
-			};
-			name = Debug;
-		};
-		CFB000000000000000000013 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = "Entitlements/macOS-widget.entitlements";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = WidgetSizeProbe/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = WidgetSizeProbe;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/../../Frameworks",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.abetterwaytodo.FrameUpExample.WidgetSizeProbe;
-				"PRODUCT_BUNDLE_IDENTIFIER[sdk=watch*]" = com.abetterwaytodo.FrameUpExample.watchkitapp.WidgetSizeProbe;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = auto;
-				SKIP_INSTALL = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx watchos watchsimulator xros xrsimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 6.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
-				"TARGETED_DEVICE_FAMILY[sdk=watch*]" = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 9.0;
-				XROS_DEPLOYMENT_TARGET = 26.0;
-			};
-			name = Release;
-		};
 		CFF359CB2C090B4100AFC57E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -851,15 +511,6 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		CF1EEF3F274D4C4D00987595 /* Build configuration list for PBXNativeTarget "WidgetFrameWidgetExtension" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				CF1EEF40274D4C4D00987595 /* Debug */,
-				CF1EEF41274D4C4D00987595 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		CF48CC9626F131C200406F4E /* Build configuration list for PBXProject "FrameUpExample" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -874,15 +525,6 @@
 			buildConfigurations = (
 				CF48CCAA26F131C300406F4E /* Debug */,
 				CF48CCAB26F131C300406F4E /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		CFB000000000000000000014 /* Build configuration list for PBXNativeTarget "WidgetSizeProbeExtension" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				CFB000000000000000000012 /* Debug */,
-				CFB000000000000000000013 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -907,14 +549,6 @@
 
 /* Begin XCSwiftPackageProductDependency section */
 		CF1AB2B12CB5BF530049E553 /* FrameUp */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = FrameUp;
-		};
-		CF1EEF4C274D60E900987595 /* FrameUp */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = FrameUp;
-		};
-		CFB000000000000000000007 /* FrameUp */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = FrameUp;
 		};
