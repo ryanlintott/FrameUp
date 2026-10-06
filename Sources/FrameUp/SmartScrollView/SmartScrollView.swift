@@ -71,7 +71,7 @@ public struct SmartScrollViewState: Equatable, Sendable {
  
  Limitations:
  - If placed directly inside a NavigationView with a resizing header, this view may behave strangely when scrolling. To avoid this add 1 point of padding to the top of this view.
- - If the available space for this view grows for any reason other than screen rotation, this view will not grow to fill the space. If you know the value that causes this change, add an `.id(value)` modifier below this view to trigger the view to recalculate. This will cause it to scroll to the top.
+ - Before iOS 16, if the available space for this view grows for any reason other than rotation to a supported orientation, this view will not grow to fill the space. If you know the value that causes this change, add an `.id(value)` modifier below this view to trigger the view to recalculate. This will cause it to scroll to the top.
 */
 public struct SmartScrollView<Content: View>: View {
     /// The scroll view’s scrollable axis. The default axis is the vertical axis.
@@ -112,7 +112,10 @@ public struct SmartScrollView<Content: View>: View {
     /// Sizes required for displaying scrollview
     @State private var state: SmartScrollViewState? = nil
     
-    /// Last orientation is saved
+    /// The space available when the state was measured, used to tell when there is more.
+    @State private var measuredAvailableSize: CGSize? = nil
+    
+    /// Last orientation is saved. Only used before iOS 16, where changes in available space aren't observed.
     @State private var lastOrientation: FUInterfaceOrientation? = UIDevice.current.orientation.interfaceOrientation
     
     /// Axes that will be used on ScrollView
@@ -145,8 +148,9 @@ public struct SmartScrollView<Content: View>: View {
         )
         
         guard let state else {
-            /// State is nil so initialize state
+            /// State is nil so initialize state. With no frame applied yet, the scroll view size is all the space available.
             self.state = .init(content: contentSize, scrollView: scrollViewSize)
+            measuredAvailableSize = measurements.state.scrollView
             return
         }
         
@@ -159,6 +163,7 @@ public struct SmartScrollView<Content: View>: View {
         guard state.scrollView.equals(scrollViewSize, precision: 0.01) else {
             /// Scroll view size has changed (it can only shrink) so update state.
             self.state = .init(content: contentSize, scrollView: scrollViewSize)
+            measuredAvailableSize = measurements.state.scrollView
             /// Update edgeInsets when scroll view size changes
             onScroll?(measurements.edgeInsets)
             return
@@ -166,6 +171,28 @@ public struct SmartScrollView<Content: View>: View {
         
         /// State is stable so just update onScroll
         onScroll?(measurements.edgeInsets)
+    }
+    
+    /// Resets the state when more space is available on an axis where the scroll view was limited by space.
+    ///
+    /// Where the scroll view had already shrunk to fit content smaller than the space it had, more space changes nothing, so it's ignored. This also stops a parent that offers more space once the view has shrunk, such as a stack with flexible siblings, from resetting it again and again.
+    func availableSizeChanged(_ availableSize: CGSize) {
+        guard let state, let measuredAvailableSize else { return }
+        let precision: CGFloat = 0.5
+        
+        func isLimited(available: CGFloat, measuredAvailable: CGFloat, content: CGFloat, fitsContent: Bool) -> Bool {
+            guard available > measuredAvailable + precision else { return false }
+            return !(fitsContent && content < measuredAvailable - precision)
+        }
+        
+        /// These match the axes where `updateValues` shrinks the scroll view to its content.
+        let fitsContentWidth = axes.contains(.vertical) || shrinkToFit
+        let fitsContentHeight = axes.contains(.horizontal) || shrinkToFit
+        
+        if isLimited(available: availableSize.width, measuredAvailable: measuredAvailableSize.width, content: state.content.width, fitsContent: fitsContentWidth)
+            || isLimited(available: availableSize.height, measuredAvailable: measuredAvailableSize.height, content: state.content.height, fitsContent: fitsContentHeight) {
+            resetMeasurements()
+        }
     }
     
     public var body: some View {
@@ -210,14 +237,21 @@ public struct SmartScrollView<Content: View>: View {
                 resetMeasurements()
             }
         }
-        /// If the screen rotates to a different supported orientation, reset the state.
-        /// Ignore rotations to face up and face down as they don't effect layout
-        .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
-            if let deviceOrientation = UIDevice.current.orientation.interfaceOrientation, InfoDictionary.supportedInterfaceOrientations.contains(deviceOrientation),
-               deviceOrientation != lastOrientation {
-                /// Update lastOrientation to the current state
-                lastOrientation = deviceOrientation
-                resetMeasurements()
+        .ifAvailable {
+            if #available(iOS 16, *) {
+                /// If more space is available, reset the state. This covers rotation on any screen, folding and unfolding a foldable iPhone, window resizing, the keyboard hiding and any change in the parent's layout.
+                $0.onAvailableSizeChange(availableSizeChanged)
+            } else {
+                /// If the screen rotates to a different supported orientation, reset the state.
+                /// Ignore rotations to face up and face down as they don't effect layout
+                $0.onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
+                    if let deviceOrientation = UIDevice.current.orientation.interfaceOrientation, InfoDictionary.supportedInterfaceOrientations.contains(deviceOrientation),
+                       deviceOrientation != lastOrientation {
+                        /// Update lastOrientation to the current state
+                        lastOrientation = deviceOrientation
+                        resetMeasurements()
+                    }
+                }
             }
         }
         /// Debugging overlay

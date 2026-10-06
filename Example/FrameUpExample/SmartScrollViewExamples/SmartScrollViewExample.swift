@@ -36,26 +36,24 @@ struct SmartScrollViewExample: View {
         return axes
     }
     
-    @State private var smartScrollID =  UUID()
+    /// Changed when the text is edited, so the scroll view measures again before iOS 16.
+    @State private var smartScrollID = UUID()
     
     var body: some View {
         VStack {
             SmartScrollView(axes, showsIndicators: showsIndicators, optionalScrolling: optionalScrolling, shrinkToFit: shrinkToFit) {
-                HStack {
-                    Text("Hello")
+                VStack {
+                    ForEach(items, id: \.0) { (i, text) in
+                        VStack {
+                            Text(text)
+                                .font(.title)
+                        }
+                    }
                 }
-//                VStack {
-//                    ForEach(items, id: \.0) { (i, text) in
-//                        VStack {
-//                            Text(text)
-//                                .font(.title)
-//                        }
-//                    }
-//                }
             } onScroll: { edgeInsets in
                 self.edgeInsets = edgeInsets
             }
-            .id(smartScrollID)
+            .smartScrollViewID(smartScrollID)
             .background(Color.gray.opacity(0.5))
             .padding(30)
             .overlay(

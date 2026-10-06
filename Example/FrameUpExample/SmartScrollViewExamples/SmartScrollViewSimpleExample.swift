@@ -25,7 +25,7 @@ struct SmartScrollViewSimpleExample: View {
                     .padding()
                     .background(Color.blue)
             }
-            .id(maxHeight)
+            .smartScrollViewID(maxHeight)
             .background(Color.red)
             // padding of at least 1 point is needed when inside a navigation stack as it will resize the available space
             .frame(maxHeight: maxHeight, alignment: .top)
