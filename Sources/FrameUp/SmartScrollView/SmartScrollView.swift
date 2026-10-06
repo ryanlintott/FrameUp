@@ -50,6 +50,18 @@ public struct SmartScrollViewState: Equatable, Sendable {
     let content: CGSize
     /// Scroll view size
     let scrollView: CGSize
+    /// The space available when the sizes were measured, before the scroll view shrinks to fit its content. Used to tell when there is more.
+    let availableSize: CGSize
+    
+    /// - Parameters:
+    ///   - content: Content size.
+    ///   - scrollView: Scroll view size.
+    ///   - availableSize: The space available when the sizes were measured. Defaults to the scroll view size, which is all the space available until the scroll view shrinks.
+    init(content: CGSize, scrollView: CGSize, availableSize: CGSize? = nil) {
+        self.content = content
+        self.scrollView = scrollView
+        self.availableSize = availableSize ?? scrollView
+    }
     
     /// A recommended set axes for scrolling based on a the maximum frame size and content size.
     var recommendedAxes: Axis.Set {
@@ -61,6 +73,27 @@ public struct SmartScrollViewState: Equatable, Sendable {
             axes.update(with: .horizontal)
         }
         return axes
+    }
+    
+    /// True when the new space is larger on an axis where space limited the scroll view.
+    ///
+    /// Where the scroll view had already shrunk to fit content smaller than the space it had, more space changes nothing, so it's ignored.
+    /// - Parameters:
+    ///   - newAvailableSize: The space available now.
+    ///   - fitsContentWidth: True if the scroll view shrinks its width to fit its content.
+    ///   - fitsContentHeight: True if the scroll view shrinks its height to fit its content.
+    func canGrow(
+        into newAvailableSize: CGSize,
+        fitsContentWidth: Bool,
+        fitsContentHeight: Bool
+    ) -> Bool {
+        let precision: CGFloat = 0.5
+        /// An axis was limited by space unless the scroll view shrank to fit content smaller than the space it had.
+        let isWidthLimited = !(fitsContentWidth && content.width < availableSize.width - precision)
+        let isHeightLimited = !(fitsContentHeight && content.height < availableSize.height - precision)
+        
+        return (isWidthLimited && newAvailableSize.width > availableSize.width + precision)
+            || (isHeightLimited && newAvailableSize.height > availableSize.height + precision)
     }
 }
 
@@ -112,9 +145,6 @@ public struct SmartScrollView<Content: View>: View {
     /// Sizes required for displaying scrollview
     @State private var state: SmartScrollViewState? = nil
     
-    /// The space available when the state was measured, used to tell when there is more.
-    @State private var measuredAvailableSize: CGSize? = nil
-    
     /// Last orientation is saved. Only used before iOS 16, where changes in available space aren't observed.
     @State private var lastOrientation: FUInterfaceOrientation? = UIDevice.current.orientation.interfaceOrientation
     
@@ -122,6 +152,16 @@ public struct SmartScrollView<Content: View>: View {
     var scrollViewAxes: Axis.Set {
         guard optionalScrolling else { return axes }
         return state?.recommendedAxes.intersection(axes) ?? []
+    }
+    
+    /// True if the scroll view shrinks its width to fit its content.
+    var fitsContentWidth: Bool {
+        axes.contains(.vertical) || shrinkToFit
+    }
+    
+    /// True if the scroll view shrinks its height to fit its content.
+    var fitsContentHeight: Bool {
+        axes.contains(.horizontal) || shrinkToFit
     }
     
     func resetMeasurements() {
@@ -143,14 +183,13 @@ public struct SmartScrollView<Content: View>: View {
         let contentSize = measurements.state.content
         
         let scrollViewSize = CGSize(
-            width: min(measurements.state.scrollView.width, axes.contains(.vertical) || shrinkToFit ? contentSize.width : .infinity),
-            height: min(measurements.state.scrollView.height, axes.contains(.horizontal) || shrinkToFit ? contentSize.height : .infinity)
+            width: min(measurements.state.scrollView.width, fitsContentWidth ? contentSize.width : .infinity),
+            height: min(measurements.state.scrollView.height, fitsContentHeight ? contentSize.height : .infinity)
         )
         
         guard let state else {
             /// State is nil so initialize state. With no frame applied yet, the scroll view size is all the space available.
-            self.state = .init(content: contentSize, scrollView: scrollViewSize)
-            measuredAvailableSize = measurements.state.scrollView
+            self.state = .init(content: contentSize, scrollView: scrollViewSize, availableSize: measurements.state.availableSize)
             return
         }
         
@@ -162,8 +201,7 @@ public struct SmartScrollView<Content: View>: View {
         
         guard state.scrollView.equals(scrollViewSize, precision: 0.01) else {
             /// Scroll view size has changed (it can only shrink) so update state.
-            self.state = .init(content: contentSize, scrollView: scrollViewSize)
-            measuredAvailableSize = measurements.state.scrollView
+            self.state = .init(content: contentSize, scrollView: scrollViewSize, availableSize: measurements.state.availableSize)
             /// Update edgeInsets when scroll view size changes
             onScroll?(measurements.edgeInsets)
             return
@@ -175,24 +213,13 @@ public struct SmartScrollView<Content: View>: View {
     
     /// Resets the state when more space is available on an axis where the scroll view was limited by space.
     ///
-    /// Where the scroll view had already shrunk to fit content smaller than the space it had, more space changes nothing, so it's ignored. This also stops a parent that offers more space once the view has shrunk, such as a stack with flexible siblings, from resetting it again and again.
+    /// Ignoring growth where the scroll view had already shrunk to fit its content also stops a parent that offers more space once the view has shrunk, such as a stack with flexible siblings, from resetting it again and again.
     func availableSizeChanged(_ availableSize: CGSize) {
-        guard let state, let measuredAvailableSize else { return }
-        let precision: CGFloat = 0.5
-        
-        func isLimited(available: CGFloat, measuredAvailable: CGFloat, content: CGFloat, fitsContent: Bool) -> Bool {
-            guard available > measuredAvailable + precision else { return false }
-            return !(fitsContent && content < measuredAvailable - precision)
-        }
-        
-        /// These match the axes where `updateValues` shrinks the scroll view to its content.
-        let fitsContentWidth = axes.contains(.vertical) || shrinkToFit
-        let fitsContentHeight = axes.contains(.horizontal) || shrinkToFit
-        
-        if isLimited(available: availableSize.width, measuredAvailable: measuredAvailableSize.width, content: state.content.width, fitsContent: fitsContentWidth)
-            || isLimited(available: availableSize.height, measuredAvailable: measuredAvailableSize.height, content: state.content.height, fitsContent: fitsContentHeight) {
-            resetMeasurements()
-        }
+        guard let state,
+              state.canGrow(
+                into: availableSize,
+                fitsContentWidth: fitsContentWidth, fitsContentHeight: fitsContentHeight) else { return }
+        resetMeasurements()
     }
     
     public var body: some View {
