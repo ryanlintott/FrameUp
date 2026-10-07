@@ -467,7 +467,7 @@ ContentView()
 ```
 
 ## Widgets
-The widget tools moved to their own package, [WidgetFrames](https://github.com/ryanlintott/WidgetFrames), in FrameUp 1.0.0. `WidgetSize`, `WidgetDemoFrame`, `AccessoryInlineImage` and `WidgetRelativeShape` are still declared in FrameUp but are unavailable, and each one's error message names its replacement in WidgetFrames.
+The widget tools moved to their own package, [WidgetFrames](https://github.com/ryanlintott/WidgetFrames), in FrameUp 1.0.0. `WidgetSize`, `WidgetDemoFrame`, `AccessoryInlineImage` and `WidgetRelativeShape` are no longer declared in FrameUp. Add WidgetFrames and import it. Its deprecated functions forward the FrameUp 0.9.11 lookups to their replacements.
 
 ## Additional Tools
 ### Proportionable
