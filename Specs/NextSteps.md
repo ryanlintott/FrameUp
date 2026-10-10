@@ -24,9 +24,4 @@ Untested. Decide whether the padding is meant to be relative to the space offere
 
 ## Effects applied to the whole tab menu
 
-The vertical bars only come with `tabMenu(selection:items:...)`, which creates the `TabMenu` and places it itself. An app can no longer wrap the menu view in its own modifiers, so an effect applied to the whole menu, such as the gold shimmer Wordhord puts on its tab bar, may not carry over.
-
-Not yet checked against Wordhord. Options to look at:
-
-- Apply the effect to each item instead. The `maskedView` closure already draws each item's fill, so a shimmer there might be enough, though it would run separately per item rather than as one sweep across the menu.
-- Let `tabMenu` take a way to adjust the placed menu, such as a closure or modifier applied to the `TabMenu` in each placement.
+Moved to [TabMenu-Styles.md](TabMenu-Styles.md).
