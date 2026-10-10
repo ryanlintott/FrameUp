@@ -27,6 +27,8 @@ public struct TabMenuItem<Tab: Hashable>: Identifiable {
     public var id: Tab { tab }
     /// The title and icon, as a `Label`.
     public let label: Label<Text, TabMenuItemIcon>
+    /// False only for an item made by a deprecated initialiser without a name, whose title is a stand-in. Remove with TabMenu+Deprecated.swift.
+    var isNamed = true
 
     @MainActor
     private init(title: Text, icon: TabMenuItemIcon.Storage, tab: Tab) {

@@ -34,13 +34,23 @@ import SwiftUI
 public struct TabMenu<Tab: Hashable>: View {
     /// The screen edge the menu is placed against. Only `tabMenu(selection:items:)` sets it, so a menu placed by hand sees nil and stays horizontal.
     @Environment(\.tabMenuEdge) private var edge
-    @Environment(\.tabMenuItemStyle) private var itemStyle
+    @Environment(\.tabMenuItemStyle) private var environmentItemStyle
     @Environment(\.tabMenuHorizontalDistribution) private var horizontalDistribution
-    @Environment(\.tabMenuItemReselectAction) private var onReselect
-    @Environment(\.tabMenuItemDoubleTapAction) private var onDoubleTap
+    @Environment(\.tabMenuItemReselectAction) private var environmentReselect
+    @Environment(\.tabMenuItemDoubleTapAction) private var environmentDoubleTap
 
     @Binding var selection: Tab
     let items: [TabMenuItem<Tab>]
+
+    /// Set only by the deprecated initialiser that takes a masked view and actions, in place of the environment's style and actions. Remove with TabMenu+Deprecated.swift.
+    var itemStyleOverride: (any TabMenuItemStyle)? = nil
+    var reselectOverride: TabMenuItemAction? = nil
+    var doubleTapOverride: TabMenuItemAction? = nil
+
+    /// The overrides take precedence over the environment. When they're removed, read the environment directly. Remove with TabMenu+Deprecated.swift.
+    private var itemStyle: any TabMenuItemStyle { itemStyleOverride ?? environmentItemStyle }
+    private var onReselect: TabMenuItemAction? { reselectOverride ?? environmentReselect }
+    private var onDoubleTap: TabMenuItemAction? { doubleTapOverride ?? environmentDoubleTap }
 
     /// Creates a customized tab menu view
     /// - Parameters:

@@ -13,12 +13,14 @@ import SwiftUI
 /// The icon is 22 points tall above a 10 point title. Along the bottom they sit at the bottom of the item; in a vertical bar they're centred, and the title truncates rather than wrapping. Use ``TabMenuItemStyle/masked(_:)`` to create one.
 public struct MaskedTabMenuItemStyle<Fill: View>: TabMenuItemStyle {
     let fill: (Bool) -> Fill
+    /// False only for the deprecated `TabMenu` initialiser's `isShowingName: false`. VoiceOver still reads the title. Remove with TabMenu+Deprecated.swift.
+    var showsTitle = true
 
     public func makeBody(configuration: Configuration) -> some View {
         fill(configuration.isSelected)
             .mask(
                 configuration.label
-                    .labelStyle(MaskedTabMenuItemLabelStyle(axis: configuration.axis))
+                    .labelStyle(MaskedTabMenuItemLabelStyle(axis: configuration.axis, showsTitle: showsTitle))
             )
             /// VoiceOver can't read a mask, so it reads the label instead: its title, once.
             .accessibilityRepresentation {
@@ -63,6 +65,8 @@ public extension TabMenuItemStyle where Self == AutomaticTabMenuItemStyle {
 /// Lays out the icon and title for ``MaskedTabMenuItemStyle``, filling the item so they can be placed in it.
 struct MaskedTabMenuItemLabelStyle: LabelStyle {
     let axis: Axis
+    /// Passed on from ``MaskedTabMenuItemStyle``. Remove with TabMenu+Deprecated.swift.
+    var showsTitle = true
 
     func makeBody(configuration: Configuration) -> some View {
         VStack(spacing: 2) {
@@ -74,9 +78,11 @@ struct MaskedTabMenuItemLabelStyle: LabelStyle {
                 .scaledToFit()
                 .frame(height: 22)
 
-            configuration.title
-                /// The vertical bar is narrow, so a long title truncates rather than wrapping.
-                .lineLimit(axis == .vertical ? 1 : nil)
+            if showsTitle {
+                configuration.title
+                    /// The vertical bar is narrow, so a long title truncates rather than wrapping.
+                    .lineLimit(axis == .vertical ? 1 : nil)
+            }
 
             /// Centres the icon and title in a vertical item. A horizontal item keeps them at the bottom.
             if axis == .vertical {

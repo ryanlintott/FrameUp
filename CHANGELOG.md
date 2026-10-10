@@ -35,6 +35,8 @@ Before upgrading, resolve any deprecation warnings from `0.9.11` — `HFlowLegac
 
   The style and action modifiers can go outside `tabMenu(selection:items:)`, since the menu is inside it. The actions don't reach a `TabMenu` in its content.
 
+  The 0.9 initialisers are kept, deprecated, to help migration, and draw the same menu as before: `TabMenu(selection:items:isShowingName:maskedView:onReselect:onDoubleTap:)`, `NamedAction`, `TabMenuItem(icon:name:tab:)`, `TabMenuItem(image:name:tab:)` and `==` on `TabMenuItem`. Each warning says what to use instead. `TabMenuItem`'s `icon` and `name` are unavailable, and a type written as `TabMenu<Tab, Content>` becomes `TabMenu<Tab>`. The deprecated API will be removed in a later release.
+
 ### Added
 
 - `tabMenu(selection:items:)`, which places a `TabMenu` where the system would put its tab bar. On most screens that's along the bottom. On the iPhone Duo it's the system's vertical column beside the content, on either edge, stacked at the bottom of the column and clear of the camera, the status items and the hinge, squeezing the items rather than leaving the column when there isn't room. In the Duo's left split window, which names a column without a safe area for it, the menu reserves the column and moves the content over. It reads the column from SwiftUI's `toolbarVerticalEdge` and `reservedRegions`, so the column needs iOS 27.1. A `TabMenu` placed by hand stays horizontal, as before.
