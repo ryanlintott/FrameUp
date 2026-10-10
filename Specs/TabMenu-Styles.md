@@ -314,3 +314,152 @@ ContentView()
 ```
 
 `TabMenuStyleConfiguration.Content` would be an opaque wrapper view (like `LabelStyleConfiguration.Title`), so the configuration needn't be generic. Tests would check it along the bottom, in the custom vertical bar and in the Duo's column, with a moving gradient masked over the whole menu.
+
+## Optional extra: selection animation
+
+Not part of the first release. Builds on the optional menu style above. Together they let a selection indicator move between items with `matchedGeometryEffect`: a line sliding under the selected item, a highlight behind it, or a glass selection like the system's Liquid Glass tab bar.
+
+### Selection animation
+
+```swift
+public extension View {
+    /// The animation a tab menu uses for its own views when the selection changes. Default is nil, no animation.
+    func tabMenuSelectionAnimation(_ animation: Animation?) -> some View
+}
+```
+
+`TabMenu` sets the selection without animation, so any selection indicator would jump between items. Wrapping the change in `withAnimation` would also animate the app's content switching tabs. Instead `TabMenu` applies `.animation(animation, value: selection)` to the menu only.
+
+Check in the simulator that a `matchedGeometryEffect` moving from one item's subtree to another's picks up this animation. If it doesn't, `TabMenu` may need to apply the animation around the whole stack of items instead.
+
+### Sharing a namespace
+
+The namespace that ties the indicator across items comes from the menu style, not the configuration. A style isn't a view, so it can't declare `@Namespace`, but its `makeBody` can return a small view that owns one and passes it to the items through the environment. The items are drawn inside `configuration.content`, so the environment reaches them, and the item style returns a view to read it. Without the menu style the namespace is nil and the items still draw, but nothing slides.
+
+### Example: a sliding line
+
+The menu style only provides the namespace. The item style draws a line under the selected item:
+
+```swift
+extension EnvironmentValues {
+    @Entry var tabIndicatorNamespace: Namespace.ID? = nil
+}
+
+struct SlidingLineTabMenuStyle: TabMenuStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        NamespaceProvider(content: configuration.content)
+    }
+
+    private struct NamespaceProvider<Content: View>: View {
+        let content: Content
+        @Namespace private var namespace
+
+        var body: some View {
+            content
+                .environment(\.tabIndicatorNamespace, namespace)
+        }
+    }
+}
+
+struct SlidingLineItemStyle: TabMenuItemStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        LineItem(configuration: configuration)
+    }
+
+    private struct LineItem: View {
+        let configuration: TabMenuItemStyleConfiguration
+        @Environment(\.tabIndicatorNamespace) private var namespace
+
+        var body: some View {
+            configuration.label
+                .labelStyle(StackedLabelStyle())
+                .foregroundStyle(configuration.isSelected ? .primary : .secondary)
+                .overlay(alignment: .bottom) {
+                    if configuration.isSelected, let namespace {
+                        Capsule()
+                            .fill(.tint)
+                            .frame(height: 3)
+                            .matchedGeometryEffect(id: "indicator", in: namespace)
+                    }
+                }
+        }
+    }
+}
+
+ContentView()
+    .tabMenu(selection: $selection, items: items)
+    .tabMenuStyle(SlidingLineTabMenuStyle())
+    .tabMenuItemStyle(SlidingLineItemStyle())
+    .tabMenuSelectionAnimation(.snappy)
+```
+
+A style could use `configuration.edge` to put the line on the side facing the content in a vertical bar.
+
+### Example: a Liquid Glass style menu
+
+The same pattern, with the menu style also drawing the bar's glass capsule and the `GlassEffectContainer` the items' glass shapes blend in:
+
+```swift
+extension EnvironmentValues {
+    @Entry var glassTabNamespace: Namespace.ID? = nil
+}
+
+@available(iOS 26, *)
+struct GlassTabMenuStyle: TabMenuStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        GlassMenu(content: configuration.content)
+    }
+
+    private struct GlassMenu<Content: View>: View {
+        let content: Content
+        @Namespace private var namespace
+
+        var body: some View {
+            GlassEffectContainer {
+                content
+                    .environment(\.glassTabNamespace, namespace)
+            }
+            .glassEffect(.regular, in: Capsule())
+        }
+    }
+}
+
+@available(iOS 26, *)
+struct GlassItemStyle: TabMenuItemStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        GlassItem(configuration: configuration)
+    }
+
+    private struct GlassItem: View {
+        let configuration: TabMenuItemStyleConfiguration
+        @Environment(\.glassTabNamespace) private var namespace
+
+        var body: some View {
+            configuration.label
+                .labelStyle(StackedLabelStyle())
+                .padding(.horizontal, 12)
+                .padding(.vertical, 4)
+                .background {
+                    if configuration.isSelected, let namespace {
+                        Capsule()
+                            .fill(.clear)
+                            .glassEffect(.regular.interactive(), in: Capsule())
+                            .matchedGeometryEffect(id: "selection", in: namespace)
+                    }
+                }
+        }
+    }
+}
+
+ContentView()
+    .tabMenu(selection: $selection, items: items)
+    .tabMenuStyle(GlassTabMenuStyle())
+    .tabMenuItemStyle(GlassItemStyle())
+    .tabMenuSelectionAnimation(.spring)
+```
+
+The glass APIs need iOS 26, so the styles are marked available from there, while FrameUp stays iOS 15+. A floating capsule inset from the screen's edges is drawn inside the placement's frame, with padding in the menu style.
+
+Not possible with styles: pressing and dragging the selection between items, with the lens magnifying under the finger, as the system bar does. `TabMenu` owns the gestures and styles only draw, so that would be a separate feature in `TabMenu` itself.
+
+Tests would add the sliding line and the glass pair to the example app and check the indicator slides along the bottom, in the custom vertical bar and in the Duo's column, without animating the content.
