@@ -8,8 +8,31 @@
 import SwiftUI
 
 #if os(iOS)
-private struct TabMenuAxisKey: EnvironmentKey {
-    static let defaultValue: Axis = .horizontal
+private struct TabMenuEdgeKey: EnvironmentKey {
+    static let defaultValue: Edge? = nil
+}
+
+private struct TabMenuItemStyleKey: EnvironmentKey {
+    /// Computed, so the style needn't be `Sendable`.
+    static var defaultValue: any TabMenuItemStyle { AutomaticTabMenuItemStyle() }
+}
+
+private struct TabMenuItemIconIsResizableKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+private struct TabMenuHorizontalDistributionKey: EnvironmentKey {
+    static let defaultValue: TabMenuHorizontalDistribution = .equal
+}
+
+private struct TabMenuItemReselectActionKey: EnvironmentKey {
+    /// Computed, so the action needn't be `Sendable`.
+    static var defaultValue: TabMenuItemAction? { nil }
+}
+
+private struct TabMenuItemDoubleTapActionKey: EnvironmentKey {
+    /// Computed, so the action needn't be `Sendable`.
+    static var defaultValue: TabMenuItemAction? { nil }
 }
 
 private struct TabMenuVerticalBehaviorKey: EnvironmentKey {
@@ -35,10 +58,40 @@ public extension EnvironmentValues {
 }
 
 extension EnvironmentValues {
-    /// The direction a ``TabMenu`` lays out its items. Only `tabMenu(selection:items:isShowingName:horizontalDistribution:maskedView:onReselect:onDoubleTap:)` sets it, on the menu it places in a vertical bar, so a menu placed any other way stays horizontal.
-    var tabMenuAxis: Axis {
-        get { self[TabMenuAxisKey.self] }
-        set { self[TabMenuAxisKey.self] = newValue }
+    /// The screen edge a ``TabMenu`` is placed against, which also decides the direction it lays out its items. Only `tabMenu(selection:items:)` sets it, on the menu it places, so a menu placed by hand sees nil and stays horizontal.
+    var tabMenuEdge: Edge? {
+        get { self[TabMenuEdgeKey.self] }
+        set { self[TabMenuEdgeKey.self] = newValue }
+    }
+
+    /// The style that draws the items of a ``TabMenu``. Set by `tabMenuItemStyle(_:)`.
+    var tabMenuItemStyle: any TabMenuItemStyle {
+        get { self[TabMenuItemStyleKey.self] }
+        set { self[TabMenuItemStyleKey.self] = newValue }
+    }
+
+    /// Whether a `TabMenuItemIcon` holding an image makes it resizable. Set by styles that draw the icon at a fixed size.
+    var tabMenuItemIconIsResizable: Bool {
+        get { self[TabMenuItemIconIsResizableKey.self] }
+        set { self[TabMenuItemIconIsResizableKey.self] = newValue }
+    }
+
+    /// How a horizontal ``TabMenu`` spreads its items. Set by `tabMenuHorizontalDistribution(_:)`.
+    var tabMenuHorizontalDistribution: TabMenuHorizontalDistribution {
+        get { self[TabMenuHorizontalDistributionKey.self] }
+        set { self[TabMenuHorizontalDistributionKey.self] = newValue }
+    }
+
+    /// The action a ``TabMenu`` runs when its selected item is tapped again. Set by `onTabMenuItemReselect(_:perform:)`.
+    var tabMenuItemReselectAction: TabMenuItemAction? {
+        get { self[TabMenuItemReselectActionKey.self] }
+        set { self[TabMenuItemReselectActionKey.self] = newValue }
+    }
+
+    /// The action a ``TabMenu`` runs when its selected item is tapped twice. Set by `onTabMenuItemDoubleTap(_:perform:)`.
+    var tabMenuItemDoubleTapAction: TabMenuItemAction? {
+        get { self[TabMenuItemDoubleTapActionKey.self] }
+        set { self[TabMenuItemDoubleTapActionKey.self] = newValue }
     }
 
     /// Where tab menus placed in this view can stack their items in a vertical bar. Set by `tabMenuVerticalBehavior(_:)`. Without it, `.system`, so menus follow the system's vertical column.

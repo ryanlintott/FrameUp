@@ -10,81 +10,70 @@ import SwiftUI
 #if os(iOS)
 /// Customizable tab menu bar view designed to mimic the style of the default tab menu bar.
 ///
-/// Extra functions available for `onReselect` and `onDoubleTap`
-///
-/// Images or views and name provied are used to mask another provided view which is often a color.
+/// A ``TabMenuItemStyle`` set with `tabMenuItemStyle(_:)` draws each item. The default, ``TabMenuItemStyle/automatic``, masks a color with each item's icon and title. Actions for reselecting and double tapping the selected item are set with `onTabMenuItemReselect(_:perform:)` and `onTabMenuItemDoubleTap(_:perform:)`, and the spread of the items with `tabMenuHorizontalDistribution(_:)`. All of these can go on the menu or on any view above it.
 ///
 ///     let items = [
-///        TabMenuItem(image: Image(systemName: "globe"), name: "Info", tab: 0),
-///        TabMenuItem(image: Image(systemName: "star"), name: "Favourites", tab: 1),
-///        TabMenuItem(image: Image(systemName: "bookmark"), name: "Categories", tab: 2),
-///        TabMenuItem(image: Image(systemName: "books.vertical"), name: "About", tab: 3)
+///        TabMenuItem("Info", systemImage: "globe", tab: 0),
+///        TabMenuItem("Favourites", systemImage: "star", tab: 1),
+///        TabMenuItem("Categories", systemImage: "bookmark", tab: 2),
+///        TabMenuItem("About", systemImage: "books.vertical", tab: 3)
 ///     ]
 ///
-///     TabMenu(selection: $selection, items: items) { isSelected in
-///        Group {
-///            if isSelected {
-///                Color.accentColor
-///            } else {
-///                Color(.secondaryLabel)
-///            }
-///        }
-///     } onReselect: {
-///         NamedAction("Reselect") {
+///     TabMenu(selection: $selection, items: items)
+///         .tabMenuItemStyle(.masked { isSelected in
+///             isSelected ? Color.accentColor : Color(.secondaryLabel)
+///         })
+///         .onTabMenuItemReselect("Reselect") {
 ///             print("TabMenu item \(selection) reselected")
 ///         }
-///     } onDoubleTap: {
-///         NamedAction("Double Tap") {
+///         .onTabMenuItemDoubleTap("Double Tap") {
 ///             print("TabMenu item \(selection) doubletapped")
 ///         }
-///     }
 ///
-public struct TabMenu<Tab: Hashable, Content: View>: View {
-    /// The direction the items are laid out in. Vertical only when `tabMenu(selection:items:isShowingName:horizontalDistribution:maskedView:onReselect:onDoubleTap:)` places the menu in a vertical bar.
-    @Environment(\.tabMenuAxis) private var axis
-    
+/// Placed by hand, the menu is a horizontal bar. Use `tabMenu(selection:items:)` to place it where the system would put its tab bar, which can be a vertical bar.
+public struct TabMenu<Tab: Hashable>: View {
+    /// The screen edge the menu is placed against. Only `tabMenu(selection:items:)` sets it, so a menu placed by hand sees nil and stays horizontal.
+    @Environment(\.tabMenuEdge) private var edge
+    @Environment(\.tabMenuItemStyle) private var itemStyle
+    @Environment(\.tabMenuHorizontalDistribution) private var horizontalDistribution
+    @Environment(\.tabMenuItemReselectAction) private var onReselect
+    @Environment(\.tabMenuItemDoubleTapAction) private var onDoubleTap
+
     @Binding var selection: Tab
     let items: [TabMenuItem<Tab>]
-    let isShowingName: Bool
-    let horizontalDistribution: TabMenuHorizontalDistribution
-    let maskedView: (Bool) -> Content
-    let onReselect: NamedAction?
-    let onDoubleTap: NamedAction?
-    
+
     /// Creates a customized tab menu view
     /// - Parameters:
     ///   - selection: binding for the selected tab
     ///   - items: array of `TabMenuItem`
-    ///   - isShowingName: A Boolean value that indicates whether the name should be shown. Default is true if any tab menu item has a non-nil name.
-    ///   - horizontalDistribution: How the items are spread across the menu's width. Default is `.equal`, where they share the full width.
-    ///   - onReselect: A named action to run when a selected tab is reselected.
-    ///   - onDoubleTap: A named action to run when a selected tab is tapped twice.
-    ///   - maskedView: A view that will be shown, masked by the icon and text. A simple color or a more complex view can be provided. A Boolean value with the selected state is passed in so that the view can change accordingly.
-    public init(selection: Binding<Tab>, items: [TabMenuItem<Tab>], isShowingName: Bool? = nil, horizontalDistribution: TabMenuHorizontalDistribution = .equal, maskedView: @escaping (Bool) -> Content, onReselect: (() -> NamedAction)? = nil, onDoubleTap: (() -> NamedAction)? = nil) {
+    public init(selection: Binding<Tab>, items: [TabMenuItem<Tab>]) {
         self._selection = selection
         self.items = items
-        self.isShowingName = isShowingName ?? (items.first(where: { $0.name != nil }) != nil)
-        self.horizontalDistribution = horizontalDistribution
-        self.maskedView = maskedView
-        self.onReselect = onReselect?() ?? nil
-        self.onDoubleTap = onDoubleTap?() ?? nil
     }
-    
+
+    /// The direction the items are laid out in.
+    private var axis: Axis {
+        switch edge {
+        case .leading, .trailing: .vertical
+        case .top, .bottom, nil: .horizontal
+        }
+    }
 
     public var body: some View {
         switch axis {
         case .horizontal:
             HStack(spacing: itemSpacing) {
-                ForEach(items, id: \.tab) { item in
-                    itemView(item)
-                        .frame(maxWidth: .infinity)
-                        .padding(.horizontal, 10)
-                        .frame(maxWidth: maxItemWidth)
+                ForEach(items) { item in
+                    itemView(item) { styledItem in
+                        styledItem
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .padding(.horizontal, 10)
+                            .frame(maxWidth: maxItemWidth)
+                    }
                 }
             }
             /// Centres the items when they don't fill the width.
             .frame(maxWidth: .infinity)
-            .font(.system(size: 10))
             .padding(.bottom, 2)
             .padding(.horizontal, 1)
             .frame(height: 50)
@@ -92,14 +81,15 @@ public struct TabMenu<Tab: Hashable, Content: View>: View {
             .accessibilityLabel(Text("Tab bar"))
         case .vertical:
             VStack(spacing: 0) {
-                ForEach(items, id: \.tab) { item in
+                ForEach(items) { item in
                     /// The items share the menu's height, each centred in its share. The placement sets the height: the whole custom bar, or the stack that fits the system's column.
-                    itemView(item)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .padding(.horizontal, 4)
+                    itemView(item) { styledItem in
+                        styledItem
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .padding(.horizontal, 4)
+                    }
                 }
             }
-            .font(.system(size: 10))
             .accessibilityElement(children: .contain)
             .accessibilityLabel(Text("Tab bar"))
         }
@@ -121,98 +111,71 @@ public struct TabMenu<Tab: Hashable, Content: View>: View {
         }
     }
 
-    func itemView(_ item: TabMenuItem<Tab>) -> some View {
-        HStack {
-            maskedView(selection == item.tab)
-                .mask(
-                    VStack(spacing: 2) {
-                        Spacer(minLength: 0)
+    /// Draws an item with the item style, opening the style's type.
+    private func styledItem<S: TabMenuItemStyle>(_ style: S, configuration: TabMenuItemStyleConfiguration) -> AnyView {
+        AnyView(style.makeBody(configuration: configuration))
+    }
 
-                        item.icon
-                            .scaledToFit()
-                            .frame(height: 22)
+    /// An item drawn with the item style in its cell, with the selection, taps and accessibility around it, so a style can't break them.
+    /// - Parameters:
+    ///   - item: The item to draw.
+    ///   - cell: Places the styled item in its cell, which takes taps.
+    func itemView<Cell: View>(_ item: TabMenuItem<Tab>, @ViewBuilder cell: (AnyView) -> Cell) -> some View {
+        let isSelected = selection == item.tab
+        let configuration = TabMenuItemStyleConfiguration(label: item.label, isSelected: isSelected, edge: edge)
 
-                        if isShowingName {
-                            if let name = item.name {
-                                Text(name)
-                                    /// The vertical bar is narrow, so a long name truncates rather than wrapping.
-                                    .lineLimit(axis == .vertical ? 1 : nil)
-                            }
+        return cell(styledItem(itemStyle, configuration: configuration))
+            /// The whole cell takes taps, so a style that draws less than the cell is still easy to hit.
+            .contentShape(Rectangle())
+            .onTapGesture {
+                if selection != item.tab {
+                    selection = item.tab
+                }
+            }
+            .overlay(
+                Group {
+                    if isSelected {
+                        if let onDoubleTap {
+                            Color.clear
+                                .contentShape(Rectangle())
+                                .onTapGesture(count: 2) {
+                                    onDoubleTap.action()
+                                }
+                                .onTapGesture {
+                                    onReselect?.action()
+                                }
+                        } else {
+                            Color.clear
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    onReselect?.action()
+                                }
                         }
-
-                        /// Centres the icon and name in a vertical item. A horizontal item keeps them at the bottom, as before.
-                        if axis == .vertical {
-                            Spacer(minLength: 0)
-                        }
-                    }
-                )
-                .onTapGesture {
-                    if selection != item.tab {
-                        selection = item.tab
                     }
                 }
-                .overlay(
-                    Group {
-                        if selection == item.tab {
-                            if let onDoubleTap {
-                                Color.clear
-                                    .contentShape(Rectangle())
-                                    .onTapGesture(count: 2) {
-                                        onDoubleTap.action()
-                                    }
-                                    .onTapGesture {
-                                        onReselect?.action()
-                                    }
-                            } else {
-                                Color.clear
-                                    .contentShape(Rectangle())
-                                    .onTapGesture {
-                                        onReselect?.action()
-                                    }
-                            }
-                        }
+            )
+            .background(
+                ZStack {
+                    if let onReselect, isSelected {
+                        Color.clear.accessibilityAction(named: onReselect.name, onReselect.action)
                     }
-                )
-                .accessibilityLabel(tabVoiceOverLabel(tabItem: item))
-                .accessibilityHint(tabVoiceOverHint(tabItem: item))
-                .accessibilityAddTraits(selection == item.tab ? .isSelected : [])
-                .background(
-                    ZStack {
-                        if let onReselect, selection == item.tab {
-                            Color.clear.accessibilityAction(named: onReselect.name, onReselect.action)
-                        }
-                        if let onDoubleTap, selection == item.tab {
-                            Color.clear.accessibilityAction(named: onDoubleTap.name, onDoubleTap.action)
-                        }
+                    if let onDoubleTap, isSelected {
+                        Color.clear.accessibilityAction(named: onDoubleTap.name, onDoubleTap.action)
                     }
-                )
-                .accessibilityElement(children: .combine)
-        }
+                }
+            )
+            /// Merges whatever the style draws, including the label, which names the item, with the named actions.
+            .accessibilityElement(children: .combine)
+            .accessibilityHint(tabVoiceOverHint(tabItem: item))
+            .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
-    
-    func tabVoiceOverLabel(tabItem: TabMenuItem<Tab>) -> Text {
-        let tabName = tabItem.name ?? "\(tabItem.tab.hashValue)"
-        
-        return Text(tabName)
-    }
-    
+
     func tabVoiceOverHint(tabItem: TabMenuItem<Tab>) -> Text {
         guard let tabIndex = items.firstIndex(where: { $0.tab == tabItem.tab }) else {
             return Text("")
         }
-        
+
         return Text("Tab\n\(tabIndex + 1) of \(items.count)")
     }
-    
-    // Old Tab VoiceOver function
-//    func tabVoiceOver(tabItem: TabMenuItem<Tab>) -> Text {
-//        var tabString = ""
-//        if let tabIndex = items.firstIndex(where: { $0.tab == tabItem.tab }) {
-//            tabString = "\(tabIndex + 1) of \(items.count)"
-//        }
-//        let tabName = tabItem.name ?? "\(tabItem.tab.hashValue)"
-//        
-//        return Text("\(tabName)\nTab\n\(tabString)")
-//    }
 }
 #endif

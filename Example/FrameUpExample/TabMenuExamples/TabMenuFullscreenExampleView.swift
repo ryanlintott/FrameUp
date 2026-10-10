@@ -15,6 +15,7 @@ struct TabMenuFullscreenExampleView: View {
     @State private var selection = 0
     @State private var isSystemTabBar = false
     @State private var isGrouped = false
+    @State private var itemStyle: ExampleTabMenuItemStyleChoice = .automatic
     @State private var verticalBehavior: ToolbarVerticalBehaviorIfAvailable = .automatic
     @State private var tabMenuVerticalBehavior: TabMenuVerticalBehavior = .system
 
@@ -29,14 +30,9 @@ struct TabMenuFullscreenExampleView: View {
                 }
             } else {
                 page(selection)
-                    .tabMenu(
-                        selection: $selection,
-                        items: TabMenuExample.items,
-                        isShowingName: true,
-                        horizontalDistribution: isGrouped ? .grouped(maxItemWidth: 90, spacing: 8) : .equal
-                    ) { isSelected in
-                        TabMenuExample.maskedView(isSelected: isSelected)
-                    }
+                    .tabMenu(selection: $selection, items: TabMenuExample.items)
+                    .tabMenuItemStyle(ExampleTabMenuItemStyle(choice: itemStyle))
+                    .tabMenuHorizontalDistribution(isGrouped ? .grouped(maxItemWidth: 90, spacing: 8) : .equal)
                     .tabMenuVerticalBehavior(tabMenuVerticalBehavior)
             }
         }
@@ -69,6 +65,13 @@ struct TabMenuFullscreenExampleView: View {
                 Toggle("System", isOn: $isSystemTabBar)
                 Toggle("Grouped", isOn: $isGrouped)
                     .disabled(isSystemTabBar)
+                Picker("Item style", selection: $itemStyle) {
+                    ForEach(ExampleTabMenuItemStyleChoice.allCases) { choice in
+                        Text(choice.rawValue).tag(choice)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .disabled(isSystemTabBar)
                 Text("System bar")
                     .font(.caption)
                 Picker("System vertical bar", selection: $verticalBehavior) {

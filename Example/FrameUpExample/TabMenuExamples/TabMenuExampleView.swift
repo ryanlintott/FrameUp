@@ -14,6 +14,7 @@ struct TabMenuExampleView: View {
     @State private var reselect: Bool = false
     @State private var doubleTap: Bool = false
     @State private var isGrouped: Bool = false
+    @State private var itemStyle: ExampleTabMenuItemStyleChoice = .automatic
     @State private var verticalBehavior: ToolbarVerticalBehaviorIfAvailable = .automatic
     @State private var tabMenuVerticalBehavior: TabMenuVerticalBehavior = .automatic
 
@@ -43,6 +44,17 @@ struct TabMenuExampleView: View {
                     .font(.body)
                     .fixedSize()
                     .padding(.horizontal)
+
+                Text("Item style")
+                    .font(.caption)
+                Picker("Item style", selection: $itemStyle) {
+                    ForEach(ExampleTabMenuItemStyleChoice.allCases) { choice in
+                        Text(choice.rawValue).tag(choice)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .fixedSize()
+                .padding(.horizontal)
 
                 /// Apps can turn off the iPhone Duo's vertical bar. With `.system`, the tab menu then stays along the bottom.
                 Text("System bar")
@@ -81,21 +93,14 @@ struct TabMenuExampleView: View {
         )
         .foregroundColor(.white)
         /// Along the bottom on most screens, in the system's vertical bar on the iPhone Duo, and with `.automatic` in a custom vertical bar on an iPhone in landscape.
-        .tabMenu(
-            selection: $selection,
-            items: TabMenuExample.items,
-            isShowingName: true,
-            horizontalDistribution: isGrouped ? .grouped(maxItemWidth: 90, spacing: 8) : .equal
-        ) { isSelected in
-            TabMenuExample.maskedView(isSelected: isSelected)
-        } onReselect: {
-            NamedAction("Reselect") {
-                reselect = true
-            }
-        } onDoubleTap: {
-            NamedAction("Double Tap") {
-                doubleTap = true
-            }
+        .tabMenu(selection: $selection, items: TabMenuExample.items)
+        .tabMenuItemStyle(ExampleTabMenuItemStyle(choice: itemStyle))
+        .tabMenuHorizontalDistribution(isGrouped ? .grouped(maxItemWidth: 90, spacing: 8) : .equal)
+        .onTabMenuItemReselect("Reselect") {
+            reselect = true
+        }
+        .onTabMenuItemDoubleTap("Double Tap") {
+            doubleTap = true
         }
         .tabMenuVerticalBehavior(tabMenuVerticalBehavior)
         .toolbarVerticalBehaviorIfAvailable(verticalBehavior)

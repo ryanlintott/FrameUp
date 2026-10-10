@@ -17,7 +17,7 @@ A collection of SwiftUI tools to help with layout.
 - [`unclippedTextRenderer`](#unclippedtextrenderer) for fixing clipped `Text`. 
 - [`SmartScrollView`](#smartscrollview) with optional scrolling, a content-fitable frame, and live edge inset values.
 - [`FlippingView`](#flippingview) and [`rotation3DEffect(back:)`](#rotation3deffectangleaxisanchoranchorzperspectivebacksideflipback) for making flippable views with a different view on the back side.
-- [`TabMenu`](#tabmenu), a customizable iOS tab menu with `onReselect` and `onDoubleTap` functions.
+- [`TabMenu`](#tabmenu), a customizable iOS tab menu with item styles and reselect and double-tap actions.
 
 The widget tools (`WidgetSize`, `WidgetDemoFrame`, `AccessoryInlineImage` and `WidgetRelativeShape`) have moved to [WidgetFrames](https://github.com/ryanlintott/WidgetFrames).
 
@@ -420,53 +420,88 @@ Color.blue.overlay(Text("Front"))
 ## TabMenu
 *\*iOS only*
 
-Customizable tab menu bar view designed to mimic the style of the default tab menu bar on iPhone. Images or views and name provided are used to mask another provided view which is often a color.
+Customizable tab menu bar view designed to mimic the style of the default tab menu bar on iPhone. By default each item's icon and title mask a color, as the iPhone tab bar in iOS 15–18 looks.
 
 Features:
-- Use any image or AnyView as a mask for the menu item.
-- Use any view as the 'color' including gradients.
-- onReselect closure that returns a NamedAction that triggers when the active tab is selected.
-- onDoubleTap closure that returns a NamedAction that triggers when the active tab is double-tapped.
-- accessibility actions are automatically added for onReselect and onDoubleTap if they are added.
+- Items built like a `Label`, with a localized or `Text` title and an SF Symbol, an image resource, or any view as the icon.
+- Item styles, set with `tabMenuItemStyle(_:)` like `ButtonStyle` and `LabelStyle`, to draw items any way you like. `.masked` shows any view, including gradients, through the icon and title.
+- `onTabMenuItemReselect` and `onTabMenuItemDoubleTap` actions that run when the selected item is tapped again or tapped twice.
+- Accessibility actions are automatically added for the reselect and double-tap actions, and VoiceOver reads each item's `Label`, so it hears the title even where a style hides it.
 
 ```swift
 let items = [
-    TabMenuItem(icon: AnyView(Circle().stroke().overlay(Text("i"))), name: "Info", tab: 0),
-    TabMenuItem(image: Image(systemName: "star"), name: "Favourites", tab: 1),
-    TabMenuItem(image: Image(systemName: "bookmark"), name: "Categories", tab: 2),
-    TabMenuItem(image: Image(systemName: "books.vertical"), name: "About", tab: 3)
+    TabMenuItem("Info", tab: 0) {
+        Circle().stroke().overlay(Text("i"))
+    },
+    TabMenuItem("Favourites", systemImage: "star", tab: 1),
+    TabMenuItem("Categories", systemImage: "bookmark", tab: 2),
+    TabMenuItem("About", systemImage: "books.vertical", tab: 3)
 ]
 
-TabMenu(selection: $selection, items: items) { isSelected in
-    Group {
-        if isSelected {
-            Color.accentColor
-        } else {
-            Color(.secondaryLabel)
-        }
-    }
-} onReselect: {
-    NamedAction("Reselect") {
+TabMenu(selection: $selection, items: items)
+    .tabMenuItemStyle(.masked { isSelected in
+        isSelected ? Color.accentColor : Color(.secondaryLabel)
+    })
+    .onTabMenuItemReselect("Reselect") {
         print("TabMenu item \(selection) reselected")
     }
-} onDoubleTap: {
-    NamedAction("Double Tap") {
+    .onTabMenuItemDoubleTap("Double Tap") {
         print("TabMenu item \(selection) doubletapped")
     }
-}
 ```
 
-Items share the full width by default. Pass `horizontalDistribution: .grouped(maxItemWidth:spacing:)` to keep them at a fixed width, centred as a group.
+Items share the full width by default. Apply `tabMenuHorizontalDistribution(.grouped(maxItemWidth:spacing:))` to keep them at a fixed width, centred as a group.
+
+The style, distribution and action modifiers set values in the environment, so they can go on the menu or on any view above it. When they go outside `tabMenu(selection:items:)`, the styles and distribution also reach a `TabMenu` in its content, but the actions don't.
+
+Items are `Identifiable` by their tab, so they can be used in `ForEach` directly.
+
+### Item styles
+A `TabMenuItemStyle` draws each item. It gets the item's `Label`, whether it's selected, and the `edge` the menu is placed against (`.bottom`, `.leading` or `.trailing`, or nil for a `TabMenu` placed by hand), with `axis` to match. The style only draws: `TabMenu` keeps the selection, the taps and the accessibility, and the whole of each item's cell takes taps.
+
+```swift
+struct CapsuleItemStyle: TabMenuItemStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        Group {
+            if configuration.axis == .vertical {
+                configuration.label
+                    .labelStyle(.iconOnly)
+            } else {
+                configuration.label
+                    .labelStyle(.titleAndIcon)
+            }
+        }
+        .font(.footnote)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .foregroundStyle(configuration.isSelected ? .white : .secondary)
+        .background {
+            if configuration.isSelected {
+                Capsule().fill(.tint)
+            }
+        }
+    }
+}
+
+ContentView()
+    .tabMenu(selection: $selection, items: items)
+    .tabMenuItemStyle(CapsuleItemStyle())
+```
+
+`.iconOnly` hides the title on screen, but VoiceOver still reads it. The built-in styles are `.automatic`, the default, and `.masked(_:)`, which shows a fill through the icon and title.
 
 ### Placing the menu with `tabMenu`
-Apply `tabMenu(selection:items:isShowingName:horizontalDistribution:maskedView:onReselect:onDoubleTap:)` to a view that fills the window, and the menu goes where the system would put its tab bar. On most screens that's a horizontal bar along the bottom, with the content moved up to make room. On the iPhone Duo (iOS 27.1 and later), wherever the system puts its bars in a vertical column beside the content, the menu stacks its items in that column, on the same edge as the system's tab bar and clear of the camera, the status items and the hinge. If the app turns the vertical bar off with `toolbarVerticalBehavior(.disabled)`, the menu stays along the bottom: an app's `toolbarVerticalBehavior` takes precedence over `tabMenuVerticalBehavior(_:)`, which sets it from inside.
+Apply `tabMenu(selection:items:)` to a view that fills the window, and the menu goes where the system would put its tab bar. On most screens that's a horizontal bar along the bottom, with the content moved up to make room. On the iPhone Duo (iOS 27.1 and later), wherever the system puts its bars in a vertical column beside the content, the menu stacks its items in that column, on the same edge as the system's tab bar and clear of the camera, the status items and the hinge. If the app turns the vertical bar off with `toolbarVerticalBehavior(.disabled)`, the menu stays along the bottom: an app's `toolbarVerticalBehavior` takes precedence over `tabMenuVerticalBehavior(_:)`, which sets it from inside.
 
 ```swift
 ContentView()
-    .tabMenu(selection: $selection, items: items) { isSelected in
+    .tabMenu(selection: $selection, items: items)
+    .tabMenuItemStyle(.masked { isSelected in
         isSelected ? Color.accentColor : Color(.secondaryLabel)
-    }
+    })
 ```
+
+Since `tabMenu` creates the menu, an effect on the whole menu goes in the item style instead, such as in the `.masked` fill.
 
 ### Vertical bars with `tabMenuVerticalBehavior`
 Apply `tabMenuVerticalBehavior(_:)` above the tab menu to choose where it can be vertical:
@@ -484,9 +519,7 @@ struct ContentView: View {
 }
 
 ContentView()
-    .tabMenu(selection: $selection, items: items) { isSelected in
-        isSelected ? Color.accentColor : Color(.secondaryLabel)
-    }
+    .tabMenu(selection: $selection, items: items)
     .tabMenuVerticalBehavior(.automatic)
 ```
 

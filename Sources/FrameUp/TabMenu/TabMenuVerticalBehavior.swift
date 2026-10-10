@@ -8,7 +8,7 @@
 import SwiftUI
 
 #if os(iOS)
-/// Where a menu placed with `tabMenu(selection:items:isShowingName:horizontalDistribution:maskedView:onReselect:onDoubleTap:)` can stack its items in a vertical bar instead of a horizontal bar along the bottom.
+/// Where a menu placed with `tabMenu(selection:items:)` can stack its items in a vertical bar instead of a horizontal bar along the bottom.
 ///
 /// Modelled on the system's `toolbarVerticalBehavior(_:)`. Set it with `tabMenuVerticalBehavior(_:)` above the tab menu, and read where the vertical bar is from ``SwiftUICore/EnvironmentValues/tabMenuVerticalEdge``.
 ///
@@ -25,14 +25,12 @@ public enum TabMenuVerticalBehavior: Hashable, Sendable {
 }
 
 public extension View {
-    /// Sets where menus placed with `tabMenu(selection:items:isShowingName:horizontalDistribution:maskedView:onReselect:onDoubleTap:)` inside this view can stack their items in a vertical bar, and sets ``SwiftUICore/EnvironmentValues/tabMenuVerticalEdge`` to match for everything inside it.
+    /// Sets where menus placed with `tabMenu(selection:items:)` inside this view can stack their items in a vertical bar, and sets ``SwiftUICore/EnvironmentValues/tabMenuVerticalEdge`` to match for everything inside it.
     ///
     /// Apply it above the tab menu, such as at the root of a scene.
     ///
     ///     ContentView()
-    ///         .tabMenu(selection: $selection, items: items) { isSelected in
-    ///             isSelected ? Color.accentColor : Color(.secondaryLabel)
-    ///         }
+    ///         .tabMenu(selection: $selection, items: items)
     ///         .tabMenuVerticalBehavior(.automatic)
     ///
     /// - Parameter behavior: `.system` to use only the system's vertical bar, `.automatic` to also use a custom vertical bar on an iPhone in landscape, or `.disabled` to keep the menu along the bottom.

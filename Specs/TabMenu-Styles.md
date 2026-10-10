@@ -1,6 +1,6 @@
 # TabMenu styles
 
-Status: spec only, not started (2026-10-09)
+Status: implemented without the optional extras (2026-10-10). The optional extras are not started.
 Target: FrameUp `TabMenu` and `tabMenu(...)`. The package stays iOS 15+. Breaking changes are fine; this is aimed at the next minor release with a CHANGELOG migration note.
 
 ## Problem
@@ -16,35 +16,38 @@ The only customisation today is `maskedView: (Bool) -> Content`, a fill masked b
 - **Layout options go in the environment too.** `horizontalDistribution` moves to `.tabMenuHorizontalDistribution(_:)`.
 - **Actions are modifiers.** `onReselect` and `onDoubleTap` become `.onTabMenuItemReselect(_:perform:)` and `.onTabMenuItemDoubleTap(_:perform:)`, which set environment values, as SwiftUI does with `refreshable`. `NamedAction` is removed. `TabMenu` and `tabMenu(...)` take only the selection and the items.
 - **No item size in the configuration.** Like SwiftUI's own style configurations, it doesn't report the space available. A style that adapts to its size uses its own layout, such as `ViewThatFits`.
-- **`TabMenu` keeps the behaviour, the styles only draw.** Selection, reselect, double tap, the tap area, and all accessibility (label, hint, `.isSelected`, named actions, combining children) stay in `TabMenu`, outside the style. A custom style can't break VoiceOver or tapping.
+- **`TabMenu` keeps the behaviour, the styles only draw.** Selection, reselect, double tap, the tap area, and the item's accessibility (hint, `.isSelected`, named actions, combining children) stay in `TabMenu`, outside the style, so a custom style can't break tapping or those parts of VoiceOver. The spoken name comes from the item's `Label` (see below).
 - **The placement keeps the size.** The horizontal menu is 50 points tall, the custom vertical bar is `customBarWidth` wide, and the system column is measured. Styles draw within those sizes and can't change them.
 - **`maskedView` goes away.** Today's look becomes the default item style, `.masked`, which takes the same closure. The whole tab menu needs no closure at all by default.
 - **An item is a `Label`.** `TabMenuItem` is built like a `Label` (a localised title and an icon), and the item style gets it as `configuration.label`. Styles customise it with the label styles SwiftUI already has, or their own `LabelStyle`, as anywhere else in SwiftUI.
 - **Showing names is the style's choice.** Every item has a title, so VoiceOver always has a name. A style that hides names uses `.labelStyle(.iconOnly)`, which keeps the title for VoiceOver. `isShowingName` is removed.
+- **The label is a real `Label`, and VoiceOver reads it.** `TabMenuItem.label` is a `Label<Text, TabMenuItemIcon>`. `TabMenu` doesn't override the accessibility label: VoiceOver reads the `Label`'s own, which is its title even when the title is hidden. A style that draws the label in a way VoiceOver can't read, such as only as a mask, provides the label for accessibility itself, as `.masked` does.
+- **No initialiser takes a ready-made `Label`.** A `Label`'s title and icon can't be read back out, so an arbitrary `Label<Title, Icon>` can't become a `Label<Text, TabMenuItemIcon>`. Instead `init(tab:title:icon:)` mirrors `Label(title:icon:)`, which can make any item a `Label` could. Every icon then goes through `TabMenuItemIcon`, so `.masked` sizes them all consistently.
 
 ## API
 
 ### Items
 
 ```swift
-public struct TabMenuItem<Tab: Hashable> {
+public struct TabMenuItem<Tab: Hashable>: Identifiable {
     public let tab: Tab
+    public var id: Tab { tab }
     /// The title and icon, as a `Label`.
     public let label: Label<Text, TabMenuItemIcon>
 
     public init(_ titleKey: LocalizedStringKey, systemImage: String, tab: Tab)
     public init(_ titleKey: LocalizedStringKey, image: ImageResource, tab: Tab)
     public init<Icon: View>(_ titleKey: LocalizedStringKey, tab: Tab, @ViewBuilder icon: () -> Icon)
-    public init<Icon: View>(tab: Tab, @ViewBuilder label: () -> Label<Text, Icon>)
+    public init<Icon: View>(tab: Tab, title: Text, @ViewBuilder icon: () -> Icon)
 }
 
 /// An item's icon, with its type erased. Behaves like any other view.
 public struct TabMenuItemIcon: View { ... }   // wraps AnyView internally
 ```
 
-The icon's type is erased because `items` is an array of one type, and an app can mix icons, as Wordhord mixes SF Symbols with a custom shape. Avoiding erasure would need a result builder like `TabView { Tab(...) }`, which on iOS 15 means a hand-written fixed-arity builder: a lot of API for no benefit to callers. The erasure is hidden in `TabMenuItemIcon`, as SwiftUI hides it in `LabelStyleConfiguration.Icon`, so callers never write `AnyView` and FrameUp can change how icons are stored without breaking the API. The cost is one erased view per item, eight at most.
+The icon's type is erased because `items` is an array of one type, and an app can mix icons, as Wordhord mixes SF Symbols with a custom shape. Avoiding erasure would need a result builder like `TabView { Tab(...) }`, which on iOS 15 means a hand-written fixed-arity builder: a lot of API for no benefit to callers. The erasure is hidden in `TabMenuItemIcon`, as SwiftUI hides it in `LabelStyleConfiguration.Icon`, so callers never write `AnyView` and FrameUp can change how icons are stored without breaking the API. It also lets `.masked` make an image icon resizable. The cost is one erased view per item, eight at most.
 
-The `LocalizedStringKey` initialisers look the title up in the app's string catalog, as `Label` does. Equality stays by `tab`.
+The `LocalizedStringKey` initialisers look the title up in the app's string catalog, as `Label` does. `TabMenuItem` is `Identifiable` by its tab, not `Equatable`. Equality by tab alone would say two items with different labels are equal, so `onChange(of: items)` would miss a label change, and labels are views, which can't be compared.
 
 Wordhord's items become:
 
@@ -186,7 +189,7 @@ ContentView()
     }
 ```
 
-Style and action modifiers can go outside `tabMenu(...)`, as above, since the menu is inside it. They also reach the content, which only matters if the content has its own `TabMenu`.
+Style and action modifiers can go outside `tabMenu(...)`, as above, since the menu is inside it. Styles and distribution also reach the content, as `buttonStyle` would, which only matters if the content has its own `TabMenu`. Actions don't: `tabMenu(...)` clears them on its content, so a `TabMenu` there doesn't run the placed menu's reselect or double-tap action.
 
 ### Horizontal distribution
 
@@ -255,19 +258,20 @@ Update the README, the example app's TabMenu examples, and Wordhord.
 ## Implementation notes
 
 - The environment holds `any TabMenuItemStyle` (and `any TabMenuStyle` if the optional extra is built). `TabMenu` opens the existential and wraps the body in `AnyView`. That's at most 8 items, so the cost doesn't matter.
-- Swift 6 language mode: an environment key's `defaultValue` must be `Sendable`. Check whether that forces the protocols to be `Sendable`, and whether `.masked`'s closure then needs to be `@MainActor @Sendable`. A closure capturing a SwiftUI view is fine there, since views are main-actor isolated.
+- Swift 6 language mode: the environment keys' defaults for the style and the actions are computed (`static var defaultValue`), so neither the style protocol nor the action closures need to be `Sendable`. `.masked`'s fill is a plain closure: marking it `@MainActor` made it implicitly `@Sendable`, which broke ordinary closures written in a view.
+- `TabMenuItem`'s initialisers are `@MainActor`, since they create a view, like SwiftUI's `Tab` and `Label`. Items are made in `body` or another main-actor context. A `static let` of items warns (its initialiser can run anywhere), so the example app uses a computed `static var`.
 - `.masked`'s fill closure is stored in the style and called during `TabMenu`'s body, so it always sees current state (see the `swiftui-stale-closure-state` skill if that changes).
 - `TabMenu` reads the edge from the environment: the placement sets it (replacing the internal `tabMenuAxis` key with an edge key), and a menu placed by hand sees nil.
-- Icons are kept as given. `TabMenuItem(_:systemImage:tab:)` doesn't make the symbol resizable, so it responds to `font` and `imageScale` as in a system `Label`. `.masked` has to size symbols, custom shapes such as Wordhord's cross, and image resources to today's 22 point look; check it side by side with the current menu.
-- The VoiceOver label comes from the label's title, replacing the fallback to the tab's hash value.
+- Icons are kept as given. `TabMenuItem(_:systemImage:tab:)` doesn't make the symbol resizable, so it responds to `font` and `imageScale` as in a system `Label`. `.masked` keeps today's look by fitting every icon to 22 points tall: it sets an internal environment flag that makes an image held by `TabMenuItemIcon` resizable inside its fixed frame. Other styles get images at their natural size, since a resizable image with no frame fills all the space offered. This makes any image, symbol or not, come out the same height in `.masked`, at the cost of symbols' optical sizing, which the system tab bar keeps. Verified byte-identical to the old menu with `ImageRenderer`.
+- The VoiceOver label comes from the `Label` itself, replacing the fallback to the tab's hash value. `TabMenu` doesn't set `.accessibilityLabel`. `.masked` draws the label only as a mask, which VoiceOver can't read, so it adds `.accessibilityRepresentation { configuration.label }` (iOS 15+).
 - Keep `TabMenu`'s accessibility modifiers around the cell, after the style, so `.accessibilityElement(children: .combine)` still merges whatever the style draws.
 
 ## Tests
 
 - Unit: `edge` is `.bottom` along the bottom, the bar's edge in a vertical bar (`.system` and `.custom`, left to right and right to left), and nil for a `TabMenu` placed by hand. `axis` follows `edge`.
 - Example app: add `CapsuleItemStyle` and `DotItemStyle` to the TabMenu examples, and one with `.tabMenuHorizontalDistribution(.grouped(...))`. Check them along the bottom, in the custom vertical bar (iPhone 18 Pro, landscape), and in the Duo's column.
-- VoiceOver: with each custom item style, including an icons-only one, each item still reads its title, "Tab n of m", selected state and named actions.
-- Actions: reselect and double tap run only on the selected item, with and without a double-tap action set, and with the modifiers outside `tabMenu(...)` and around a hand-placed `TabMenu`.
+- VoiceOver: with `.masked` and each custom item style, including an icons-only one, each item reads its title once (not the symbol's name as well), "Tab n of m", selected state and named actions. Also with an item made by `init(tab:title:icon:)`.
+- Actions: reselect and double tap run only on the selected item, with and without a double-tap action set, and with the modifiers outside `tabMenu(...)` and around a hand-placed `TabMenu`. A `TabMenu` in the content of `tabMenu(...)` doesn't get the outer actions.
 - Wordhord: the per-item shimmer looks right in each placement. If it doesn't, build the optional menu style. **Ryan checks this on a physical device; agents don't attempt it.** The shimmer follows device motion, which the simulator can't produce.
 
 ## Optional extra: menu style

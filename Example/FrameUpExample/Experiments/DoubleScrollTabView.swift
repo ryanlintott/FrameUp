@@ -117,17 +117,12 @@ struct DoubleScrollTabView: View {
                 Spacer()
                 
                 TabMenu(selection: $tab.animation(.default), items: [
-                    TabMenuItem(image: Image(systemName: "1.circle"), name: "First", tab: .first),
-                    TabMenuItem(image: Image(systemName: "2.circle"), name: "Second", tab: .second)
-                ]) { isSelected in
-                    Group {
-                        if isSelected {
-                            Color.blue
-                        } else {
-                            Color.white
-                        }
-                    }
-                }
+                    TabMenuItem("First", systemImage: "1.circle", tab: .first),
+                    TabMenuItem("Second", systemImage: "2.circle", tab: .second)
+                ])
+                .tabMenuItemStyle(.masked { isSelected in
+                    isSelected ? Color.blue : Color.white
+                })
             }
         }
     }

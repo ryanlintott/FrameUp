@@ -21,55 +21,42 @@ public extension View {
     ///
     /// Apply it to a view that fills the window, such as the root of a scene.
     ///
+    /// Set how the items are drawn with `tabMenuItemStyle(_:)`, how they're spread along the bottom with `tabMenuHorizontalDistribution(_:)`, and actions for the selected item with `onTabMenuItemReselect(_:perform:)` and `onTabMenuItemDoubleTap(_:perform:)`. These can go outside this modifier, since the menu is inside it. To add an effect to the menu, put it in the item style.
+    ///
     ///     ContentView()
-    ///         .tabMenu(selection: $selection, items: items) { isSelected in
+    ///         .tabMenu(selection: $selection, items: items)
+    ///         .tabMenuItemStyle(.masked { isSelected in
     ///             isSelected ? Color.accentColor : Color(.secondaryLabel)
-    ///         }
+    ///         })
     ///
     /// - Parameters:
     ///   - selection: binding for the selected tab
     ///   - items: array of `TabMenuItem`
-    ///   - isShowingName: A Boolean value that indicates whether the name should be shown. Default is true if any tab menu item has a non-nil name.
-    ///   - horizontalDistribution: How the items are spread across the width of the horizontal menu. Default is `.equal`, where they share the full width. The vertical menu always stacks them.
-    ///   - maskedView: A view that will be shown, masked by the icon and text. A simple color or a more complex view can be provided. A Boolean value with the selected state is passed in so that the view can change accordingly.
-    ///   - onReselect: A named action to run when a selected tab is reselected.
-    ///   - onDoubleTap: A named action to run when a selected tab is tapped twice.
     /// - Returns: The view with a tab menu placed for the current screen.
     @ViewBuilder
-    func tabMenu<Tab: Hashable, MaskedView: View>(
+    func tabMenu<Tab: Hashable>(
         selection: Binding<Tab>,
-        items: [TabMenuItem<Tab>],
-        isShowingName: Bool? = nil,
-        horizontalDistribution: TabMenuHorizontalDistribution = .equal,
-        maskedView: @escaping (Bool) -> MaskedView,
-        onReselect: (() -> NamedAction)? = nil,
-        onDoubleTap: (() -> NamedAction)? = nil
+        items: [TabMenuItem<Tab>]
     ) -> some View {
-        let menu = TabMenu(
-            selection: selection,
-            items: items,
-            isShowingName: isShowingName,
-            horizontalDistribution: horizontalDistribution,
-            maskedView: maskedView,
-            onReselect: onReselect,
-            onDoubleTap: onDoubleTap
-        )
+        let menu = TabMenu(selection: selection, items: items)
 
         if #available(iOS 16, *) {
             modifier(TabMenuModifier(menu: menu))
         } else {
             /// Before iOS 16 the menu is always along the bottom: the custom bar needs iOS 16 and the system's column iOS 27.1. The version never changes while the app runs, so this branch can't reset the content's state.
-            safeAreaInset(edge: .bottom, spacing: 0) {
-                menu
-            }
+            tabMenuItemActionsDisabled()
+                .safeAreaInset(edge: .bottom, spacing: 0) {
+                    menu
+                        .environment(\.tabMenuEdge, .bottom)
+                }
         }
     }
 }
 
 /// Puts the menu along the bottom, in the system's vertical column, or in a custom vertical bar, wherever `tabMenuVerticalBehavior(_:)` chose. Before iOS 16, `tabMenu(...)` puts the menu along the bottom without it.
 @available(iOS 16, *)
-struct TabMenuModifier<Tab: Hashable, MaskedView: View>: ViewModifier {
-    let menu: TabMenu<Tab, MaskedView>
+struct TabMenuModifier<Tab: Hashable>: ViewModifier {
+    let menu: TabMenu<Tab>
 
     @Environment(\.tabMenuVerticalBar) private var verticalBar
     /// Where the menu goes in the system's vertical column, from the last measurement by ``SystemVerticalBarGeometryReader``. Only used while the bar is `.system`.
@@ -104,10 +91,13 @@ struct TabMenuModifier<Tab: Hashable, MaskedView: View>: ViewModifier {
         /// The content keeps the same structure in every placement, so turning the device doesn't reset its state. Only the menu moves.
         ZStack {
             content
+                /// Before the inset, so the bottom menu still gets the actions.
+                .tabMenuItemActionsDisabled()
                 .safeAreaInset(edge: .bottom, spacing: 0) {
                     /// Like the system's tab bar, it spans the full width even across an active fold (measured on the iPhone Duo with the vertical bar turned off).
                     if verticalBar == nil {
                         menu
+                            .environment(\.tabMenuEdge, .bottom)
                     }
                 }
                 /// Changing the edge changes an argument, not the structure, so the content keeps its state as the bar moves.
@@ -121,7 +111,7 @@ struct TabMenuModifier<Tab: Hashable, MaskedView: View>: ViewModifier {
         .overlay {
             if case let .custom(edge) = verticalBar {
                 menu
-                    .environment(\.tabMenuAxis, .vertical)
+                    .environment(\.tabMenuEdge, .edge(for: verticalBar))
                     .frame(width: TabMenuVerticalBar.customBarWidth)
                 /// Sits against the screen's edge rather than inside the safe area on that side. In landscape an iPhone's safe area is as deep on the side away from the Dynamic Island as on the side with it, only to clear the rounded corners, and the bar stays clear of them vertically.
                     .frame(maxWidth: .infinity, alignment: edge == .leading ? .leading : .trailing)
@@ -131,7 +121,7 @@ struct TabMenuModifier<Tab: Hashable, MaskedView: View>: ViewModifier {
             /// The column has to be measured, so a screen with one shows no menu until then rather than flashing the horizontal one.
             if case .system = verticalBar, let systemBarGeometry {
                 menu
-                    .environment(\.tabMenuAxis, .vertical)
+                    .environment(\.tabMenuEdge, .edge(for: verticalBar))
                     .frame(width: systemBarGeometry.width, height: systemBarGeometry.height)
                     .padding(systemBarGeometry.edge == .leading ? .leading : .trailing, systemBarGeometry.horizontalEdgePadding)
                     .padding(.bottom, systemBarGeometry.bottomPadding)

@@ -98,7 +98,11 @@ For a feature-by-feature guide with examples, see the [README](https://github.co
 
 - ``TabMenu``
 - ``TabMenuItem``
-- ``NamedAction``
+- ``TabMenuItemIcon``
+- ``TabMenuItemStyle``
+- ``TabMenuItemStyleConfiguration``
+- ``MaskedTabMenuItemStyle``
+- ``AutomaticTabMenuItemStyle``
 
 ### FULayout
 

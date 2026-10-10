@@ -20,36 +20,40 @@ struct TabMenuExample: View {
         self.onDoubleTap = onDoubleTap
     }
     
-    static let items = [
-        TabMenuItem(icon: AnyView(Circle().stroke().overlay(Text("i"))), name: "Info", tab: 0),
-        TabMenuItem(image: Image(systemName: "star"), name: "Favourites", tab: 1),
-        TabMenuItem(image: Image(systemName: "bookmark"), name: "Categories", tab: 2),
-        TabMenuItem(image: Image(systemName: "books.vertical"), name: "About", tab: 3)
-    ]
+    static var items: [TabMenuItem<Int>] {
+        [
+            TabMenuItem("Info", tab: 0) {
+                Circle().stroke().overlay(Text("i"))
+            },
+            TabMenuItem("Favourites", systemImage: "star", tab: 1),
+            TabMenuItem("Categories", systemImage: "bookmark", tab: 2),
+            TabMenuItem("About", systemImage: "books.vertical", tab: 3)
+        ]
+    }
 
+    /// A fill for the masked style that changes along the item.
     @ViewBuilder
-    static func maskedView(isSelected: Bool) -> some View {
+    static func gradientFill(isSelected: Bool) -> some View {
         if isSelected {
-            Color.accentColor
+            LinearGradient(colors: [.orange, .pink], startPoint: .top, endPoint: .bottom)
         } else {
             Color(.secondaryLabel)
         }
     }
 
     var body: some View {
-        TabMenu(selection: $selection, items: Self.items, isShowingName: true) { isSelected in
-            Self.maskedView(isSelected: isSelected)
-        } onReselect: {
-            NamedAction("Reselect") {
+        TabMenu(selection: $selection, items: Self.items)
+            .tabMenuItemStyle(.masked { isSelected in
+                isSelected ? Color.accentColor : Color(.secondaryLabel)
+            })
+            .onTabMenuItemReselect("Reselect") {
                 onReselect?()
                 print("TabMenu item \(selection) reselected")
             }
-        } onDoubleTap: {
-            NamedAction("Double Tap") {
+            .onTabMenuItemDoubleTap("Double Tap") {
                 onDoubleTap?()
                 print("TabMenu item \(selection) doubletapped")
             }
-        }
     }
 }
 
