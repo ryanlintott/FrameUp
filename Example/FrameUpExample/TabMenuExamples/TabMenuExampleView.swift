@@ -13,8 +13,9 @@ struct TabMenuExampleView: View {
     @State private var selection = 0
     @State private var reselect: Bool = false
     @State private var doubleTap: Bool = false
-    @State private var isCentered: Bool = false
-    @State private var isVerticalBarEnabled: Bool = true
+    @State private var isGrouped: Bool = false
+    @State private var verticalBehavior: ToolbarVerticalBehaviorIfAvailable = .automatic
+    @State private var tabMenuVerticalBehavior: TabMenuVerticalBehavior = .automatic
 
     var body: some View {
         Group {
@@ -38,16 +39,33 @@ struct TabMenuExampleView: View {
         .font(.system(size: 30))
         .overlay(
             VStack {
-                Toggle("Centred items", isOn: $isCentered)
+                Toggle("Grouped items", isOn: $isGrouped)
                     .font(.body)
                     .fixedSize()
                     .padding(.horizontal)
 
-                /// Apps can turn off the iPhone Duo's vertical bar, and the tab menu then stays along the bottom.
-                Toggle("Vertical bar", isOn: $isVerticalBarEnabled)
-                    .font(.body)
+                /// Apps can turn off the iPhone Duo's vertical bar. With `.system`, the tab menu then stays along the bottom.
+                Text("System bar")
+                    .font(.caption)
+                Picker("System vertical bar", selection: $verticalBehavior) {
+                    Text("Automatic").tag(ToolbarVerticalBehaviorIfAvailable.automatic)
+                    Text("Disabled").tag(ToolbarVerticalBehaviorIfAvailable.disabled)
+                }
+                .pickerStyle(.segmented)
                     .fixedSize()
                     .padding(.horizontal)
+
+                /// `.automatic` also uses a custom vertical bar on an iPhone in landscape. `.disabled` keeps the menu along the bottom everywhere.
+                Text("Tab menu")
+                    .font(.caption)
+                Picker("Tab menu vertical behavior", selection: $tabMenuVerticalBehavior) {
+                    Text("System").tag(TabMenuVerticalBehavior.system)
+                    Text("Automatic").tag(TabMenuVerticalBehavior.automatic)
+                    Text("Disabled").tag(TabMenuVerticalBehavior.disabled)
+                }
+                .pickerStyle(.segmented)
+                .fixedSize()
+                .padding(.horizontal)
 
                 Spacer()
 
@@ -62,12 +80,12 @@ struct TabMenuExampleView: View {
                 .animation(.default, value: doubleTap)
         )
         .foregroundColor(.white)
-        /// Along the bottom on most screens, and in the system's vertical bar on the iPhone Duo.
+        /// Along the bottom on most screens, in the system's vertical bar on the iPhone Duo, and with `.automatic` in a custom vertical bar on an iPhone in landscape.
         .tabMenu(
             selection: $selection,
             items: TabMenuExample.items,
             isShowingName: true,
-            itemPositioning: isCentered ? .centered(maxItemWidth: 90, spacing: 8) : .fill
+            horizontalDistribution: isGrouped ? .grouped(maxItemWidth: 90, spacing: 8) : .equal
         ) { isSelected in
             TabMenuExample.maskedView(isSelected: isSelected)
         } onReselect: {
@@ -79,7 +97,8 @@ struct TabMenuExampleView: View {
                 doubleTap = true
             }
         }
-        .modifier(VerticalBarBehaviorModifier(isEnabled: isVerticalBarEnabled))
+        .tabMenuVerticalBehavior(tabMenuVerticalBehavior)
+        .toolbarVerticalBehaviorIfAvailable(verticalBehavior)
         .onChange(of: reselect) { _ in
             if reselect {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
@@ -99,22 +118,6 @@ struct TabMenuExampleView: View {
 }
 
 /// Turns the iPhone Duo's vertical bar off. Only iOS 27.1 has the option.
-struct VerticalBarBehaviorModifier: ViewModifier {
-    let isEnabled: Bool
-
-    func body(content: Content) -> some View {
-        #if canImport(SwiftUICore, _version: 8.0.85)
-        if #available(iOS 27.1, *) {
-            content
-                .toolbarVerticalBehavior(isEnabled ? .automatic : .disabled)
-        } else {
-            content
-        }
-        #else
-        content
-        #endif
-    }
-}
 
 struct TabMenuViewExampleView_Previews: PreviewProvider {
     static var previews: some View {

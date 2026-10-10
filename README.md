@@ -185,6 +185,8 @@ ScrollView(.horizontal) {
 ### .onSizeChange(perform:)
 Adds an action to perform when parent view size value changes.
 
+Deprecated from iOS 16, macOS 13, tvOS 16, watchOS 10 and visionOS 2 in favour of SwiftUI's `onGeometryChange(for:of:action:)`, which it uses itself where available.
+
 ```swift
 struct OnSizeChangeExample: View {
     @State private var size: CGSize = .zero
@@ -454,16 +456,38 @@ TabMenu(selection: $selection, items: items) { isSelected in
 }
 ```
 
-Items share the full width by default. Pass `itemPositioning: .centered(maxItemWidth:spacing:)` to keep them at a fixed width, centred as a group.
+Items share the full width by default. Pass `horizontalDistribution: .grouped(maxItemWidth:spacing:)` to keep them at a fixed width, centred as a group.
 
 ### Placing the menu with `tabMenu`
-Apply `tabMenu(selection:items:isShowingName:itemPositioning:maskedView:onReselect:onDoubleTap:)` to a view that fills the window, and the menu goes where the system would put its tab bar. On most screens that's a horizontal bar along the bottom, with the content moved up to make room. On the iPhone Duo (iOS 27.1 and later), wherever the system puts its bars in a vertical column beside the content, the menu stacks its items in that column, on the same edge as the system's tab bar and clear of the camera, the status items and the hinge. If the app turns the vertical bar off with `toolbarVerticalBehavior(.disabled)`, the menu stays along the bottom.
+Apply `tabMenu(selection:items:isShowingName:horizontalDistribution:maskedView:onReselect:onDoubleTap:)` to a view that fills the window, and the menu goes where the system would put its tab bar. On most screens that's a horizontal bar along the bottom, with the content moved up to make room. On the iPhone Duo (iOS 27.1 and later), wherever the system puts its bars in a vertical column beside the content, the menu stacks its items in that column, on the same edge as the system's tab bar and clear of the camera, the status items and the hinge. If the app turns the vertical bar off with `toolbarVerticalBehavior(.disabled)`, the menu stays along the bottom: an app's `toolbarVerticalBehavior` takes precedence over `tabMenuVerticalBehavior(_:)`, which sets it from inside.
 
 ```swift
 ContentView()
     .tabMenu(selection: $selection, items: items) { isSelected in
         isSelected ? Color.accentColor : Color(.secondaryLabel)
     }
+```
+
+### Vertical bars with `tabMenuVerticalBehavior`
+Apply `tabMenuVerticalBehavior(_:)` above the tab menu to choose where it can be vertical:
+
+- `.system`, the default, uses only the system's vertical column, as on the iPhone Duo.
+- `.automatic` also puts the menu in a custom vertical bar on an iPhone in landscape, against the edge away from the Dynamic Island, with the content moved over to make room. This needs iOS 16.
+- `.disabled` keeps the menu along the bottom everywhere.
+
+Views inside it can read where the bar is from `tabMenuVerticalEdge`, which is nil when the menu runs along the bottom. It's layout-relative, like `toolbarVerticalEdge`.
+
+```swift
+struct ContentView: View {
+    @Environment(\.tabMenuVerticalEdge) private var tabMenuVerticalEdge
+    ...
+}
+
+ContentView()
+    .tabMenu(selection: $selection, items: items) { isSelected in
+        isSelected ? Color.accentColor : Color(.secondaryLabel)
+    }
+    .tabMenuVerticalBehavior(.automatic)
 ```
 
 ## Widgets

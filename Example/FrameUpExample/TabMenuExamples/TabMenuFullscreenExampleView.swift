@@ -13,12 +13,39 @@ struct TabMenuFullscreenExampleView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var selection = 0
-    @State private var isCentered = false
-    @State private var isVerticalBarEnabled = false
+    @State private var isSystemTabBar = false
+    @State private var isGrouped = false
+    @State private var verticalBehavior: ToolbarVerticalBehaviorIfAvailable = .automatic
+    @State private var tabMenuVerticalBehavior: TabMenuVerticalBehavior = .system
 
     var body: some View {
         Group {
-            switch selection {
+            if isSystemTabBar {
+                TabView(selection: $selection) {
+                    page(0).tabItem { Label("Info", systemImage: "info.circle") }.tag(0)
+                    page(1).tabItem { Label("Favourites", systemImage: "star") }.tag(1)
+                    page(2).tabItem { Label("Categories", systemImage: "bookmark") }.tag(2)
+                    page(3).tabItem { Label("About", systemImage: "books.vertical") }.tag(3)
+                }
+            } else {
+                page(selection)
+                    .tabMenu(
+                        selection: $selection,
+                        items: TabMenuExample.items,
+                        isShowingName: true,
+                        horizontalDistribution: isGrouped ? .grouped(maxItemWidth: 90, spacing: 8) : .equal
+                    ) { isSelected in
+                        TabMenuExample.maskedView(isSelected: isSelected)
+                    }
+                    .tabMenuVerticalBehavior(tabMenuVerticalBehavior)
+            }
+        }
+        .toolbarVerticalBehaviorIfAvailable(verticalBehavior)
+    }
+
+    func page(_ tab: Int) -> some View {
+        Group {
+            switch tab {
             case 0:
                 Color.blue
                     .overlay(Text("Info"))
@@ -36,28 +63,36 @@ struct TabMenuFullscreenExampleView: View {
             }
         }
         .font(.system(size: 30))
+        .foregroundColor(.white)
         .overlay(alignment: .top) {
-            HStack {
-                Toggle("Centred", isOn: $isCentered)
-                Toggle("Vertical bar", isOn: $isVerticalBarEnabled)
+            VStack {
+                Toggle("System", isOn: $isSystemTabBar)
+                Toggle("Grouped", isOn: $isGrouped)
+                    .disabled(isSystemTabBar)
+                Text("System bar")
+                    .font(.caption)
+                Picker("System vertical bar", selection: $verticalBehavior) {
+                    Text("Automatic").tag(ToolbarVerticalBehaviorIfAvailable.automatic)
+                    Text("Disabled").tag(ToolbarVerticalBehaviorIfAvailable.disabled)
+                }
+                .pickerStyle(.segmented)
+                Text("Tab menu")
+                    .font(.caption)
+                Picker("Tab menu vertical behavior", selection: $tabMenuVerticalBehavior) {
+                    Text("System").tag(TabMenuVerticalBehavior.system)
+                    Text("Automatic").tag(TabMenuVerticalBehavior.automatic)
+                    Text("Disabled").tag(TabMenuVerticalBehavior.disabled)
+                }
+                .pickerStyle(.segmented)
+                .disabled(isSystemTabBar)
                 Button("Close", action: dismiss.callAsFunction)
             }
             .font(.body)
-            .toggleStyle(.button)
-            .buttonStyle(.bordered)
             .padding()
-            .background(.ultraThinMaterial)
+            /// Material ignores the safe area by default, which spread it under the vertical bars. It only extends under the top edge, to cover the status bar.
+            .background(.ultraThinMaterial, ignoresSafeAreaEdges: .top)
         }
-        .foregroundColor(.white)
-        .tabMenu(
-            selection: $selection,
-            items: TabMenuExample.items,
-            isShowingName: true,
-            itemPositioning: isCentered ? .centered(maxItemWidth: 90, spacing: 8) : .fill
-        ) { isSelected in
-            TabMenuExample.maskedView(isSelected: isSelected)
-        }
-        .modifier(VerticalBarBehaviorModifier(isEnabled: isVerticalBarEnabled))
     }
 }
 #endif
+

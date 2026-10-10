@@ -40,10 +40,13 @@ import SwiftUI
 ///     }
 ///
 public struct TabMenu<Tab: Hashable, Content: View>: View {
+    /// The direction the items are laid out in. Vertical only when `tabMenu(selection:items:isShowingName:horizontalDistribution:maskedView:onReselect:onDoubleTap:)` places the menu in a vertical bar.
+    @Environment(\.tabMenuAxis) private var axis
+    
     @Binding var selection: Tab
     let items: [TabMenuItem<Tab>]
     let isShowingName: Bool
-    let itemPositioning: TabMenuItemPositioning
+    let horizontalDistribution: TabMenuHorizontalDistribution
     let maskedView: (Bool) -> Content
     let onReselect: NamedAction?
     let onDoubleTap: NamedAction?
@@ -53,32 +56,20 @@ public struct TabMenu<Tab: Hashable, Content: View>: View {
     ///   - selection: binding for the selected tab
     ///   - items: array of `TabMenuItem`
     ///   - isShowingName: A Boolean value that indicates whether the name should be shown. Default is true if any tab menu item has a non-nil name.
-    ///   - itemPositioning: How the items are spread across the menu's width. Default is `.fill`, where they share the full width.
+    ///   - horizontalDistribution: How the items are spread across the menu's width. Default is `.equal`, where they share the full width.
     ///   - onReselect: A named action to run when a selected tab is reselected.
     ///   - onDoubleTap: A named action to run when a selected tab is tapped twice.
     ///   - maskedView: A view that will be shown, masked by the icon and text. A simple color or a more complex view can be provided. A Boolean value with the selected state is passed in so that the view can change accordingly.
-    public init(selection: Binding<Tab>, items: [TabMenuItem<Tab>], isShowingName: Bool? = nil, itemPositioning: TabMenuItemPositioning = .fill, maskedView: @escaping (Bool) -> Content, onReselect: (() -> NamedAction)? = nil, onDoubleTap: (() -> NamedAction)? = nil) {
+    public init(selection: Binding<Tab>, items: [TabMenuItem<Tab>], isShowingName: Bool? = nil, horizontalDistribution: TabMenuHorizontalDistribution = .equal, maskedView: @escaping (Bool) -> Content, onReselect: (() -> NamedAction)? = nil, onDoubleTap: (() -> NamedAction)? = nil) {
         self._selection = selection
         self.items = items
         self.isShowingName = isShowingName ?? (items.first(where: { $0.name != nil }) != nil)
-        self.itemPositioning = itemPositioning
+        self.horizontalDistribution = horizontalDistribution
         self.maskedView = maskedView
         self.onReselect = onReselect?() ?? nil
         self.onDoubleTap = onDoubleTap?() ?? nil
     }
     
-    /// The direction the items are laid out in. Vertical only when `tabMenu(selection:items:isShowingName:itemPositioning:maskedView:onReselect:onDoubleTap:)` places the menu in the system's vertical bar.
-    var axis: Axis = .horizontal
-    /// The height of each item when the axis is vertical.
-    var verticalItemHeight: CGFloat = 50
-
-    /// A copy of this menu that stacks its items top to bottom, each one `itemHeight` tall and as wide as the menu.
-    func vertical(itemHeight: CGFloat) -> Self {
-        var menu = self
-        menu.axis = .vertical
-        menu.verticalItemHeight = itemHeight
-        return menu
-    }
 
     public var body: some View {
         switch axis {
@@ -102,9 +93,9 @@ public struct TabMenu<Tab: Hashable, Content: View>: View {
         case .vertical:
             VStack(spacing: 0) {
                 ForEach(items, id: \.tab) { item in
+                    /// The items share the menu's height, each centred in its share. The placement sets the height: the whole custom bar, or the stack that fits the system's column.
                     itemView(item)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: verticalItemHeight)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .padding(.horizontal, 4)
                 }
             }
@@ -116,17 +107,17 @@ public struct TabMenu<Tab: Hashable, Content: View>: View {
 
     /// The widest a horizontal item can be, including its padding.
     var maxItemWidth: CGFloat {
-        switch itemPositioning {
-        case .fill: .infinity
-        case let .centered(maxItemWidth, _): maxItemWidth
+        switch horizontalDistribution {
+        case .equal: .infinity
+        case let .grouped(maxItemWidth, _): maxItemWidth
         }
     }
 
     /// The space between horizontal items.
     var itemSpacing: CGFloat {
-        switch itemPositioning {
-        case .fill: 0
-        case let .centered(_, spacing): spacing
+        switch horizontalDistribution {
+        case .equal: 0
+        case let .grouped(_, spacing): spacing
         }
     }
 

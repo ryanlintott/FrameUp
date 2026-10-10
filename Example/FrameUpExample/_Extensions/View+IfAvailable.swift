@@ -31,4 +31,37 @@ extension View {
             }
         }
     }
+
+    /// Applies `toolbarVerticalBehavior(_:)` if available.
+    ///
+    /// It arrived in the iOS 27.1 SDK, whose SwiftUICore is version 8.0.85, so older SDKs skip it at compile time too.
+    nonisolated public func toolbarVerticalBehaviorIfAvailable(_ behavior: ToolbarVerticalBehaviorIfAvailable) -> some View {
+        ifAvailable {
+            #if canImport(SwiftUICore, _version: 8.0.85)
+            if #available(iOS 27.1, macOS 27.1, tvOS 27.1, watchOS 27.1, visionOS 27.1, *) {
+                $0.toolbarVerticalBehavior(behavior.toolbarVerticalBehavior)
+            }
+            #endif
+        }
+    }
 }
+
+/// Mirrors `ToolbarVerticalBehavior`, which doesn't exist in SDKs older than 27.1, for use with ``SwiftUICore/View/toolbarVerticalBehaviorIfAvailable(_:)``.
+public enum ToolbarVerticalBehaviorIfAvailable: Hashable, Sendable {
+    /// The system decides whether bars are vertical.
+    case automatic
+    /// Bars are never vertical.
+    case disabled
+}
+
+#if canImport(SwiftUICore, _version: 8.0.85)
+extension ToolbarVerticalBehaviorIfAvailable {
+    @available(iOS 27.1, macOS 27.1, tvOS 27.1, watchOS 27.1, visionOS 27.1, *)
+    var toolbarVerticalBehavior: ToolbarVerticalBehavior {
+        switch self {
+        case .automatic: .automatic
+        case .disabled: .disabled
+        }
+    }
+}
+#endif

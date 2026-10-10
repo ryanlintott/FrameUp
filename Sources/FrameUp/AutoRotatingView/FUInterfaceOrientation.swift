@@ -78,4 +78,27 @@ internal extension FUInterfaceOrientation {
         }
     }
 }
+
+internal extension FUInterfaceOrientation {
+    /// The interface orientation of the app's window scene.
+    ///
+    /// This reads the app's foreground window scene rather than the view's own. That's only right where an app has one, but the orientation only matters on an iPhone, which does.
+    @available(iOS 16, *)
+    @MainActor
+    static var windowScene: Self? {
+        /// At launch the scene can still be inactive, so an active one is preferred but not required.
+        let scenes = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .filter { $0.session.role == .windowApplication }
+        let scene = scenes.first { $0.activationState == .foregroundActive } ?? scenes.first
+        switch scene?.effectiveGeometry.interfaceOrientation {
+        case .portrait: return .portrait
+        case .portraitUpsideDown: return .portraitUpsideDown
+        /// UIKit names the interface's turn, the opposite of the device's.
+        case .landscapeRight: return .landscapeLeft
+        case .landscapeLeft: return .landscapeRight
+        default: return nil
+        }
+    }
+}
 #endif

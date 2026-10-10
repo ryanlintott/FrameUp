@@ -1,5 +1,5 @@
 //
-//  TabMenuItemPositioning.swift
+//  TabMenuHorizontalDistribution.swift
 //  FrameUp
 //
 //  Created by Ryan Lintott on 2026-09-25.
@@ -10,11 +10,11 @@ import SwiftUI
 #if os(iOS)
 /// How a horizontal ``TabMenu`` spreads its items across its width.
 ///
-/// A vertical menu, in the system's vertical bar on the iPhone Duo, always stacks its items in the bar and ignores this.
-public enum TabMenuItemPositioning: Hashable, Sendable {
+/// A vertical menu, in the system's vertical bar on the iPhone Duo or a custom vertical bar, always stacks its items and ignores this.
+public enum TabMenuHorizontalDistribution: Hashable, Sendable {
     /// Items share the menu's full width equally, like the iPhone tab bar in iOS 15–18.
-    case fill
+    case equal
     /// Items are at most `maxItemWidth` wide, `spacing` apart, and centred as a group. When there isn't room, they shrink equally to fit.
-    case centered(maxItemWidth: CGFloat, spacing: CGFloat = 0)
+    case grouped(maxItemWidth: CGFloat, spacing: CGFloat = 0)
 }
 #endif
