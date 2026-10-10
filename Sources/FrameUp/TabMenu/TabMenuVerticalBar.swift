@@ -16,8 +16,8 @@ enum TabMenuVerticalBar: Equatable, Sendable {
     /// In a custom vertical bar the menu makes for itself, on this edge. Like `toolbarVerticalEdge` for the system's bar, the edge is layout-relative, while the bar keeps its physical side in a right-to-left layout (measured on the iPhone Duo, iOS 27.1).
     case custom(HorizontalEdge)
 
-    /// The width of the custom vertical bar: close to the horizontal menu's 50 point height, and wide enough for a 10 point label such as "Categories" (52 points) with the items' 4 point padding.
-    static let customBarWidth: CGFloat = 60
+    /// The width of the custom vertical bar: the height of the horizontal menu on an iPhone in portrait, its 50 points plus the 34 point safe area below it for the Home indicator. That matches the system's vertical column on the iPhone Duo.
+    static let customBarWidth: CGFloat = 84
 
     var edge: HorizontalEdge {
         switch self {
