@@ -14,10 +14,11 @@ struct TabMenuFullscreenExampleView: View {
 
     @State private var selection = 0
     @State private var isSystemTabBar = false
-    @State private var isGrouped = false
+    @State private var horizontalDistribution: TabMenuHorizontalDistribution = .automatic
     @State private var itemStyle: ExampleTabMenuItemStyleChoice = .automatic
     @State private var verticalBehavior: ToolbarVerticalBehaviorIfAvailable = .automatic
     @State private var tabMenuVerticalBehavior: TabMenuVerticalBehavior = .system
+    @State private var verticalDistribution: TabMenuVerticalDistribution = .automatic
 
     var body: some View {
         Group {
@@ -32,7 +33,8 @@ struct TabMenuFullscreenExampleView: View {
                 page(selection)
                     .tabMenu(selection: $selection, items: TabMenuExample.items)
                     .tabMenuItemStyle(ExampleTabMenuItemStyle(choice: itemStyle))
-                    .tabMenuHorizontalDistribution(isGrouped ? .grouped(maxItemWidth: 90, spacing: 8) : .equal)
+                    .tabMenuHorizontalDistribution(horizontalDistribution)
+                    .tabMenuVerticalDistribution(verticalDistribution)
                     .tabMenuVerticalBehavior(tabMenuVerticalBehavior)
             }
         }
@@ -62,40 +64,75 @@ struct TabMenuFullscreenExampleView: View {
         .foregroundColor(.white)
         .overlay(alignment: .top) {
             VStack {
-                Toggle("System", isOn: $isSystemTabBar)
-                Toggle("Grouped", isOn: $isGrouped)
-                    .disabled(isSystemTabBar)
-                Picker("Item style", selection: $itemStyle) {
-                    ForEach(ExampleTabMenuItemStyleChoice.allCases) { choice in
-                        Text(choice.rawValue).tag(choice)
+                HStack {
+                    Picker("Tab bar", selection: $isSystemTabBar) {
+                        Text("Tab menu").tag(false)
+                        Text("System").tag(true)
                     }
+                    
+                    Button("Close", action: dismiss.callAsFunction)
+                        .buttonStyle(.bordered)
                 }
-                .pickerStyle(.segmented)
-                .disabled(isSystemTabBar)
-                Text("System bar")
+
+                Text("System vertical behavior")
                     .font(.caption)
                 Picker("System vertical bar", selection: $verticalBehavior) {
                     Text("Automatic").tag(ToolbarVerticalBehaviorIfAvailable.automatic)
                     Text("Disabled").tag(ToolbarVerticalBehaviorIfAvailable.disabled)
                 }
-                .pickerStyle(.segmented)
-                Text("Tab menu")
+
+                Text("Tab menu vertical behavior")
                     .font(.caption)
                 Picker("Tab menu vertical behavior", selection: $tabMenuVerticalBehavior) {
                     Text("System").tag(TabMenuVerticalBehavior.system)
                     Text("Automatic").tag(TabMenuVerticalBehavior.automatic)
                     Text("Disabled").tag(TabMenuVerticalBehavior.disabled)
                 }
-                .pickerStyle(.segmented)
                 .disabled(isSystemTabBar)
-                Button("Close", action: dismiss.callAsFunction)
+                
+                HStack {
+                    Text("Horizontal")
+                        .font(.caption)
+                    Picker("Tab menu horizontal distribution", selection: $horizontalDistribution) {
+                        Text("Automatic").tag(TabMenuHorizontalDistribution.automatic)
+                        Text("Equal").tag(TabMenuHorizontalDistribution.equal)
+                        Text("Grouped").tag(TabMenuHorizontalDistribution.grouped(maxItemWidth: 90, spacing: 8))
+                    }
+                }
+                .disabled(isSystemTabBar)
+                
+                HStack {
+                    Text("Vertical")
+                        .font(.caption)
+                    Picker("Tab menu vertical distribution", selection: $verticalDistribution) {
+                        Text("Automatic").tag(TabMenuVerticalDistribution.automatic)
+                        Text("Equal").tag(TabMenuVerticalDistribution.equal)
+                        Text("Grouped").tag(TabMenuVerticalDistribution.grouped)
+                    }
+                }
+                .disabled(isSystemTabBar)
+                
+                Picker("Item style", selection: $itemStyle) {
+                    ForEach(ExampleTabMenuItemStyleChoice.allCases) { choice in
+                        Text(choice.rawValue).tag(choice)
+                    }
+                }
+                .disabled(isSystemTabBar)
+                
+                
+                
             }
+            .pickerStyle(.segmented)
             .font(.body)
             .padding()
             /// Material ignores the safe area by default, which spread it under the vertical bars. It only extends under the top edge, to cover the status bar.
             .background(.ultraThinMaterial, ignoresSafeAreaEdges: .top)
         }
     }
+}
+
+#Preview {
+    TabMenuFullscreenExampleView()
 }
 #endif
 

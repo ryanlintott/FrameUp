@@ -35,7 +35,8 @@ public struct TabMenu<Tab: Hashable>: View {
     /// The screen edge the menu is placed against. Only `tabMenu(selection:items:)` sets it, so a menu placed by hand sees nil and stays horizontal.
     @Environment(\.tabMenuEdge) private var edge
     @Environment(\.tabMenuItemStyle) private var environmentItemStyle
-    @Environment(\.tabMenuHorizontalDistribution) private var horizontalDistribution
+    @Environment(\.tabMenuHorizontalDistribution) private var environmentHorizontalDistribution
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.tabMenuItemReselectAction) private var environmentReselect
     @Environment(\.tabMenuItemDoubleTapAction) private var environmentDoubleTap
 
@@ -92,7 +93,7 @@ public struct TabMenu<Tab: Hashable>: View {
         case .vertical:
             VStack(spacing: 0) {
                 ForEach(items) { item in
-                    /// The items share the menu's height, each centred in its share. The placement sets the height: the whole custom bar, or the stack that fits the system's column.
+                    /// The items share the menu's height, each centred in its share. `tabMenu(selection:items:)` sets the height from `tabMenuVerticalDistribution(_:)`: the bar's full height, or a group at its bottom.
                     itemView(item) { styledItem in
                         styledItem
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -105,10 +106,15 @@ public struct TabMenu<Tab: Hashable>: View {
         }
     }
 
+    /// The environment's spread, with `.automatic` resolved for the horizontal size class.
+    var horizontalDistribution: TabMenuHorizontalDistribution {
+        environmentHorizontalDistribution.resolved(for: horizontalSizeClass)
+    }
+
     /// The widest a horizontal item can be, including its padding.
     var maxItemWidth: CGFloat {
         switch horizontalDistribution {
-        case .equal: .infinity
+        case .automatic, .equal: .infinity
         case let .grouped(maxItemWidth, _): maxItemWidth
         }
     }
@@ -116,7 +122,7 @@ public struct TabMenu<Tab: Hashable>: View {
     /// The space between horizontal items.
     var itemSpacing: CGFloat {
         switch horizontalDistribution {
-        case .equal: 0
+        case .automatic, .equal: 0
         case let .grouped(_, spacing): spacing
         }
     }

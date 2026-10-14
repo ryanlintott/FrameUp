@@ -12,15 +12,15 @@ import SwiftUI
 ///
 /// Modelled on the system's `toolbarVerticalBehavior(_:)`. Set it with `tabMenuVerticalBehavior(_:)` above the tab menu, and read where the vertical bar is from ``SwiftUICore/EnvironmentValues/tabMenuVerticalEdge``.
 ///
-/// `tabMenuVerticalBehavior(_:)` sets `toolbarVerticalBehavior(_:)` to match, but a `toolbarVerticalBehavior(_:)` the app applies further out takes precedence. So if the app turns the system's vertical column off further out, the menu can't use it, even with `.automatic`.
+/// `tabMenuVerticalBehavior(_:)` sets `toolbarVerticalBehavior(_:)` to match, but a `toolbarVerticalBehavior(_:)` the app applies further out takes precedence. So if the app turns the system's vertical toolbar off further out, the menu can't use it, even with `.automatic`.
 public enum TabMenuVerticalBehavior: Hashable, Sendable {
-    /// The menu is vertical only in the system's vertical column, as on the iPhone Duo, and never makes a custom vertical bar. This is the default.
+    /// The menu is vertical only in the system's vertical toolbar, as on the iPhone Duo, and never makes a custom vertical bar. This is the default.
     case system
-    /// The menu is vertical on every iPhone: in the system's vertical column, which it turns on with `toolbarVerticalBehavior(.automatic)`, and elsewhere in landscape, in a custom vertical bar on the edge away from the Dynamic Island. The content moves over to make room for the custom bar. This needs iOS 16.
+    /// The menu is vertical on every iPhone: in the system's vertical toolbar, which it turns on with `toolbarVerticalBehavior(.automatic)`, and elsewhere in landscape, in a custom vertical bar on the edge away from the Dynamic Island. The content moves over to make room for the custom bar. This needs iOS 16.
     ///
-    /// Where the app has turned the system's column off with `toolbarVerticalBehavior(.disabled)` further out, as on the iPhone Duo, the menu only uses the custom bar, which needs a compact height. On the Duo that's the outer screen in landscape; elsewhere the menu runs along the bottom.
+    /// Where the app has turned the system's vertical toolbar off with `toolbarVerticalBehavior(.disabled)` further out, as on the iPhone Duo, the menu only uses the custom bar, which needs a compact height. On the Duo that's the outer screen in landscape; elsewhere the menu runs along the bottom.
     case automatic
-    /// The menu always runs along the bottom, and turns off the system's vertical column with `toolbarVerticalBehavior(.disabled)`.
+    /// The menu always runs along the bottom, and turns off the system's vertical toolbar with `toolbarVerticalBehavior(.disabled)`.
     case disabled
 }
 
@@ -46,7 +46,7 @@ public extension View {
     }
 }
 
-/// Sets the behavior and tracks the interface orientation for tab menus inside it, and sets the system's vertical column to match.
+/// Sets the behavior and tracks the interface orientation for tab menus inside it, and sets the system's vertical toolbar to match.
 @available(iOS 16, *)
 private struct TabMenuEnvironmentModifier: ViewModifier {
     /// The interface orientation, read from the window scene from the first update, so the menu never waits for it.
@@ -69,9 +69,9 @@ private struct TabMenuEnvironmentModifier: ViewModifier {
     }
 }
 
-/// Sets the system's vertical column to match ``TabMenuVerticalBehavior``: on for `.system` and `.automatic`, so the menu can use it on the iPhone Duo, and off for `.disabled`, so there's no empty column beside the bottom menu.
+/// Sets the system's vertical toolbar to match ``TabMenuVerticalBehavior``: on for `.system` and `.automatic`, so the menu can use it on the iPhone Duo, and off for `.disabled`, so there's no empty vertical toolbar beside the bottom menu.
 ///
-/// It always applies a behavior rather than leaving the app's alone for `.system`. Choosing one only for some cases would branch the content, resetting its state when the behavior changes, and turning the column off for `.system` whenever `toolbarVerticalEdge` is nil would keep it off, since the column is what sets that edge.
+/// It always applies a behavior rather than leaving the app's alone for `.system`. Choosing one only for some cases would branch the content, resetting its state when the behavior changes, and turning the toolbar off for `.system` whenever `toolbarVerticalEdge` is nil would keep it off, since the toolbar is what sets that edge.
 @available(iOS 16, *)
 private struct UpdateToolbarVerticalBehaviorModifier: ViewModifier {
     let tabMenuVerticalBehavior: TabMenuVerticalBehavior

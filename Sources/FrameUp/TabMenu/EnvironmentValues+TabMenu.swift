@@ -22,7 +22,11 @@ private struct TabMenuItemIconIsResizableKey: EnvironmentKey {
 }
 
 private struct TabMenuHorizontalDistributionKey: EnvironmentKey {
-    static let defaultValue: TabMenuHorizontalDistribution = .equal
+    static let defaultValue: TabMenuHorizontalDistribution = .automatic
+}
+
+private struct TabMenuVerticalDistributionKey: EnvironmentKey {
+    static let defaultValue: TabMenuVerticalDistribution = .automatic
 }
 
 private struct TabMenuItemReselectActionKey: EnvironmentKey {
@@ -43,10 +47,14 @@ private struct TabMenuInterfaceOrientationKey: EnvironmentKey {
     static let defaultValue: FUInterfaceOrientation? = nil
 }
 
+private struct TabMenuGeometryKey: EnvironmentKey {
+    static let defaultValue: TabMenuGeometry? = nil
+}
+
 public extension EnvironmentValues {
     /// The edge of the vertical bar that holds tab menus placed in this view, or nil when they run along the bottom.
     ///
-    /// Set by `tabMenuVerticalBehavior(_:)` for everything inside it, as `toolbarVerticalBehavior(_:)` sets `toolbarVerticalEdge`. Without it, this matches `toolbarVerticalEdge`, and is nil where that isn't available. Like `toolbarVerticalEdge`, it's layout-relative, while the bar keeps its physical side in a right-to-left layout. It can't be set directly.
+    /// Set by `tabMenuVerticalBehavior(_:)` for everything inside it, as `toolbarVerticalBehavior(_:)` sets `toolbarVerticalEdge`, from the same decision that places the menu, so it always matches where the menu is. Without it, this matches `toolbarVerticalEdge`, and is nil where that isn't available. Like `toolbarVerticalEdge`, it's layout-relative, while the bar keeps its physical side in a right-to-left layout. It can't be set directly.
     var tabMenuVerticalEdge: HorizontalEdge? {
         /// Vertical bars need iOS 16, so before that the menu always runs along the bottom.
         if #available(iOS 16, *) {
@@ -54,6 +62,14 @@ public extension EnvironmentValues {
         } else {
             nil
         }
+    }
+
+    /// Where the menu placed with `tabMenu(selection:items:)` is drawn, or nil until it has been measured.
+    ///
+    /// Set by `tabMenu(selection:items:)` for its content. The frames are in the ``SwiftUICore/CoordinateSpace/tabMenu`` coordinate space. It can't be set directly.
+    internal(set) var tabMenuGeometry: TabMenuGeometry? {
+        get { self[TabMenuGeometryKey.self] }
+        set { self[TabMenuGeometryKey.self] = newValue }
     }
 }
 
@@ -82,6 +98,12 @@ extension EnvironmentValues {
         set { self[TabMenuHorizontalDistributionKey.self] = newValue }
     }
 
+    /// How a vertical tab menu spreads its items along its bar. Set by `tabMenuVerticalDistribution(_:)`.
+    var tabMenuVerticalDistribution: TabMenuVerticalDistribution {
+        get { self[TabMenuVerticalDistributionKey.self] }
+        set { self[TabMenuVerticalDistributionKey.self] = newValue }
+    }
+
     /// The action a ``TabMenu`` runs when its selected item is tapped again. Set by `onTabMenuItemReselect(_:perform:)`.
     var tabMenuItemReselectAction: TabMenuItemAction? {
         get { self[TabMenuItemReselectActionKey.self] }
@@ -94,7 +116,7 @@ extension EnvironmentValues {
         set { self[TabMenuItemDoubleTapActionKey.self] = newValue }
     }
 
-    /// Where tab menus placed in this view can stack their items in a vertical bar. Set by `tabMenuVerticalBehavior(_:)`. Without it, `.system`, so menus follow the system's vertical column.
+    /// Where tab menus placed in this view can stack their items in a vertical bar. Set by `tabMenuVerticalBehavior(_:)`. Without it, `.system`, so menus follow the system's vertical toolbar.
     @available(iOS 16, *)
     var tabMenuVerticalBehavior: TabMenuVerticalBehavior {
         get { self[TabMenuVerticalBehaviorKey.self] }
@@ -120,7 +142,7 @@ extension EnvironmentValues {
         )
     }
 
-    /// The edge of the system's vertical column, or nil when there isn't one or `toolbarVerticalEdge` isn't available.
+    /// The edge of the system's vertical toolbar, or nil when there isn't one or `toolbarVerticalEdge` isn't available.
     var toolbarVerticalEdgeIfAvailable: HorizontalEdge? {
         /// `toolbarVerticalEdge` arrived in the iOS 27.1 SDK, whose SwiftUICore is version 8.0.85 (8.0.84 in the iOS 27.0 SDK). Both SDKs ship the same Swift compiler, so a compiler version check can't tell them apart.
         #if canImport(SwiftUICore, _version: 8.0.85)

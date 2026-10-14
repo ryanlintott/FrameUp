@@ -103,6 +103,9 @@ For a feature-by-feature guide with examples, see the [README](https://github.co
 - ``TabMenuItemStyleConfiguration``
 - ``MaskedTabMenuItemStyle``
 - ``AutomaticTabMenuItemStyle``
+- ``TabMenuHorizontalDistribution``
+- ``TabMenuVerticalDistribution``
+- ``TabMenuGeometry``
 
 ### FULayout
 

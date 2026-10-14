@@ -35,12 +35,12 @@ struct TabMenuVerticalBarTests {
     }
 
     @available(iOS 16, *)
-    @Test func systemColumnWinsOverTheCustomBar() {
+    @Test func systemToolbarVerticalWinsOverTheCustomBar() {
         #expect(verticalBar(systemEdge: .leading) == .system(.leading))
     }
 
     @available(iOS 16, *)
-    @Test func systemBehaviorOnlyUsesTheSystemColumn() {
+    @Test func systemBehaviorOnlyUsesTheSystemToolbarVertical() {
         #expect(verticalBar(behavior: .system, systemEdge: .trailing) == .system(.trailing))
         #expect(verticalBar(behavior: .system) == nil)
     }

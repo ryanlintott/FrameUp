@@ -450,7 +450,7 @@ TabMenu(selection: $selection, items: items)
     }
 ```
 
-Items share the full width by default. Apply `tabMenuHorizontalDistribution(.grouped(maxItemWidth:spacing:))` to keep them at a fixed width, centred as a group.
+By default, `.automatic` follows the horizontal size class like the system's tab bar: the items share the full width where it's compact, as on an iPhone in portrait, and are grouped where it's regular, as on an iPad. Apply `tabMenuHorizontalDistribution(.equal)` to always share the full width, or `.grouped(maxItemWidth:spacing:)` to keep them at a fixed width, centred as a group.
 
 The style, distribution and action modifiers set values in the environment, so they can go on the menu or on any view above it. When they go outside `tabMenu(selection:items:)`, the styles and distribution also reach a `TabMenu` in its content, but the actions don't.
 
@@ -491,7 +491,7 @@ ContentView()
 `.iconOnly` hides the title on screen, but VoiceOver still reads it. The built-in styles are `.automatic`, the default, and `.masked(_:)`, which shows a fill through the icon and title.
 
 ### Placing the menu with `tabMenu`
-Apply `tabMenu(selection:items:)` to a view that fills the window, and the menu goes where the system would put its tab bar. On most screens that's a horizontal bar along the bottom, with the content moved up to make room. On the iPhone Duo (iOS 27.1 and later), wherever the system puts its bars in a vertical column beside the content, the menu stacks its items in that column, on the same edge as the system's tab bar and clear of the camera, the status items and the hinge. If the app turns the vertical bar off with `toolbarVerticalBehavior(.disabled)`, the menu stays along the bottom: an app's `toolbarVerticalBehavior` takes precedence over `tabMenuVerticalBehavior(_:)`, which sets it from inside.
+Apply `tabMenu(selection:items:)` to a view that fills the window, and the menu goes where the system would put its tab bar. On most screens that's a horizontal bar along the bottom, with the content moved up to make room. On the iPhone Duo (iOS 27.1 and later), wherever the system puts its bars in a vertical toolbar beside the content, the menu stacks its items in that toolbar, on the same edge as the system's tab bar and clear of the camera, the status items and the hinge. If the app turns the vertical bar off with `toolbarVerticalBehavior(.disabled)`, the menu stays along the bottom: an app's `toolbarVerticalBehavior` takes precedence over `tabMenuVerticalBehavior(_:)`, which sets it from inside.
 
 ```swift
 ContentView()
@@ -506,11 +506,13 @@ Since `tabMenu` creates the menu, an effect on the whole menu goes in the item s
 ### Vertical bars with `tabMenuVerticalBehavior`
 Apply `tabMenuVerticalBehavior(_:)` above the tab menu to choose where it can be vertical:
 
-- `.system`, the default, uses only the system's vertical column, as on the iPhone Duo.
+- `.system`, the default, uses only the system's vertical toolbar, as on the iPhone Duo.
 - `.automatic` also puts the menu in a custom vertical bar on an iPhone in landscape, against the edge away from the Dynamic Island, with the content moved over to make room. This needs iOS 16.
 - `.disabled` keeps the menu along the bottom everywhere.
 
-Views inside it can read where the bar is from `tabMenuVerticalEdge`, which is nil when the menu runs along the bottom. It's layout-relative, like `toolbarVerticalEdge`.
+Apply `tabMenuVerticalDistribution(_:)` to choose how the items spread along a vertical bar. `.automatic`, the default, stacks them at the bottom of the system's vertical toolbar and spreads them along the custom bar. `.equal` spreads them along either bar, and `.grouped` stacks them at the bottom of either.
+
+Views inside it can read where the bar is from `tabMenuVerticalEdge`, which is nil when the menu runs along the bottom. It's layout-relative, like `toolbarVerticalEdge`. The content of `tabMenu` can also read the frames of the menu's bar and items from `tabMenuGeometry`, in the `.tabMenu` coordinate space.
 
 ```swift
 struct ContentView: View {

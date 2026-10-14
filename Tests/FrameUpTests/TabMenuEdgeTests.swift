@@ -34,7 +34,7 @@ struct TabMenuEdgeTests {
     }
 
     @available(iOS 16, *)
-    @Test func systemColumnMenuIsAgainstTheColumnsEdge() {
+    @Test func systemToolbarVerticalMenuIsAgainstItsEdge() {
         #expect(menuEdge(systemEdge: .leading) == .leading)
         #expect(menuEdge(systemEdge: .trailing) == .trailing)
         #expect(menuEdge(systemEdge: .leading, layoutDirection: .rightToLeft) == .leading)

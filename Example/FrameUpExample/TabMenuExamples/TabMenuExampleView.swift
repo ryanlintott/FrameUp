@@ -13,10 +13,11 @@ struct TabMenuExampleView: View {
     @State private var selection = 0
     @State private var reselect: Bool = false
     @State private var doubleTap: Bool = false
-    @State private var isGrouped: Bool = false
+    @State private var horizontalDistribution: TabMenuHorizontalDistribution = .automatic
     @State private var itemStyle: ExampleTabMenuItemStyleChoice = .automatic
     @State private var verticalBehavior: ToolbarVerticalBehaviorIfAvailable = .automatic
     @State private var tabMenuVerticalBehavior: TabMenuVerticalBehavior = .automatic
+    @State private var verticalDistribution: TabMenuVerticalDistribution = .automatic
 
     var body: some View {
         Group {
@@ -40,11 +41,6 @@ struct TabMenuExampleView: View {
         .font(.system(size: 30))
         .overlay(
             VStack {
-                Toggle("Grouped items", isOn: $isGrouped)
-                    .font(.body)
-                    .fixedSize()
-                    .padding(.horizontal)
-
                 Text("Item style")
                     .font(.caption)
                 Picker("Item style", selection: $itemStyle) {
@@ -79,6 +75,28 @@ struct TabMenuExampleView: View {
                 .fixedSize()
                 .padding(.horizontal)
 
+                Text("Horizontal distribution")
+                    .font(.caption)
+                Picker("Tab menu horizontal distribution", selection: $horizontalDistribution) {
+                    Text("Automatic").tag(TabMenuHorizontalDistribution.automatic)
+                    Text("Equal").tag(TabMenuHorizontalDistribution.equal)
+                    Text("Grouped").tag(TabMenuHorizontalDistribution.grouped(maxItemWidth: 90, spacing: 8))
+                }
+                .pickerStyle(.segmented)
+                .fixedSize()
+                .padding(.horizontal)
+
+                Text("Vertical distribution")
+                    .font(.caption)
+                Picker("Tab menu vertical distribution", selection: $verticalDistribution) {
+                    Text("Automatic").tag(TabMenuVerticalDistribution.automatic)
+                    Text("Equal").tag(TabMenuVerticalDistribution.equal)
+                    Text("Grouped").tag(TabMenuVerticalDistribution.grouped)
+                }
+                .pickerStyle(.segmented)
+                .fixedSize()
+                .padding(.horizontal)
+
                 Spacer()
 
                 if reselect {
@@ -95,7 +113,8 @@ struct TabMenuExampleView: View {
         /// Along the bottom on most screens, in the system's vertical bar on the iPhone Duo, and with `.automatic` in a custom vertical bar on an iPhone in landscape.
         .tabMenu(selection: $selection, items: TabMenuExample.items)
         .tabMenuItemStyle(ExampleTabMenuItemStyle(choice: itemStyle))
-        .tabMenuHorizontalDistribution(isGrouped ? .grouped(maxItemWidth: 90, spacing: 8) : .equal)
+        .tabMenuHorizontalDistribution(horizontalDistribution)
+        .tabMenuVerticalDistribution(verticalDistribution)
         .onTabMenuItemReselect("Reselect") {
             reselect = true
         }
