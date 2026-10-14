@@ -17,6 +17,9 @@ struct AutoRotatingViewExamples: View {
             NavigationLink(destination: AutoRotatingViewFullscreenExample()) {
                 Label("Fullscreen", systemImage: "arrow.up.left.and.arrow.down.right")
             }
+            NavigationLink(destination: NestedAutoRotatingViewExample()) {
+                Label("Nested", systemImage: "square.on.square")
+            }
             NavigationLink(destination: ContainerGeometryProbeExample()) {
                 Label("Container Geometry Probe", systemImage: "rectangle.dashed")
             }

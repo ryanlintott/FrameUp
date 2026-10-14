@@ -131,6 +131,23 @@ AutoRotatingView([.portrait, .landscapeLeft, .landscapeRight]) {
 
 The content is laid out in all the available space including any safe area around it, with a matching safe area re-created inside the rotation. Content can use `ignoresSafeArea()` to go edge to edge, or respect the safe area and stay clear of the real unsafe regions, in every orientation, and it turns around the centre of the safe area.
 
+When the device turns to an orientation the app supports but the content doesn't, the system turns the interface and the content stays completely still on the screen (iOS 17 and later). On earlier versions it turns with the interface and takes its place, without an animation, once the turn ends. The content is hosted in a view of its own that UIKit turns back in step with the system's rotation. Its environment is passed in, but preferences set inside it, such as a navigation title, don't reach views outside. A window that resizes without turning, such as on an iPad, isn't a rotation, and the content just resizes.
+
+The content can read its orientation from the `autoRotatingOrientation` environment value.
+
+An `AutoRotatingView` inside another turns relative to it. Here the panel stays still while its title turns to stay upright:
+
+```swift
+AutoRotatingView([.portrait]) {
+    Panel()
+        .overlay {
+            AutoRotatingView {
+                Title()
+            }
+        }
+}
+```
+
 On the inner screen of a foldable iPhone the system ignores an app's supported orientations and always follows the device, so `AutoRotatingView` does the same there: its content matches the interface and the allowed orientations have no effect. Folding back to the outer screen picks the allowed orientation nearest the device orientation, as the system does.
 
 ## Frame Adjustment

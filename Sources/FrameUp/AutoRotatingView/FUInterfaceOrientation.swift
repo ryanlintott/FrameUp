@@ -47,6 +47,11 @@ internal extension FUInterfaceOrientation {
         }
     }
     
+    /// The orientation this one becomes when the interface turns by an angle, as reported by a transition coordinator's `targetTransform`, or nil if the angle isn't a multiple of a quarter turn.
+    func rotated(by angle: Angle) -> Self? {
+        Self.allCases.first { abs((rotation(to: $0).degrees + angle.degrees).remainder(dividingBy: 360)) < 1 }
+    }
+    
     /// The orientation in a list that is the smallest turn from this one. A quarter turn is nearer than a half turn, and the first in the list wins a tie.
     func nearest(in orientations: [Self]) -> Self? {
         orientations.min { abs(rotation(to: $0).degrees) < abs(rotation(to: $1).degrees) }

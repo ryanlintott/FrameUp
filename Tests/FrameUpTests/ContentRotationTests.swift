@@ -95,4 +95,31 @@ struct NearestOrientationTests {
         #expect(FUInterfaceOrientation.portrait.nearest(in: []) == nil)
     }
 }
+
+/// A transition coordinator's `targetTransform` gives the turn of the interface, which is mapped to the new interface orientation.
+struct InterfaceTurnTests {
+    /// Measured in the iPhone simulator: portrait to the device's landscape left reports 90 degrees, landscape left to portrait -90, and a half turn either way 180.
+    @Test(arguments: [
+        (FUInterfaceOrientation.portrait, Angle.degrees(90), FUInterfaceOrientation.landscapeLeft),
+        (.landscapeLeft, .degrees(-90), .portrait),
+        (.portrait, .degrees(-90), .landscapeRight),
+        (.landscapeRight, .degrees(90), .portrait),
+        (.landscapeLeft, .degrees(180), .landscapeRight),
+        (.landscapeRight, .degrees(180), .landscapeLeft),
+        (.landscapeRight, .degrees(-180), .landscapeLeft)
+    ])
+    func turnGivesNewOrientation(from: FUInterfaceOrientation, angle: Angle, expected: FUInterfaceOrientation) {
+        #expect(from.rotated(by: angle) == expected)
+    }
+
+    /// A window that resizes without turning reports no turn, and stays in its orientation.
+    @Test(arguments: FUInterfaceOrientation.allCases)
+    func noTurnKeepsOrientation(orientation: FUInterfaceOrientation) {
+        #expect(orientation.rotated(by: .zero) == orientation)
+    }
+
+    @Test func partTurnHasNoOrientation() {
+        #expect(FUInterfaceOrientation.portrait.rotated(by: .degrees(45)) == nil)
+    }
+}
 #endif

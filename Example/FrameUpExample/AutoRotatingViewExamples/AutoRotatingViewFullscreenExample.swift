@@ -161,7 +161,9 @@ struct AutoRotatingViewFullscreenExample: View {
             
             Text("The blue rectangles are the container's corner insets and the yellow outline its rounded corners, both turned with the content, so they should always sit on the screen's own corners and camera.")
             
-            Text("Rotate the device to an orientation the app does not support to see the view rotate on its own. Changing the allowed orientations rotates it without moving the device, which is the only way to see this in a simulator.")
+            Text("Turn off an orientation and rotate the device to it. The system turns the interface, but the content stays completely still on the screen, as the view turns it back in step with the system.")
+            
+            Text("Rotate the device to an orientation the app does not support, such as upside down on an iPhone without a Home button, to see the view rotate on its own. Changing the allowed orientations also rotates it without moving the device.")
             
             Button("Show Fullscreen") {
                 isPresented = true
