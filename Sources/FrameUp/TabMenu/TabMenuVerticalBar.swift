@@ -25,6 +25,14 @@ enum TabMenuVerticalBar: Equatable, Sendable {
         }
     }
 
+    /// The screen edge a menu in this bar is against. Without a bar, `tabMenu(selection:items:)` puts it against the bottom.
+    var menuEdge: Edge {
+        switch edge {
+        case .leading: .leading
+        case .trailing: .trailing
+        }
+    }
+
     /// The system's vertical toolbar's edge when the menu is in it, or nil.
     ///
     /// `.disabled` keeps the menu along the bottom even where the system still reserves its toolbar, such as when the app sets `toolbarVerticalBehavior(.automatic)` further out, so this is nil there.
@@ -66,15 +74,4 @@ enum TabMenuVerticalBar: Equatable, Sendable {
     }
 }
 
-@available(iOS 16, *)
-extension Edge {
-    /// The screen edge a menu placed by `tabMenu(selection:items:)` is against: the bar's edge, or the bottom without a bar.
-    static func edge(for verticalBar: TabMenuVerticalBar?) -> Edge {
-        switch verticalBar?.edge {
-        case .leading: .leading
-        case .trailing: .trailing
-        case nil: .bottom
-        }
-    }
-}
 #endif

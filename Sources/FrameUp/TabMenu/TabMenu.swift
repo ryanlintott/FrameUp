@@ -76,8 +76,8 @@ public struct TabMenu<Tab: Hashable>: View {
         case .horizontal:
             let (maxItemWidth, itemSpacing) = horizontalDistribution.itemLayout(for: horizontalSizeClass)
             HStack(spacing: itemSpacing) {
-                ForEach(items) { item in
-                    itemView(item) { styledItem in
+                ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
+                    itemView(item, at: index) { styledItem in
                         styledItem
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .padding(.horizontal, 10)
@@ -94,9 +94,9 @@ public struct TabMenu<Tab: Hashable>: View {
             .accessibilityLabel(Text("Tab bar"))
         case .vertical:
             VStack(spacing: 0) {
-                ForEach(items) { item in
+                ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                     /// The items share the menu's height, each centred in its share. `tabMenu(selection:items:)` sets the height from `tabMenuVerticalDistribution(_:)`: the bar's full height, or a group at its bottom.
-                    itemView(item) { styledItem in
+                    itemView(item, at: index) { styledItem in
                         styledItem
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .padding(.horizontal, 4)
@@ -116,8 +116,9 @@ public struct TabMenu<Tab: Hashable>: View {
     /// An item drawn with the item style in its cell, with the selection, taps and accessibility around it, so a style can't break them.
     /// - Parameters:
     ///   - item: The item to draw.
+    ///   - index: The item's position in the menu, for VoiceOver.
     ///   - cell: Places the styled item in its cell, which takes taps.
-    func itemView<Cell: View>(_ item: TabMenuItem<Tab>, @ViewBuilder cell: (AnyView) -> Cell) -> some View {
+    func itemView<Cell: View>(_ item: TabMenuItem<Tab>, at index: Int, @ViewBuilder cell: (AnyView) -> Cell) -> some View {
         let isSelected = selection == item.tab
         let configuration = TabMenuItemStyleConfiguration(label: item.label, isSelected: isSelected, edge: edge)
 
@@ -129,28 +130,25 @@ public struct TabMenu<Tab: Hashable>: View {
                     selection = item.tab
                 }
             }
-            .overlay(
-                Group {
-                    if isSelected {
-                        if let onDoubleTap {
-                            Color.clear
-                                .contentShape(Rectangle())
-                                .onTapGesture(count: 2) {
-                                    onDoubleTap.action()
-                                }
-                                .onTapGesture {
-                                    onReselect?.action()
-                                }
-                        } else {
-                            Color.clear
-                                .contentShape(Rectangle())
-                                .onTapGesture {
-                                    onReselect?.action()
-                                }
-                        }
+            .overlay {
+                if isSelected {
+                    let tapArea = Color.clear.contentShape(Rectangle())
+                    if let onDoubleTap {
+                        tapArea
+                            .onTapGesture(count: 2) {
+                                onDoubleTap.action()
+                            }
+                            .onTapGesture {
+                                onReselect?.action()
+                            }
+                    } else {
+                        tapArea
+                            .onTapGesture {
+                                onReselect?.action()
+                            }
                     }
                 }
-            )
+            }
             /// Merges whatever the style draws, including the label, which names the item.
             .accessibilityElement(children: .combine)
             /// The selected item offers its actions to VoiceOver by name.
@@ -162,16 +160,8 @@ public struct TabMenu<Tab: Hashable>: View {
                     Button(action: onDoubleTap.action) { onDoubleTap.name }
                 }
             }
-            .accessibilityHint(tabVoiceOverHint(tabItem: item))
+            .accessibilityHint(Text("Tab\n\(index + 1) of \(items.count)"))
             .accessibilityAddTraits(isSelected ? .isSelected : [])
-    }
-
-    func tabVoiceOverHint(tabItem: TabMenuItem<Tab>) -> Text {
-        guard let tabIndex = items.firstIndex(where: { $0.tab == tabItem.tab }) else {
-            return Text("")
-        }
-
-        return Text("Tab\n\(tabIndex + 1) of \(items.count)")
     }
 }
 #endif

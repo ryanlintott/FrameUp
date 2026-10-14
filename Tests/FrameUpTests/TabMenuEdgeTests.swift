@@ -19,13 +19,13 @@ struct TabMenuEdgeTests {
         interfaceOrientation: FUInterfaceOrientation? = .landscapeLeft,
         layoutDirection: LayoutDirection = .leftToRight
     ) -> Edge {
-        Edge.edge(for: TabMenuVerticalBar(
+        TabMenuVerticalBar(
             behavior: .automatic,
             systemEdge: systemEdge,
             verticalSizeClass: verticalSizeClass,
             interfaceOrientation: interfaceOrientation,
             layoutDirection: layoutDirection
-        ))
+        )?.menuEdge ?? .bottom
     }
 
     @available(iOS 16, *)

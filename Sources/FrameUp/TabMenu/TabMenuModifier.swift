@@ -150,7 +150,7 @@ struct TabMenuModifier<Tab: Hashable>: ViewModifier {
             if let verticalBarLayout {
                 measuringItems(
                     menu
-                        .environment(\.tabMenuEdge, .edge(for: verticalBar))
+                        .environment(\.tabMenuEdge, verticalBar?.menuEdge ?? .bottom)
                         .frame(width: verticalBarLayout.menuWidth)
                         .frame(maxHeight: verticalBarLayout.maxMenuHeight)
                 )
