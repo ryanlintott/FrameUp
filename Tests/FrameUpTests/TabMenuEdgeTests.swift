@@ -12,7 +12,6 @@ import Testing
 
 struct TabMenuEdgeTests {
     /// The edge `tabMenu(selection:items:)` gives the menu it places, for the bar `.automatic` decides on an iPhone, with the top of the device on the left unless told otherwise.
-    @available(iOS 16, *)
     private func menuEdge(
         systemEdge: HorizontalEdge? = nil,
         verticalSizeClass: UserInterfaceSizeClass? = .compact,
@@ -28,12 +27,10 @@ struct TabMenuEdgeTests {
         )?.menuEdge ?? .bottom
     }
 
-    @available(iOS 16, *)
     @Test func bottomMenuIsAgainstTheBottomEdge() {
         #expect(menuEdge(verticalSizeClass: .regular) == .bottom)
     }
 
-    @available(iOS 16, *)
     @Test func systemToolbarVerticalMenuIsAgainstItsEdge() {
         #expect(menuEdge(systemEdge: .leading) == .leading)
         #expect(menuEdge(systemEdge: .trailing) == .trailing)
@@ -41,13 +38,11 @@ struct TabMenuEdgeTests {
         #expect(menuEdge(systemEdge: .trailing, layoutDirection: .rightToLeft) == .trailing)
     }
 
-    @available(iOS 16, *)
     @Test func customBarMenuIsAgainstTheBarsEdge() {
         #expect(menuEdge(interfaceOrientation: .landscapeLeft) == .trailing)
         #expect(menuEdge(interfaceOrientation: .landscapeRight) == .leading)
     }
 
-    @available(iOS 16, *)
     @Test func customBarMenuEdgeIsLayoutRelativeInRightToLeft() {
         /// The bar keeps its physical side, so its layout edge swaps.
         #expect(menuEdge(interfaceOrientation: .landscapeLeft, layoutDirection: .rightToLeft) == .leading)

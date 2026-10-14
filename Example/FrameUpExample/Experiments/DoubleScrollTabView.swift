@@ -9,13 +9,11 @@ import FrameUp
 import SwiftUI
 
 #if os(iOS)
-@available(iOS 16, *)
 enum DoubleScrollTab: Int, RawRepresentable, CaseIterable {
     case first
     case second
 }
 
-@available(iOS 16, *)
 struct DoubleScrollTabViewExample: View {
     var body: some View {
         GeometryReader { proxy in
@@ -24,7 +22,6 @@ struct DoubleScrollTabViewExample: View {
     }
 }
 
-@available(iOS 16, *)
 struct DoubleScrollTabView: View {
     var items: [(Int, String)] {
         Array(1...200).map { ($0, "Item \($0)") }
@@ -177,7 +174,6 @@ struct DoubleScrollTabView: View {
     }
 }
 
-@available(iOS 16, *)
 struct DoubleScrollTabView_Previews: PreviewProvider {
     static var previews: some View {
         DoubleScrollTabViewExample()

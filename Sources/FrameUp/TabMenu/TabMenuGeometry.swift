@@ -21,7 +21,6 @@ import SwiftUI
 ///     }
 ///
 /// For which edge a vertical bar is on, read ``SwiftUICore/EnvironmentValues/tabMenuVerticalEdge``, which is set before anything is measured.
-@available(iOS 16, *)
 public struct TabMenuGeometry: Equatable, Sendable {
     /// The menu's items, from the first item's edge to the last's. Along the bottom they're spread as set by `tabMenuHorizontalDistribution(_:)`. In a vertical bar they're centred slightly away from the screen's edge, where the system centres its buttons, and run the bar's height or stack at its bottom, as set by `tabMenuVerticalDistribution(_:)`.
     ///
@@ -30,7 +29,6 @@ public struct TabMenuGeometry: Equatable, Sendable {
 }
 
 /// The frame of a menu's items in the ``SwiftUICore/CoordinateSpace/tabMenu`` space, reported by ``TabMenu`` for `tabMenu(selection:items:)`.
-@available(iOS 16, *)
 struct TabMenuItemsFrameKey: PreferenceKey {
     static let defaultValue: CGRect? = nil
     static func reduce(value: inout CGRect?, nextValue: () -> CGRect?) {
@@ -39,7 +37,6 @@ struct TabMenuItemsFrameKey: PreferenceKey {
     }
 }
 
-@available(iOS 16, *)
 extension View {
     /// Reports this view's frame as the menu's items.
     func reportingTabMenuItemsFrame() -> some View {
@@ -53,10 +50,8 @@ extension View {
 }
 
 /// The name of the coordinate space that `tabMenu(selection:items:)` sets up around its content and menu.
-@available(iOS 16, *)
 struct TabMenuCoordinateSpaceName: Hashable {}
 
-@available(iOS 16, *)
 public extension CoordinateSpace {
     /// The coordinate space around the content and menu of `tabMenu(selection:items:)`, in which ``TabMenuGeometry`` gives its frames.
     static var tabMenu: CoordinateSpace {

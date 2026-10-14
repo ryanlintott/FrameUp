@@ -418,7 +418,7 @@ Color.blue.overlay(Text("Front"))
 ```
 
 ## TabMenu
-*\*iOS 16+ only*
+*\*iOS only*
 
 Customizable tab menu bar view designed to mimic the style of the default tab menu bar on iPhone. By default each item's icon and title mask a color, as the iPhone tab bar in iOS 15–18 looks.
 

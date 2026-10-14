@@ -11,7 +11,6 @@ import SwiftUI
 /// A tab menu item style that shows a fill masked by the item's icon and title, as the iPhone tab bar in iOS 15–18 looks.
 ///
 /// The icon is 22 points tall above a 10 point title. Along the bottom they sit at the bottom of the item; in a vertical bar they're centred, and the title truncates rather than wrapping. Use ``TabMenuItemStyle/masked(_:)`` to create one.
-@available(iOS 16, *)
 public struct MaskedTabMenuItemStyle<Fill: View>: TabMenuItemStyle {
     let fill: (Bool) -> Fill
     /// False only for the deprecated `TabMenu` initialiser's `isShowingName: false`. VoiceOver still reads the title. Remove with TabMenu+Deprecated.swift.
@@ -30,7 +29,6 @@ public struct MaskedTabMenuItemStyle<Fill: View>: TabMenuItemStyle {
     }
 }
 
-@available(iOS 16, *)
 public extension TabMenuItemStyle {
     /// A style that shows a fill masked by each item's icon and title, as the iPhone tab bar in iOS 15–18 looks.
     ///
@@ -48,7 +46,6 @@ public extension TabMenuItemStyle {
 }
 
 /// The default tab menu item style: ``MaskedTabMenuItemStyle`` with the accent color when selected and the secondary label color otherwise.
-@available(iOS 16, *)
 public struct AutomaticTabMenuItemStyle: TabMenuItemStyle {
     public init() {}
 
@@ -60,14 +57,12 @@ public struct AutomaticTabMenuItemStyle: TabMenuItemStyle {
     }
 }
 
-@available(iOS 16, *)
 public extension TabMenuItemStyle where Self == AutomaticTabMenuItemStyle {
     /// The default style: a masked icon and title in the accent color when selected and the secondary label color otherwise.
     static var automatic: AutomaticTabMenuItemStyle { AutomaticTabMenuItemStyle() }
 }
 
 /// Lays out the icon and title for ``MaskedTabMenuItemStyle``, filling the item so they can be placed in it.
-@available(iOS 16, *)
 struct MaskedTabMenuItemLabelStyle: LabelStyle {
     let axis: Axis
     /// Passed on from ``MaskedTabMenuItemStyle``. Remove with TabMenu+Deprecated.swift.

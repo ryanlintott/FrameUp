@@ -13,7 +13,6 @@ import SwiftUI
 /// Modelled on the system's `toolbarVerticalBehavior(_:)`. Set it with `tabMenuVerticalBehavior(_:)` above the tab menu, and read where the vertical bar is from ``SwiftUICore/EnvironmentValues/tabMenuVerticalEdge``.
 ///
 /// `tabMenuVerticalBehavior(_:)` sets `toolbarVerticalBehavior(_:)` to match, but a `toolbarVerticalBehavior(_:)` the app applies further out takes precedence. So if the app turns the system's vertical toolbar off further out, the menu can't use it, even with `.automatic`.
-@available(iOS 16, *)
 public enum TabMenuVerticalBehavior: Hashable, Sendable {
     /// The menu is vertical only in the system's vertical toolbar, as on the iPhone Duo, and never makes a custom vertical bar. This is the default.
     case system
@@ -25,7 +24,6 @@ public enum TabMenuVerticalBehavior: Hashable, Sendable {
     case disabled
 }
 
-@available(iOS 16, *)
 public extension View {
     /// Sets where menus placed with `tabMenu(selection:items:)` inside this view can stack their items in a vertical bar, and sets ``SwiftUICore/EnvironmentValues/tabMenuVerticalEdge`` to match for everything inside it.
     ///
@@ -43,7 +41,6 @@ public extension View {
 }
 
 /// Sets the behavior and tracks the interface orientation for tab menus inside it, and sets the system's vertical toolbar to match.
-@available(iOS 16, *)
 private struct TabMenuEnvironmentModifier: ViewModifier {
     /// The interface orientation, read from the window scene from the first update, so the menu never waits for it.
     @State private var orientation: FUInterfaceOrientation? = .windowScene
@@ -68,7 +65,6 @@ private struct TabMenuEnvironmentModifier: ViewModifier {
 /// Sets the system's vertical toolbar to match ``TabMenuVerticalBehavior``: on for `.system` and `.automatic`, so the menu can use it on the iPhone Duo, and off for `.disabled`, so there's no empty vertical toolbar beside the bottom menu.
 ///
 /// It always applies a behavior rather than leaving the app's alone for `.system`. Choosing one only for some cases would branch the content, resetting its state when the behavior changes, and turning the toolbar off for `.system` whenever `toolbarVerticalEdge` is nil would keep it off, since the toolbar is what sets that edge.
-@available(iOS 16, *)
 private struct UpdateToolbarVerticalBehaviorModifier: ViewModifier {
     let tabMenuVerticalBehavior: TabMenuVerticalBehavior
 

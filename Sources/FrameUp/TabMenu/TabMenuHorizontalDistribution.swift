@@ -11,7 +11,6 @@ import SwiftUI
 /// How a horizontal ``TabMenu`` spreads its items across its width.
 ///
 /// A vertical menu, in the system's vertical bar on the iPhone Duo or a custom vertical bar, ignores this. See ``TabMenuVerticalDistribution``.
-@available(iOS 16, *)
 public enum TabMenuHorizontalDistribution: Hashable, Sendable {
     /// Follows the horizontal size class, like `UITabBar`'s automatic item positioning: `.equal` where the width is compact, as on an iPhone in portrait, and grouped where it's regular, as on an iPad.
     case automatic
@@ -38,7 +37,6 @@ public enum TabMenuHorizontalDistribution: Hashable, Sendable {
 #endif
 
 #if os(iOS)
-@available(iOS 16, *)
 public extension View {
     /// Sets how the items are spread across the width of horizontal tab menus in this view.
     ///

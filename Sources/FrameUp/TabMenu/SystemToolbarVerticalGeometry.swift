@@ -8,7 +8,6 @@
 import SwiftUI
 
 /// The system's vertical toolbar, and the part of it the menu can use, measured with `reservedRegions`. ``TabMenuVerticalBarLayout`` places the menu in it.
-@available(iOS 16, *)
 struct SystemToolbarVerticalGeometry: Equatable, Sendable {
     /// The width of the system's vertical toolbar (measured on the iPhone Duo).
     static let defaultWidth: CGFloat = 84
@@ -24,7 +23,6 @@ struct SystemToolbarVerticalGeometry: Equatable, Sendable {
     let reservedWidth: CGFloat
 }
 
-@available(iOS 16, *)
 extension SystemToolbarVerticalGeometry {
     /// Measures the system's vertical toolbar, from geometry expressed in the content's layout-relative coordinate space, or nil when there's no vertical toolbar or it's mid-change.
     init?(

@@ -10,14 +10,12 @@ import SwiftUI
 #if os(iOS)
 /// An action with a name, used by the deprecated `TabMenu` initialiser for its reselect and double-tap actions.
 @available(*, deprecated, message: "Use onTabMenuItemReselect(_:perform:) and onTabMenuItemDoubleTap(_:perform:) on the menu or a view above it.")
-@available(iOS 16, *)
 public struct NamedAction {
     public let name: Text
     public let action: () -> Void
 }
 
 @available(*, deprecated, message: "Use onTabMenuItemReselect(_:perform:) and onTabMenuItemDoubleTap(_:perform:) on the menu or a view above it.")
-@available(iOS 16, *)
 public extension NamedAction {
     init(_ name: LocalizedStringKey, action: @escaping () -> Void) {
         self.name = Text(name)
@@ -25,7 +23,6 @@ public extension NamedAction {
     }
 }
 
-@available(iOS 16, *)
 public extension TabMenu {
     /// Creates a tab menu with a masked view and actions, as in FrameUp 0.9.
     ///
@@ -47,7 +44,6 @@ public extension TabMenu {
     }
 }
 
-@available(iOS 16, *)
 extension TabMenuItemAction {
     @available(*, deprecated)
     init(_ namedAction: NamedAction) {
@@ -55,7 +51,6 @@ extension TabMenuItemAction {
     }
 }
 
-@available(iOS 16, *)
 public extension TabMenuItem {
     /// Creates an item with any view as the icon and an optional name, as in FrameUp 0.9.
     ///

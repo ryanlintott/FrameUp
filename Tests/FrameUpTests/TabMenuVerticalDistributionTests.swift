@@ -11,17 +11,14 @@ import Testing
 @testable import FrameUp
 
 struct TabMenuVerticalDistributionTests {
-    @available(iOS 16, *)
     @Test func automaticIsGroupedInTheSystemToolbarVertical() {
         #expect(TabMenuVerticalDistribution.automatic.isGrouped(in: .system(.trailing)))
     }
 
-    @available(iOS 16, *)
     @Test func automaticIsEqualInTheCustomBar() {
         #expect(!TabMenuVerticalDistribution.automatic.isGrouped(in: .custom(.trailing)))
     }
 
-    @available(iOS 16, *)
     @Test func explicitDistributionsIgnoreTheBar() {
         for bar in [TabMenuVerticalBar.system(.leading), .custom(.leading)] {
             #expect(TabMenuVerticalDistribution.grouped.isGrouped(in: bar))

@@ -31,7 +31,6 @@ import SwiftUI
 ///         }
 ///
 /// Placed by hand, the menu is a horizontal bar. Use `tabMenu(selection:items:)` to place it where the system would put its tab bar, which can be a vertical bar.
-@available(iOS 16, *)
 public struct TabMenu<Tab: Hashable>: View {
     /// The screen edge the menu is placed against. Only `tabMenu(selection:items:)` sets it, so a menu placed by hand sees nil and stays horizontal.
     @Environment(\.tabMenuEdge) private var edge
@@ -154,16 +153,49 @@ public struct TabMenu<Tab: Hashable>: View {
             /// Merges whatever the style draws, including the label, which names the item.
             .accessibilityElement(children: .combine)
             /// The selected item offers its actions to VoiceOver by name.
-            .accessibilityActions {
-                if let onReselect, isSelected {
-                    Button(action: onReselect.action) { onReselect.name }
-                }
-                if let onDoubleTap, isSelected {
-                    Button(action: onDoubleTap.action) { onDoubleTap.name }
-                }
-            }
+            .modifier(SelectedItemAccessibilityActions(
+                reselect: isSelected ? onReselect : nil,
+                doubleTap: isSelected ? onDoubleTap : nil
+            ))
             .accessibilityHint(Text("Tab\n\(index + 1) of \(items.count)"))
             .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+}
+/// Offers the selected item's actions to VoiceOver by name.
+private struct SelectedItemAccessibilityActions: ViewModifier {
+    let reselect: TabMenuItemAction?
+    let doubleTap: TabMenuItemAction?
+
+    func body(content: Content) -> some View {
+        if #available(iOS 16, *) {
+            content
+                .accessibilityActions {
+                    if let reselect {
+                        Button(action: reselect.action) { reselect.name }
+                    }
+                    if let doubleTap {
+                        Button(action: doubleTap.action) { doubleTap.name }
+                    }
+                }
+        } else {
+            /// Before iOS 16 an action can only be added by changing the view's structure, so an item with actions changes identity as it's selected.
+            content
+                .modifier(OptionalAccessibilityAction(action: reselect))
+                .modifier(OptionalAccessibilityAction(action: doubleTap))
+        }
+    }
+}
+
+/// Adds a named VoiceOver action, or nothing.
+private struct OptionalAccessibilityAction: ViewModifier {
+    let action: TabMenuItemAction?
+
+    func body(content: Content) -> some View {
+        if let action {
+            content.accessibilityAction(named: action.name, action.action)
+        } else {
+            content
+        }
     }
 }
 #endif

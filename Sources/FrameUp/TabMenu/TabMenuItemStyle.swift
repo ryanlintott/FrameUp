@@ -26,7 +26,6 @@ import SwiftUI
 ///                 }
 ///         }
 ///     }
-@available(iOS 16, *)
 public protocol TabMenuItemStyle {
     /// A view that represents the body of an item.
     associatedtype Body: View
@@ -40,7 +39,6 @@ public protocol TabMenuItemStyle {
 }
 
 /// The properties of an item in a ``TabMenu``, passed to a ``TabMenuItemStyle``.
-@available(iOS 16, *)
 public struct TabMenuItemStyleConfiguration {
     /// The item's title and icon, as given in ``TabMenuItem``.
     public let label: Label<Text, TabMenuItemIcon>
@@ -60,7 +58,6 @@ public struct TabMenuItemStyleConfiguration {
     }
 }
 
-@available(iOS 16, *)
 public extension View {
     /// Sets the style that draws the items of tab menus in this view.
     ///

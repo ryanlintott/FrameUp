@@ -8,60 +8,49 @@
 import SwiftUI
 
 #if os(iOS)
-@available(iOS 16, *)
 private struct TabMenuEdgeKey: EnvironmentKey {
     static let defaultValue: Edge? = nil
 }
 
-@available(iOS 16, *)
 private struct TabMenuItemStyleKey: EnvironmentKey {
     /// Computed, so the style needn't be `Sendable`.
     static var defaultValue: any TabMenuItemStyle { AutomaticTabMenuItemStyle() }
 }
 
-@available(iOS 16, *)
 private struct TabMenuItemIconIsResizableKey: EnvironmentKey {
     static let defaultValue = false
 }
 
-@available(iOS 16, *)
 private struct TabMenuHorizontalDistributionKey: EnvironmentKey {
     static let defaultValue: TabMenuHorizontalDistribution = .automatic
 }
 
-@available(iOS 16, *)
 private struct TabMenuVerticalDistributionKey: EnvironmentKey {
     static let defaultValue: TabMenuVerticalDistribution = .automatic
 }
 
-@available(iOS 16, *)
 private struct TabMenuItemReselectActionKey: EnvironmentKey {
     /// Computed, so the action needn't be `Sendable`.
     static var defaultValue: TabMenuItemAction? { nil }
 }
 
-@available(iOS 16, *)
 private struct TabMenuItemDoubleTapActionKey: EnvironmentKey {
     /// Computed, so the action needn't be `Sendable`.
     static var defaultValue: TabMenuItemAction? { nil }
 }
 
-@available(iOS 16, *)
 private struct TabMenuVerticalBehaviorKey: EnvironmentKey {
     static let defaultValue: TabMenuVerticalBehavior = .system
 }
 
-@available(iOS 16, *)
 private struct TabMenuInterfaceOrientationKey: EnvironmentKey {
     static let defaultValue: FUInterfaceOrientation? = nil
 }
 
-@available(iOS 16, *)
 private struct TabMenuGeometryKey: EnvironmentKey {
     static let defaultValue: TabMenuGeometry? = nil
 }
 
-@available(iOS 16, *)
 public extension EnvironmentValues {
     /// The edge of the vertical bar that holds tab menus placed in this view, or nil when they run along the bottom.
     ///
@@ -79,7 +68,6 @@ public extension EnvironmentValues {
     }
 }
 
-@available(iOS 16, *)
 extension EnvironmentValues {
     /// The screen edge a ``TabMenu`` is placed against, which also decides the direction it lays out its items. Only `tabMenu(selection:items:)` sets it, on the menu it places, so a menu placed by hand sees nil and stays horizontal.
     var tabMenuEdge: Edge? {

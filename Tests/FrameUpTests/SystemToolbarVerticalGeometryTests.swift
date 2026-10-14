@@ -10,7 +10,6 @@ import Testing
 @testable import FrameUp
 
 struct SystemToolbarVerticalGeometryTests {
-    @available(iOS 16, *)
     @Test func outerPortraitMatchesTheMeasuredSystemToolbarVerticalPosition() {
         let geometry = SystemToolbarVerticalGeometry(
             edge: .trailing,
@@ -28,7 +27,6 @@ struct SystemToolbarVerticalGeometryTests {
         ))
     }
 
-    @available(iOS 16, *)
     @Test func bottomCameraSetsTheBottomEdge() {
         let geometry = SystemToolbarVerticalGeometry(
             edge: .trailing,
@@ -46,7 +44,6 @@ struct SystemToolbarVerticalGeometryTests {
         ))
     }
 
-    @available(iOS 16, *)
     @Test func leadingSystemToolbarVerticalUsesLayoutRelativeCoordinates() {
         let geometry = SystemToolbarVerticalGeometry(
             edge: .leading,
@@ -64,7 +61,6 @@ struct SystemToolbarVerticalGeometryTests {
         ))
     }
 
-    @available(iOS 16, *)
     @Test func menuSitsBelowTheHingeRatherThanInTheTallerSpanAbove() {
         /// A division frame already includes its margins.
         let geometry = SystemToolbarVerticalGeometry(
@@ -84,7 +80,6 @@ struct SystemToolbarVerticalGeometryTests {
         ))
     }
 
-    @available(iOS 16, *)
     @Test func divisionAcrossTheSystemToolbarVerticalLeavesTheMenuBelowIt() {
         let geometry = SystemToolbarVerticalGeometry(
             edge: .trailing,
@@ -102,7 +97,6 @@ struct SystemToolbarVerticalGeometryTests {
         ))
     }
 
-    @available(iOS 16, *)
     @Test func systemToolbarVerticalNamedBeforeItsInsetMovesKeepsTheLastMeasuredLayout() {
         /// Mid-turn, the edge can name the new side while the inset is still on the old one.
         let geometry = SystemToolbarVerticalGeometry(
@@ -115,7 +109,6 @@ struct SystemToolbarVerticalGeometryTests {
         #expect(geometry == nil)
     }
 
-    @available(iOS 16, *)
     @Test func systemToolbarVerticalNamedWhileUnfoldingKeepsTheLastMeasuredLayout() {
         /// Mid-unfold, the edge can arrive while the inner portrait's top inset is still there.
         let geometry = SystemToolbarVerticalGeometry(
@@ -128,7 +121,6 @@ struct SystemToolbarVerticalGeometryTests {
         #expect(geometry == nil)
     }
 
-    @available(iOS 16, *)
     @Test func leftSplitWindowReservesTheSystemToolbarVertical() {
         /// The iPhone Duo's left split window: a leading vertical toolbar with no safe area for it (469x669, bottom inset 34).
         let geometry = SystemToolbarVerticalGeometry(
@@ -147,7 +139,6 @@ struct SystemToolbarVerticalGeometryTests {
         ))
     }
 
-    @available(iOS 16, *)
     @Test func noVerticalEdgeHasNoSystemToolbarVertical() {
         let geometry = SystemToolbarVerticalGeometry(
             edge: nil,

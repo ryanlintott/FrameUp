@@ -11,7 +11,6 @@ import SwiftUI
 /// Measures where a tab menu goes in the system's vertical toolbar.
 ///
 /// The measurement uses `reservedRegions`, which arrived in the iOS 27.1 SDK and needs iOS 27.1. Elsewhere it measures nothing, which is fine, since there's no vertical toolbar to measure.
-@available(iOS 16, *)
 struct SystemToolbarVerticalGeometryReader: ViewModifier {
     /// The toolbar's edge, or nil when the menu isn't using it.
     let edge: HorizontalEdge?

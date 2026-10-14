@@ -9,7 +9,6 @@ import SwiftUI
 
 #if os(iOS)
 /// Where a tab menu's vertical bar is, as `tabMenuVerticalBehavior(_:)` decides.
-@available(iOS 16, *)
 enum TabMenuVerticalBar: Hashable, Sendable {
     /// In the system's vertical toolbar, on this edge.
     case system(HorizontalEdge)

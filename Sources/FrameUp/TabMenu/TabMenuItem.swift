@@ -19,7 +19,6 @@ import SwiftUI
 ///     TabMenuItem(tab: 2, title: Text(category.name)) {
 ///         Image(systemName: "bookmark")
 ///     }
-@available(iOS 16, *)
 public struct TabMenuItem<Tab: Hashable>: Identifiable {
     /// Hashable tab id.
     public let tab: Tab

@@ -9,7 +9,6 @@ import FrameUp
 import SwiftUI
 
 #if os(iOS)
-@available(iOS 16, *)
 struct TabMenuFullscreenExampleView: View {
     @Environment(\.dismiss) private var dismiss
 
@@ -141,7 +140,6 @@ struct TabMenuFullscreenExampleView: View {
 }
 
 /// Outlines the menu's items from ``TabMenuGeometry`` in green.
-@available(iOS 16, *)
 private struct TabMenuItemsBorder: View {
     @Environment(\.tabMenuGeometry) private var tabMenuGeometry
 
@@ -161,7 +159,6 @@ private struct TabMenuItemsBorder: View {
     }
 }
 
-@available(iOS 16, *)
 #Preview {
     TabMenuFullscreenExampleView()
 }

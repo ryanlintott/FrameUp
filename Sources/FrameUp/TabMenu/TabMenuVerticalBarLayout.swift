@@ -10,7 +10,6 @@ import SwiftUI
 /// Where a vertical tab menu goes in its bar, the system's vertical toolbar or the custom bar, as padding from the window's edges.
 ///
 /// The menu is drawn at `menuWidth`, at most `maxMenuHeight` tall, inside the window less this padding, against the bar's edge and the bottom. Where the span is shorter than `maxMenuHeight`, the items squeeze equally to fit.
-@available(iOS 16, *)
 struct TabMenuVerticalBarLayout: Equatable, Sendable {
     /// The system's natural item height, and the horizontal menu's height.
     static let itemHeight: CGFloat = 50
@@ -34,7 +33,6 @@ struct TabMenuVerticalBarLayout: Equatable, Sendable {
     let contentInset: CGFloat
 }
 
-@available(iOS 16, *)
 extension TabMenuVerticalBarLayout {
     /// Places the menu in a bar.
     /// - Parameters:

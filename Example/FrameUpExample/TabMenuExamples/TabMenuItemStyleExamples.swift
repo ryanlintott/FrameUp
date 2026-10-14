@@ -10,7 +10,6 @@ import SwiftUI
 
 #if os(iOS)
 /// Shows icons only in a vertical bar, and the icon and title side by side along the bottom, with a capsule behind the selected item.
-@available(iOS 16, *)
 struct CapsuleItemStyle: TabMenuItemStyle {
     func makeBody(configuration: Configuration) -> some View {
         Group {
@@ -35,7 +34,6 @@ struct CapsuleItemStyle: TabMenuItemStyle {
 }
 
 /// Stacks a large icon over a small title.
-@available(iOS 16, *)
 struct StackedLabelStyle: LabelStyle {
     func makeBody(configuration: Configuration) -> some View {
         VStack(spacing: 2) {
@@ -50,7 +48,6 @@ struct StackedLabelStyle: LabelStyle {
 }
 
 /// Stacks a large icon over a small title, with a dot beside the selected item, on the side nearest the content.
-@available(iOS 16, *)
 struct DotItemStyle: TabMenuItemStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -77,7 +74,6 @@ struct DotItemStyle: TabMenuItemStyle {
 }
 
 /// The item styles the examples can switch between.
-@available(iOS 16, *)
 enum ExampleTabMenuItemStyleChoice: String, CaseIterable, Identifiable {
     case automatic = "Automatic"
     case gradient = "Gradient"
@@ -88,7 +84,6 @@ enum ExampleTabMenuItemStyleChoice: String, CaseIterable, Identifiable {
 }
 
 /// Draws items with the chosen style, so switching styles doesn't change the structure of the view the style is applied to.
-@available(iOS 16, *)
 struct ExampleTabMenuItemStyle: TabMenuItemStyle {
     let choice: ExampleTabMenuItemStyleChoice
 
