@@ -30,6 +30,8 @@ struct TabMenuVerticalBarLayout: Equatable, Sendable {
     let bottomPadding: CGFloat
     /// The tallest the menu grows: the items' natural height when grouped, or infinity to fill the span.
     let maxMenuHeight: CGFloat
+    /// How far the content moves over to make room for the bar, or 0 when the safe area already covers it.
+    let contentInset: CGFloat
 }
 
 @available(iOS 16, *)
@@ -42,13 +44,15 @@ extension TabMenuVerticalBarLayout {
     ///   - bottomPadding: How far the part of the bar the menu can use is from the window's bottom edge, before the grouped menu's margin.
     ///   - isGrouped: Whether the items keep their natural height at the bottom of the bar, rather than sharing its height.
     ///   - itemCount: The number of items.
+    ///   - contentInset: How far the content moves over to make room for the bar.
     init(
         edge: HorizontalEdge,
         barWidth: CGFloat,
         topPadding: CGFloat,
         bottomPadding: CGFloat,
         isGrouped: Bool,
-        itemCount: Int
+        itemCount: Int,
+        contentInset: CGFloat
     ) {
         /// Centre the items where the system centres its buttons, slightly away from the screen's edge, if the bar is wide enough to keep them tappable.
         let centredWidth = 2 * (barWidth - Self.centreInset)
@@ -62,7 +66,8 @@ extension TabMenuVerticalBarLayout {
             edgePadding: barWidth - menuWidth,
             topPadding: topPadding,
             bottomPadding: isGrouped ? max(bottomPadding, Self.bottomMargin) : bottomPadding,
-            maxMenuHeight: isGrouped ? Self.itemHeight * CGFloat(itemCount) : .infinity
+            maxMenuHeight: isGrouped ? Self.itemHeight * CGFloat(itemCount) : .infinity,
+            contentInset: contentInset
         )
     }
 }

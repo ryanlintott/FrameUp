@@ -16,13 +16,21 @@ enum TabMenuVerticalBar: Equatable, Sendable {
     /// In a custom vertical bar the menu makes for itself, on this edge. Like `toolbarVerticalEdge` for the system's bar, the edge is layout-relative, while the bar keeps its physical side in a right-to-left layout (measured on the iPhone Duo, iOS 27.1).
     case custom(HorizontalEdge)
 
-    /// The width of the custom vertical bar: the height of the horizontal menu on an iPhone in portrait, its 50 points plus the 34 point safe area below it for the Home indicator. That matches the system's vertical toolbar on the iPhone Duo.
-    static let customBarWidth: CGFloat = 84
+    /// The width of the custom vertical bar, the same as the system's vertical toolbar on the iPhone Duo. That's also the height of the horizontal menu on an iPhone in portrait, its 50 points plus the 34 point safe area below it for the Home indicator.
+    static let customBarWidth = SystemToolbarVerticalGeometry.defaultWidth
 
     var edge: HorizontalEdge {
         switch self {
         case let .system(edge), let .custom(edge): edge
         }
+    }
+
+    /// The system's vertical toolbar's edge when the menu is in it, or nil.
+    ///
+    /// `.disabled` keeps the menu along the bottom even where the system still reserves its toolbar, such as when the app sets `toolbarVerticalBehavior(.automatic)` further out, so this is nil there.
+    var systemEdge: HorizontalEdge? {
+        guard case let .system(edge) = self else { return nil }
+        return edge
     }
 
     /// Decides where the vertical bar goes, or nil for the bottom.

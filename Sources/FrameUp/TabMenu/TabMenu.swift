@@ -36,7 +36,7 @@ public struct TabMenu<Tab: Hashable>: View {
     /// The screen edge the menu is placed against. Only `tabMenu(selection:items:)` sets it, so a menu placed by hand sees nil and stays horizontal.
     @Environment(\.tabMenuEdge) private var edge
     @Environment(\.tabMenuItemStyle) private var environmentItemStyle
-    @Environment(\.tabMenuHorizontalDistribution) private var environmentHorizontalDistribution
+    @Environment(\.tabMenuHorizontalDistribution) private var horizontalDistribution
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.tabMenuItemReselectAction) private var environmentReselect
     @Environment(\.tabMenuItemDoubleTapAction) private var environmentDoubleTap
@@ -74,6 +74,7 @@ public struct TabMenu<Tab: Hashable>: View {
     public var body: some View {
         switch axis {
         case .horizontal:
+            let (maxItemWidth, itemSpacing) = horizontalDistribution.itemLayout(for: horizontalSizeClass)
             HStack(spacing: itemSpacing) {
                 ForEach(items) { item in
                     itemView(item) { styledItem in
@@ -104,27 +105,6 @@ public struct TabMenu<Tab: Hashable>: View {
             }
             .accessibilityElement(children: .contain)
             .accessibilityLabel(Text("Tab bar"))
-        }
-    }
-
-    /// The environment's spread, with `.automatic` resolved for the horizontal size class.
-    var horizontalDistribution: TabMenuHorizontalDistribution {
-        environmentHorizontalDistribution.resolved(for: horizontalSizeClass)
-    }
-
-    /// The widest a horizontal item can be, including its padding.
-    var maxItemWidth: CGFloat {
-        switch horizontalDistribution {
-        case .automatic, .equal: .infinity
-        case let .grouped(maxItemWidth, _): maxItemWidth
-        }
-    }
-
-    /// The space between horizontal items.
-    var itemSpacing: CGFloat {
-        switch horizontalDistribution {
-        case .automatic, .equal: 0
-        case let .grouped(_, spacing): spacing
         }
     }
 
@@ -171,18 +151,17 @@ public struct TabMenu<Tab: Hashable>: View {
                     }
                 }
             )
-            .background(
-                ZStack {
-                    if let onReselect, isSelected {
-                        Color.clear.accessibilityAction(named: onReselect.name, onReselect.action)
-                    }
-                    if let onDoubleTap, isSelected {
-                        Color.clear.accessibilityAction(named: onDoubleTap.name, onDoubleTap.action)
-                    }
-                }
-            )
-            /// Merges whatever the style draws, including the label, which names the item, with the named actions.
+            /// Merges whatever the style draws, including the label, which names the item.
             .accessibilityElement(children: .combine)
+            /// The selected item offers its actions to VoiceOver by name.
+            .accessibilityActions {
+                if let onReselect, isSelected {
+                    Button(action: onReselect.action) { onReselect.name }
+                }
+                if let onDoubleTap, isSelected {
+                    Button(action: onDoubleTap.action) { onDoubleTap.name }
+                }
+            }
             .accessibilityHint(tabVoiceOverHint(tabItem: item))
             .accessibilityAddTraits(isSelected ? .isSelected : [])
     }

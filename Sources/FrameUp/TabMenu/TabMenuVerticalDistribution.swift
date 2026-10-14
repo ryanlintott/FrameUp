@@ -19,6 +19,16 @@ public enum TabMenuVerticalDistribution: Hashable, Sendable {
     case equal
     /// Items keep the system's 50 point height, stacked at the bottom of the bar, 24 points above the screen's bottom edge or above the camera. When there isn't room, they shrink equally to fit.
     case grouped
+
+    /// Whether the items are grouped at the bottom of this bar, with `.automatic` resolved for it: grouped in the system's vertical toolbar, equal in the custom bar.
+    func isGrouped(in verticalBar: TabMenuVerticalBar) -> Bool {
+        switch self {
+        case .automatic:
+            if case .system = verticalBar { true } else { false }
+        case .equal: false
+        case .grouped: true
+        }
+    }
 }
 #endif
 

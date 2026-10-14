@@ -23,10 +23,16 @@ public enum TabMenuHorizontalDistribution: Hashable, Sendable {
     /// The grouped spread `.automatic` uses where the width is regular.
     static let automaticGrouped = TabMenuHorizontalDistribution.grouped(maxItemWidth: 90, spacing: 8)
 
-    /// The spread to draw with, `.equal` or `.grouped`, with `.automatic` resolved for the horizontal size class.
-    func resolved(for horizontalSizeClass: UserInterfaceSizeClass?) -> TabMenuHorizontalDistribution {
-        guard self == .automatic else { return self }
-        return horizontalSizeClass == .regular ? Self.automaticGrouped : .equal
+    /// The widest an item can be, including its padding, and the space between items, with `.automatic` resolved for the horizontal size class.
+    func itemLayout(for horizontalSizeClass: UserInterfaceSizeClass?) -> (maxItemWidth: CGFloat, spacing: CGFloat) {
+        switch self {
+        case .automatic:
+            (horizontalSizeClass == .regular ? Self.automaticGrouped : .equal).itemLayout(for: horizontalSizeClass)
+        case .equal:
+            (.infinity, 0)
+        case let .grouped(maxItemWidth, spacing):
+            (maxItemWidth, spacing)
+        }
     }
 }
 #endif

@@ -62,26 +62,30 @@ struct TabMenuModifier<Tab: Hashable>: ViewModifier {
     private var verticalBarLayout: TabMenuVerticalBarLayout? {
         switch verticalBar {
         case nil:
-            nil
+            return nil
         case let .custom(edge):
+            /// The part of the bar's width that the safe area on that edge doesn't already cover. An iPhone with a Home button has no side safe area in landscape.
+            let safeAreaInset = (edge == .leading ? safeAreaInsets?.leading : safeAreaInsets?.trailing) ?? 0
             /// Sits against the screen's edge rather than inside the safe area on that side, and runs the screen's full height. In landscape an iPhone's safe area is as deep on the side away from the Dynamic Island as on the side with it, only to clear the rounded corners.
-            TabMenuVerticalBarLayout(
+            return TabMenuVerticalBarLayout(
                 edge: edge,
                 barWidth: TabMenuVerticalBar.customBarWidth,
                 topPadding: 0,
                 bottomPadding: 0,
-                isGrouped: verticalDistribution == .grouped,
-                itemCount: menu.items.count
+                isGrouped: verticalDistribution.isGrouped(in: .custom(edge)),
+                itemCount: menu.items.count,
+                contentInset: max(0, TabMenuVerticalBar.customBarWidth - safeAreaInset)
             )
         case .system:
-            systemToolbarVerticalGeometry.map {
+            return systemToolbarVerticalGeometry.map {
                 TabMenuVerticalBarLayout(
                     edge: $0.edge,
                     barWidth: $0.width,
                     topPadding: $0.topPadding,
                     bottomPadding: $0.bottomPadding,
-                    isGrouped: verticalDistribution != .equal,
-                    itemCount: menu.items.count
+                    isGrouped: verticalDistribution.isGrouped(in: .system($0.edge)),
+                    itemCount: menu.items.count,
+                    contentInset: $0.reservedWidth
                 )
             }
         }
@@ -116,29 +120,8 @@ struct TabMenuModifier<Tab: Hashable>: ViewModifier {
             }
     }
 
-    /// Where the content moves over for a vertical bar, and by how much.
-    private var contentInset: (edge: HorizontalEdge, width: CGFloat)? {
-        switch verticalBar {
-        case let .custom(edge):
-            (edge, customBarInset(beyond: edge == .leading ? safeAreaInsets?.leading : safeAreaInsets?.trailing))
-        case .system:
-            systemToolbarVerticalGeometry.flatMap { $0.reservedWidth > 0 ? ($0.edge, $0.reservedWidth) : nil }
-        case nil:
-            nil
-        }
-    }
-
-    /// The edge of the system's vertical toolbar, where `tabMenuVerticalBehavior(_:)` chose it.
-    ///
-    /// `.disabled` keeps the menu along the bottom even where the system still reserves its vertical toolbar, such as when the app sets `toolbarVerticalBehavior(.automatic)` further out.
-    private var systemEdge: HorizontalEdge? {
-        guard case let .system(edge) = verticalBar else { return nil }
-        return edge
-    }
-
     func body(content: Content) -> some View {
         let verticalBar = verticalBar
-        let contentInset = contentInset
         let verticalBarLayout = verticalBarLayout
 
         /// The content keeps the same structure in every placement, so turning the device doesn't reset its state. Only the menu moves.
@@ -155,10 +138,10 @@ struct TabMenuModifier<Tab: Hashable>: ViewModifier {
                     }
                 }
                 /// Changing the edge changes an argument, not the structure, so the content keeps its state as the bar moves.
-                .safeAreaInset(edge: contentInset?.edge ?? .leading, spacing: 0) {
-                    if let contentInset {
+                .safeAreaInset(edge: verticalBarLayout?.edge ?? .leading, spacing: 0) {
+                    if let verticalBarLayout, verticalBarLayout.contentInset > 0 {
                         Color.clear
-                            .frame(width: contentInset.width)
+                            .frame(width: verticalBarLayout.contentInset)
                     }
                 }
         }
@@ -196,13 +179,7 @@ struct TabMenuModifier<Tab: Hashable>: ViewModifier {
         } action: { newInsets in
             safeAreaInsets = newInsets
         }
-        .modifier(SystemToolbarVerticalGeometryReader(edge: systemEdge, geometry: $systemToolbarVerticalGeometry))
-    }
-
-    /// How much the content moves over for the custom bar: the part of the bar's width that the safe area on that edge doesn't already cover. An iPhone with a Home button has no side safe area in landscape.
-    private func customBarInset(beyond safeAreaInset: CGFloat?) -> CGFloat {
-        max(0, TabMenuVerticalBar.customBarWidth - (safeAreaInset ?? 0))
+        .modifier(SystemToolbarVerticalGeometryReader(edge: verticalBar?.systemEdge, geometry: $systemToolbarVerticalGeometry))
     }
 }
-
 #endif
