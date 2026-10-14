@@ -5,6 +5,7 @@
 //  Created by Ryan Lintott on 2026-10-13.
 //
 
+#if os(iOS)
 import SwiftUI
 import Testing
 @testable import FrameUp
@@ -60,3 +61,4 @@ struct TabMenuVerticalBarLayoutTests {
         #expect(layout.edgePadding == 0)
     }
 }
+#endif

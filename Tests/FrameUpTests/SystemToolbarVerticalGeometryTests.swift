@@ -5,6 +5,7 @@
 //  Created by Ryan Lintott on 2026-09-25.
 //
 
+#if os(iOS)
 import SwiftUI
 import Testing
 @testable import FrameUp
@@ -150,3 +151,4 @@ struct SystemToolbarVerticalGeometryTests {
         #expect(geometry == nil)
     }
 }
+#endif
