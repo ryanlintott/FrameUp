@@ -31,10 +31,8 @@ fileprivate struct RotationLockingRoot: View {
 internal struct RotationLockingHost<Content: View>: UIViewControllerRepresentable {
     /// The rotation of the content relative to the host's frame.
     let rotation: Angle
-    /// The orientation of the content. When the system turns the interface and this stays the same, the content stays still on the screen.
-    let contentOrientation: FUInterfaceOrientation?
-    /// The orientations the content can turn to.
-    let allowedOrientations: [FUInterfaceOrientation]
+    /// The system's turn of the interface while it's under way, or nil.
+    let turn: InterfaceTurn?
     /// The environment to pass on to the content, which a hosting controller doesn't inherit.
     let environment: EnvironmentValues
     let content: Content
@@ -44,37 +42,32 @@ internal struct RotationLockingHost<Content: View>: UIViewControllerRepresentabl
     }
 
     func updateUIViewController(_ viewController: RotationLockingViewController, context: Context) {
-        let holdingStillDuration = viewController.holdingStillDuration
+        let heldTurn = turn?.isHeldStill == true ? turn : nil
+        viewController.heldTurn = heldTurn
         let content = AnyView(
             self.content
                 /// Set inside the environment passed in, which would otherwise replace it.
                 /// While the system turns the interface and the content stays still, the safe area moves with the system's timing.
-                .environment(\.fuCounterRotationDuration, holdingStillDuration)
+                .environment(\.fuCounterRotationDuration, heldTurn?.duration)
                 .environment(\.self, environment)
         )
-        let previousRotation = viewController.rotation
-        let previousContentOrientation = viewController.contentOrientation
-        viewController.rotation = rotation
-        viewController.contentOrientation = contentOrientation
-        viewController.allowedOrientations = allowedOrientations
-
-        if let holdingStillDuration {
-            let isTurningBack = previousRotation.map { rotation != $0 } ?? false && contentOrientation == previousContentOrientation
-            if viewController.isAwaitingRotation && !isTurningBack {
-                /// The window has its new size but the content not yet its new rotation, which arrives in a later update. The content keeps its last layout until then, rather than briefly taking a shape that matches neither.
-                viewController.rotation = previousRotation
-                return
+        guard let heldTurn, heldTurn.id != viewController.counterRotatedTurnID else {
+            viewController.rotation = rotation
+            if heldTurn != nil {
+                /// The layout changes at once, apart from the safe area, which animates on its own.
+                viewController.update(content: content, animation: nil)
+            } else {
+                viewController.update(content: content, transaction: context.transaction)
             }
-            viewController.isAwaitingRotation = false
-            /// The layout changes at once, apart from the safe area, which animates on its own.
-            viewController.update(content: content, animation: nil)
-            if isTurningBack, let previousRotation {
-                /// The content turns back to stay where it is. It is shown at its new rotation at once, and the host turns it back to where it was and then with the system's animation to its new place.
-                viewController.counterRotate(by: rotation - previousRotation, duration: holdingStillDuration)
-            }
-        } else {
-            viewController.update(content: content, transaction: context.transaction)
+            return
         }
+        /// The turn has started, but the content's new rotation arrives in a later update. Until then the content keeps its last layout, rather than briefly taking a shape that matches neither.
+        guard let previousRotation = viewController.rotation, rotation != previousRotation else { return }
+        viewController.rotation = rotation
+        viewController.counterRotatedTurnID = heldTurn.id
+        viewController.update(content: content, animation: nil)
+        /// The content turns back to stay where it is. It's shown at its new rotation at once, and the host turns it back to where it was and then with the system's animation to its new place.
+        viewController.counterRotate(by: rotation - previousRotation, duration: heldTurn.duration)
     }
 }
 
@@ -84,12 +77,10 @@ internal final class RotationLockingViewController: UIViewController {
     private lazy var hostingController = UIHostingController(rootView: RotationLockingRoot(model: model))
     /// The rotation of the content last shown, or nil before it's first shown.
     var rotation: Angle? = nil
-    var contentOrientation: FUInterfaceOrientation? = nil
-    var allowedOrientations: [FUInterfaceOrientation] = []
-    /// The duration of the system's turn of the interface while it's under way and the content stays still on the screen, or nil.
-    private(set) var holdingStillDuration: TimeInterval? = nil
-    /// True from the start of a turn the content is held still through until its new rotation arrives.
-    var isAwaitingRotation = false
+    /// The system's turn of the interface while it's under way and the content stays still on the screen, or nil.
+    var heldTurn: InterfaceTurn? = nil
+    /// The turn the content was last turned back for.
+    var counterRotatedTurnID: Int? = nil
 
     override func loadView() {
         let view = UIView()
@@ -111,7 +102,7 @@ internal final class RotationLockingViewController: UIViewController {
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         let hostedView = hostingController.view!
-        if holdingStillDuration != nil {
+        if heldTurn != nil {
             /// The content is laid out at its new size at once, outside the system's animation, which would otherwise carry its layout and distort the shapes it turns back.
             UIView.performWithoutAnimation {
                 hostedView.bounds = CGRect(origin: .zero, size: view.bounds.size)
@@ -123,24 +114,6 @@ internal final class RotationLockingViewController: UIViewController {
         }
         /// The centre moves with this view, in the system's animation when there is one, so it stays on the centre of this view as it changes size.
         hostedView.center = CGPoint(x: view.bounds.midX, y: view.bounds.midY)
-    }
-
-    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
-        super.viewWillTransition(to: size, with: coordinator)
-        /// The content stays where it is unless the device turns to an allowed orientation it isn't in already, as in `AutoRotatingView`.
-        let deviceOrientation = UIDevice.current.orientation.interfaceOrientation
-        let isTurning = deviceOrientation.map(allowedOrientations.contains) ?? false && deviceOrientation != contentOrientation
-        /// A window that resizes without turning, such as on an iPad, isn't held.
-        let isRotating = abs(atan2(coordinator.targetTransform.b, coordinator.targetTransform.a)) > 0.01
-        guard isRotating && !isTurning else { return }
-        let duration = coordinator.transitionDuration
-        holdingStillDuration = duration
-        isAwaitingRotation = true
-        /// The coordinator's completion runs at once for a half turn (iOS 27), so the turn is treated as finished after its duration instead.
-        DispatchQueue.main.asyncAfter(deadline: .now() + duration) { [weak self] in
-            self?.holdingStillDuration = nil
-            self?.isAwaitingRotation = false
-        }
     }
 
     /// Updates the content without an animation, and lays it out at once, outside any UIKit animation that would otherwise carry the change.

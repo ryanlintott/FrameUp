@@ -122,4 +122,20 @@ struct InterfaceTurnTests {
         #expect(FUInterfaceOrientation.portrait.rotated(by: .degrees(45)) == nil)
     }
 }
+
+/// A transition coordinator's `targetTransform` is read as the turn of the interface.
+struct InterfaceTurnAngleTests {
+    @Test(arguments: [0.0, 90, -90])
+    func quarterTurns(degrees: Double) {
+        let transform = CGAffineTransform(rotationAngle: Angle.degrees(degrees).radians)
+        #expect(abs(Angle(interfaceTurn: transform).degrees - degrees) < 1e-9)
+    }
+
+    /// A half turn's zero component can have either sign, which would give either 180 or -180. The system always turns it as 180.
+    @Test(arguments: [0.0, -0.0])
+    func halfTurnIsAlwaysPositive(b: Double) {
+        let transform = CGAffineTransform(a: -1, b: b, c: -b, d: -1, tx: 0, ty: 0)
+        #expect(Angle(interfaceTurn: transform).degrees == 180)
+    }
+}
 #endif

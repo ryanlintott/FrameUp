@@ -36,10 +36,10 @@ public struct AutoRotatingView<Content: View>: View {
     @Environment(\.fuAutoRotatingContentRotation) private var enclosingContentRotation
     /// The rotation of the enclosing content held while the system turns the interface, so a change to it turns this content with an animation timed like the system's rather than at once.
     @State private var heldEnclosingContentRotation: Angle? = nil
-    /// The duration of the system's rotation of the interface while it's under way.
-    @State private var interfaceRotationDuration: TimeInterval? = nil
+    /// The system's turn of the interface while it's under way.
+    @State private var turn: InterfaceTurn? = nil
     /// The number of times the system has turned the interface, so a turn can tell when another has started after it.
-    @State private var interfaceRotationCount = 0
+    @State private var turnCount = 0
     /// The environment, passed on to content that is hosted to hold it still on the screen.
     @Environment(\.self) private var environment
     
@@ -112,7 +112,7 @@ public struct AutoRotatingView<Content: View>: View {
         }
     }
     
-    func newContentOrientation(deviceOrientation: FUInterfaceOrientation?, interfaceOrientation: FUInterfaceOrientation?, allowedOrientations: [FUInterfaceOrientation], isChangingDeviceScreen: Bool) -> FUInterfaceOrientation? {
+    func newContentOrientation(deviceOrientation: FUInterfaceOrientation?, allowedOrientations: [FUInterfaceOrientation], isChangingDeviceScreen: Bool) -> FUInterfaceOrientation? {
         if isChangingDeviceScreen, let nearestAllowedOrientation = deviceOrientation?.nearest(in: allowedOrientations) {
             return nearestAllowedOrientation
         } else if let newOrientation = deviceOrientation, allowedOrientations.contains(newOrientation), newOrientation != contentOrientation {
@@ -124,41 +124,36 @@ public struct AutoRotatingView<Content: View>: View {
         }
     }
     
+    /// Sets the orientations, and turns the content to match, in the current transaction.
+    ///
+    /// The content turns to the device orientation if it's allowed.
+    /// - Parameters:
+    ///   - newInterfaceOrientation: The new interface orientation, or nil if it hasn't changed.
+    ///   - allowedOrientations: Allowed orientations to use in place of the current ones, when they are changing.
+    ///   - isChangingDeviceScreen: True when the view has just moved to the outer screen from the inner screen of a foldable iPhone.
+    func updateOrientations(interfaceOrientation newInterfaceOrientation: FUInterfaceOrientation?, allowedOrientations: [FUInterfaceOrientation]? = nil, isChangingDeviceScreen: Bool = false) {
+        if let newInterfaceOrientation {
+            interfaceOrientation = newInterfaceOrientation
+        }
+        if let newContentOrientation = newContentOrientation(deviceOrientation: UIDevice.current.orientation.interfaceOrientation, allowedOrientations: allowedOrientations ?? self.allowedOrientations, isChangingDeviceScreen: isChangingDeviceScreen) {
+            contentOrientation = newContentOrientation
+        }
+        if let contentOrientation, let interfaceOrientation {
+            contentRotation = contentRotation.closestEquivalent(to: contentOrientation.rotation(to: interfaceOrientation))
+        }
+    }
+    
+    /// Brings the orientations up to date when the view appears, comes back from the background, moves to the outer screen, or its allowed orientations change.
     /// - Parameters:
     ///   - allowedOrientations: Allowed orientations to use in place of the current ones, when they are changing.
     ///   - isChangingDeviceScreen: True when the view has just moved to the outer screen from the inner screen of a foldable iPhone.
     func changeOrientations(allowedOrientations: [FUInterfaceOrientation]? = nil, isChangingDeviceScreen: Bool = false) {
         /// On a screen where the system ignores the app's supported orientations the content always matches the interface, so there is nothing to track.
-        if isOn && deviceScreen == .outer {
-            let allowedOrientations = allowedOrientations ?? self.allowedOrientations
-            /// if the new device orientation is a valid interface orientation it will not be nil
-            let deviceOrientation = UIDevice.current.orientation.interfaceOrientation
-            let newInterfaceOrientation = newInterfaceOrientation(deviceOrientation: deviceOrientation, isChangingDeviceScreen: isChangingDeviceScreen)
-            let newContentOrientation = newContentOrientation(deviceOrientation: deviceOrientation, interfaceOrientation: newInterfaceOrientation, allowedOrientations: allowedOrientations, isChangingDeviceScreen: isChangingDeviceScreen)
-            let changeAnimation: Animation?
-            if isChangingDeviceScreen {
-                /// Moving between screens is not a rotation. The system replaces the scene's geometry at once.
-                changeAnimation = nil
-            } else if interfaceOrientation == contentOrientation && newInterfaceOrientation == newContentOrientation {
-                /// If interface and content orientations match before and after, there is no need to animate as iOS will handle the animated rotation.
-                changeAnimation = nil
-            } else if newInterfaceOrientation != nil {
-                /// The interface has turned, such as while the app was in the background. The content takes its place at once, as a SwiftUI animation can't match a turn by the system.
-                changeAnimation = nil
-            } else {
-                changeAnimation = animation
-            }
-            withAnimation(changeAnimation) {
-                if let newInterfaceOrientation {
-                    interfaceOrientation = newInterfaceOrientation
-                }
-                if let newContentOrientation {
-                    contentOrientation = newContentOrientation
-                }
-                if let contentOrientation, let interfaceOrientation {
-                    contentRotation = contentRotation.closestEquivalent(to: contentOrientation.rotation(to: interfaceOrientation))
-                }
-            }
+        guard isOn && deviceScreen == .outer else { return }
+        let newInterfaceOrientation = newInterfaceOrientation(deviceOrientation: UIDevice.current.orientation.interfaceOrientation, isChangingDeviceScreen: isChangingDeviceScreen)
+        /// When the interface has a new orientation, such as on a new screen or back from the background, the system has already turned it, so the content takes its place at once. A SwiftUI animation can't match a turn by the system.
+        withAnimation(isChangingDeviceScreen || newInterfaceOrientation != nil ? nil : animation) {
+            updateOrientations(interfaceOrientation: newInterfaceOrientation, allowedOrientations: allowedOrientations, isChangingDeviceScreen: isChangingDeviceScreen)
         }
     }
     
@@ -179,20 +174,24 @@ public struct AutoRotatingView<Content: View>: View {
     
     /// Called when the device turns.
     ///
-    /// When the device turns to an orientation the app supports, the system turns the interface soon after, and the orientations change in step with it in ``interfaceWillRotate(by:coordinator:)``. Otherwise the content turns on its own.
+    /// When the device turns to an orientation the app supports, the system turns the interface a moment later, and the orientations change in step with it in ``interfaceWillRotate(by:coordinator:)``. Otherwise the content turns on its own.
     func deviceOrientationDidChange() {
         guard isOn && deviceScreen == .outer else { return }
         let deviceOrientation = UIDevice.current.orientation.interfaceOrientation
         if let deviceOrientation, deviceOrientation != interfaceOrientation, InfoDictionary.supportedInterfaceOrientations.contains(deviceOrientation) {
             expectedInterfaceOrientation = deviceOrientation
-            /// The system starts turning the interface a few milliseconds later (measured in iOS 27). If it doesn't, because a view controller doesn't support the orientation or the device never turns upside down, the content turns on its own.
+            /// The system starts turning the interface a few milliseconds later (measured in iOS 27). It doesn't when a view controller doesn't support the orientation, or for upside down on an iPhone without a Home button, though the app lists it. No API reports either, so the content turns on its own if no turn has started by then.
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 guard expectedInterfaceOrientation == deviceOrientation else { return }
                 expectedInterfaceOrientation = nil
-                changeContentOrientation(animation: animation)
+                withAnimation(animation) {
+                    updateOrientations(interfaceOrientation: nil)
+                }
             }
         } else {
-            changeContentOrientation(animation: animation)
+            withAnimation(animation) {
+                updateOrientations(interfaceOrientation: nil)
+            }
         }
     }
     
@@ -204,61 +203,45 @@ public struct AutoRotatingView<Content: View>: View {
         guard isOn && deviceScreen == .outer, let interfaceOrientation else { return }
         /// A window that resizes without turning, such as on an iPad, has nothing to turn.
         guard let newInterfaceOrientation = interfaceOrientation.rotated(by: angle), newInterfaceOrientation != interfaceOrientation else { return }
-        interfaceRotationCount += 1
-        let count = interfaceRotationCount
+        let duration = coordinator.transitionDuration
+        turnCount += 1
+        let count = turnCount
         guard #available(iOS 17, *) else {
             /// Before iOS 17 the content isn't held still. It turns with the interface, and takes its new place without an animation once the turn ends, so it's right before and after. SwiftUI changes made during the system's turn are carried by UIKit's animation, which distorts the content.
-            DispatchQueue.main.asyncAfter(deadline: .now() + coordinator.transitionDuration) {
-                guard count == interfaceRotationCount else { return }
+            DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
+                guard count == turnCount else { return }
                 withAnimation(nil) {
-                    self.interfaceOrientation = newInterfaceOrientation
-                    updateContentOrientation()
+                    updateOrientations(interfaceOrientation: newInterfaceOrientation)
                 }
             }
             return
         }
-        let transitionAnimation = Animation.easeInOut(duration: coordinator.transitionDuration)
+        /// The content turns if the device turns to an allowed orientation it isn't in already, and otherwise stays where it is on the screen.
+        let deviceOrientation = UIDevice.current.orientation.interfaceOrientation
+        let isHeldStill = !(deviceOrientation.map(allowedOrientations.contains) ?? false) || deviceOrientation == contentOrientation
+        /// Set before the system lays the interface out for the turn, so the host knows to hold its content still.
+        turn = InterfaceTurn(id: count, duration: duration, isHeldStill: isHeldStill)
         /// An enclosing `AutoRotatingView` held still on the screen changes its rotation without an animation, which would turn this content at once. Its rotation is held from now, before the enclosing view can change it, and follows with an animation.
         heldEnclosingContentRotation = enclosingContentRotation
         coordinator.animate(alongsideTransition: { _ in
-            interfaceRotationDuration = coordinator.transitionDuration
-            let deviceOrientation = UIDevice.current.orientation.interfaceOrientation
-            if deviceOrientation.map(allowedOrientations.contains) ?? false, deviceOrientation != contentOrientation {
-                /// The content turns to the new orientation. Relative to its frame it turns with a SwiftUI animation timed like the system's, which only has to look smooth, since the frame is either turning with the interface or held still.
-                withAnimation(transitionAnimation) {
-                    self.interfaceOrientation = newInterfaceOrientation
-                    updateContentOrientation()
-                }
-            } else {
-                /// The content stays where it is on the screen. It turns back by exactly as much as the interface turns, in the opposite direction, and the host holds it still through the system's animation.
+            if isHeldStill {
+                /// The content turns back by exactly as much as the interface turns, in the opposite direction, and the host holds it still through the system's animation.
                 withAnimation(nil) {
                     self.interfaceOrientation = newInterfaceOrientation
                     contentRotation -= angle
                 }
+            } else {
+                /// Relative to its frame the content turns with a SwiftUI animation timed like the system's, which only has to look smooth, since the frame is either turning with the interface or held still.
+                withAnimation(.easeInOut(duration: duration)) {
+                    updateOrientations(interfaceOrientation: newInterfaceOrientation)
+                }
             }
         })
-        /// The coordinator's completion runs at once for a half turn (iOS 27), so the rotation is treated as finished after its duration instead.
-        DispatchQueue.main.asyncAfter(deadline: .now() + coordinator.transitionDuration) {
-            guard count == interfaceRotationCount else { return }
+        /// The coordinator's completion runs at once for a half turn (iOS 27), so the turn is treated as finished after its duration instead.
+        DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
+            guard count == turnCount else { return }
+            turn = nil
             heldEnclosingContentRotation = nil
-            interfaceRotationDuration = nil
-        }
-    }
-    
-    /// Turns the content to the device orientation if it's allowed, and keeps it turned to match the interface.
-    func changeContentOrientation(animation: Animation?) {
-        withAnimation(animation) {
-            updateContentOrientation()
-        }
-    }
-    
-    /// Turns the content to the device orientation if it's allowed, and keeps it turned to match the interface, in the current transaction.
-    func updateContentOrientation() {
-        if let deviceOrientation = UIDevice.current.orientation.interfaceOrientation, allowedOrientations.contains(deviceOrientation) {
-            contentOrientation = deviceOrientation
-        }
-        if let contentOrientation, let interfaceOrientation {
-            contentRotation = contentRotation.closestEquivalent(to: contentOrientation.rotation(to: interfaceOrientation))
         }
     }
     
@@ -334,7 +317,7 @@ public struct AutoRotatingView<Content: View>: View {
                 
                 if #available(iOS 17, *), canHoldStill {
                     /// Hosted in a view of its own, which UIKit turns back in step with the system's rotation so the content stays still on the screen.
-                    RotationLockingHost(rotation: rotation, contentOrientation: contentOrientation, allowedOrientations: allowedOrientations, environment: environment, content: layout)
+                    RotationLockingHost(rotation: rotation, turn: turn, environment: environment, content: layout)
                 } else {
                     layout
                 }
@@ -348,7 +331,7 @@ public struct AutoRotatingView<Content: View>: View {
         .onInterfaceRotation(interfaceWillRotate(by:coordinator:))
         .onChange(of: enclosingContentRotation) { newValue in
             guard heldEnclosingContentRotation != nil else { return }
-            withAnimation(interfaceRotationDuration.map { .easeInOut(duration: $0) }) {
+            withAnimation(turn.map { .easeInOut(duration: $0.duration) }) {
                 heldEnclosingContentRotation = newValue
             }
         }
@@ -380,73 +363,11 @@ private struct HeldSafeAreaInsets: ViewModifier {
                         transaction.animation = .easeInOut(duration: counterRotationDuration)
                     }
                 } body: { content in
-                    content.modifier(AnimatableSafeAreaInsets(insets: insets))
+                    content.animatableSafeAreaInsets(insets)
                 }
         } else {
             content.safeAreaInsets(insets)
         }
     }
-}
-
-/// Applies a safe area that's interpolated when it animates, so the content is laid out again at each step.
-private struct AnimatableSafeAreaInsets: ViewModifier, @preconcurrency Animatable {
-    var insets: EdgeInsets
-
-    var animatableData: AnimatablePair<AnimatablePair<CGFloat, CGFloat>, AnimatablePair<CGFloat, CGFloat>> {
-        get { .init(.init(insets.top, insets.leading), .init(insets.bottom, insets.trailing)) }
-        set { insets = EdgeInsets(top: newValue.first.first, leading: newValue.first.second, bottom: newValue.second.first, trailing: newValue.second.second) }
-    }
-
-    func body(content: Content) -> some View {
-        content.safeAreaInsets(insets)
-    }
-}
-
-private struct AutoRotatingOrientationKey: EnvironmentKey {
-    static let defaultValue: FUInterfaceOrientation? = nil
-}
-
-public extension EnvironmentValues {
-    /// The orientation of the content of the nearest enclosing `AutoRotatingView`, named for the way the device is held when the content is upright, or nil outside one.
-    ///
-    /// It's also nil when the view is off, and on the inner screen of a foldable iPhone, where the content always matches the interface.
-    ///
-    ///     AutoRotatingView([.portrait, .landscapeLeft]) {
-    ///         Content()
-    ///     }
-    ///
-    ///     struct Content: View {
-    ///         @Environment(\.autoRotatingOrientation) private var orientation
-    ///
-    ///         var body: some View {
-    ///             Text(orientation == .portrait ? "Portrait" : "Landscape")
-    ///         }
-    ///     }
-    var autoRotatingOrientation: FUInterfaceOrientation? {
-        get { self[AutoRotatingOrientationKey.self] }
-        set { self[AutoRotatingOrientationKey.self] = newValue }
-    }
-}
-
-private struct AutoRotatingContentRotationKey: EnvironmentKey {
-    static let defaultValue: Angle = .zero
-}
-
-internal extension EnvironmentValues {
-    /// The rotation of the content of the nearest enclosing `AutoRotatingView` relative to the interface.
-    var fuAutoRotatingContentRotation: Angle {
-        get { self[AutoRotatingContentRotationKey.self] }
-        set { self[AutoRotatingContentRotationKey.self] = newValue }
-    }
-    
-    /// The duration of the system's turn while a ``RotationLockingHost`` turns its content back in step with it, or nil.
-    var fuCounterRotationDuration: TimeInterval? {
-        get { self[CounterRotationDurationKey.self] }
-        set { self[CounterRotationDurationKey.self] = newValue }
-    }
-}
-
-private struct CounterRotationDurationKey: EnvironmentKey {
-    static let defaultValue: TimeInterval? = nil
 }
 #endif
