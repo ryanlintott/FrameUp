@@ -20,6 +20,7 @@ struct TabMenuFullscreenExampleView: View {
     @State private var verticalBehavior: ToolbarVerticalBehaviorIfAvailable = .automatic
     @State private var tabMenuVerticalBehavior: TabMenuVerticalBehavior = .system
     @State private var verticalDistribution: TabMenuVerticalDistribution = .automatic
+    @State private var showsGeometry = false
 
     var body: some View {
         Group {
@@ -32,6 +33,11 @@ struct TabMenuFullscreenExampleView: View {
                 }
             } else {
                 page(selection)
+                    .overlay {
+                        if showsGeometry {
+                            TabMenuItemsBorder()
+                        }
+                    }
                     .tabMenu(selection: $selection, items: TabMenuExample.items)
                     .tabMenuItemStyle(ExampleTabMenuItemStyle(choice: itemStyle))
                     .tabMenuHorizontalDistribution(horizontalDistribution)
@@ -119,9 +125,11 @@ struct TabMenuFullscreenExampleView: View {
                     }
                 }
                 .disabled(isSystemTabBar)
-                
-                
-                
+
+                /// Outlines the menu's items in green.
+                Toggle("Show items frame", isOn: $showsGeometry)
+                    .fixedSize()
+                    .disabled(isSystemTabBar)
             }
             .pickerStyle(.segmented)
             .font(.body)
@@ -129,6 +137,27 @@ struct TabMenuFullscreenExampleView: View {
             /// Material ignores the safe area by default, which spread it under the vertical bars. It only extends under the top edge, to cover the status bar.
             .background(.ultraThinMaterial, ignoresSafeAreaEdges: .top)
         }
+    }
+}
+
+/// Outlines the menu's items from ``TabMenuGeometry`` in green.
+@available(iOS 16, *)
+private struct TabMenuItemsBorder: View {
+    @Environment(\.tabMenuGeometry) private var tabMenuGeometry
+
+    var body: some View {
+        GeometryReader { proxy in
+            let origin = proxy.frame(in: .tabMenu).origin
+            if let itemsFrame = tabMenuGeometry?.itemsFrame {
+                Rectangle()
+                    .strokeBorder(.green, lineWidth: 2)
+                    .frame(width: itemsFrame.width, height: itemsFrame.height)
+                    .offset(x: itemsFrame.minX - origin.x, y: itemsFrame.minY - origin.y)
+            }
+        }
+        /// Covers the menu's bar too, so the items are outlined where they are.
+        .ignoresSafeArea()
+        .allowsHitTesting(false)
     }
 }
 

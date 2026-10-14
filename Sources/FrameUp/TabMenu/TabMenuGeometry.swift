@@ -23,10 +23,33 @@ import SwiftUI
 /// For which edge a vertical bar is on, read ``SwiftUICore/EnvironmentValues/tabMenuVerticalEdge``, which is set before anything is measured.
 @available(iOS 16, *)
 public struct TabMenuGeometry: Equatable, Sendable {
-    /// The bar that holds the menu, including any part of it under the safe area: the custom vertical bar, the system's vertical toolbar, or the horizontal bar and the space below it to the screen's bottom edge.
-    public let barFrame: CGRect
-    /// The menu's items. Along the bottom they fill the bar's width. In a vertical bar they're centred slightly away from the screen's edge, where the system centres its buttons, and run the bar's height or stack at its bottom, as set by `tabMenuVerticalDistribution(_:)`.
+    /// The menu's items, from the first item's edge to the last's. Along the bottom they're spread as set by `tabMenuHorizontalDistribution(_:)`. In a vertical bar they're centred slightly away from the screen's edge, where the system centres its buttons, and run the bar's height or stack at its bottom, as set by `tabMenuVerticalDistribution(_:)`.
+    ///
+    /// A vertical bar is outside the content's safe area, so content that fills the bar can ignore the safe area on that edge rather than measure it.
     public let itemsFrame: CGRect
+}
+
+/// The frame of a menu's items in the ``SwiftUICore/CoordinateSpace/tabMenu`` space, reported by ``TabMenu`` for `tabMenu(selection:items:)`.
+@available(iOS 16, *)
+struct TabMenuItemsFrameKey: PreferenceKey {
+    static let defaultValue: CGRect? = nil
+    static func reduce(value: inout CGRect?, nextValue: () -> CGRect?) {
+        /// SwiftUI can pass in the default value from views that don't set this key, which would otherwise replace the measured frame.
+        value = nextValue() ?? value
+    }
+}
+
+@available(iOS 16, *)
+extension View {
+    /// Reports this view's frame as the menu's items.
+    func reportingTabMenuItemsFrame() -> some View {
+        background {
+            GeometryReader { proxy in
+                Color.clear
+                    .preference(key: TabMenuItemsFrameKey.self, value: proxy.frame(in: .tabMenu))
+            }
+        }
+    }
 }
 
 /// The name of the coordinate space that `tabMenu(selection:items:)` sets up around its content and menu.

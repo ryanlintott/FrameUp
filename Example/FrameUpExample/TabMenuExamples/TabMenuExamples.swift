@@ -14,10 +14,6 @@ struct TabMenuExamples: View {
     var body: some View {
         Section {
             #if os(iOS)
-            NavigationLink(destination: TabMenuExampleView()) {
-                Label("TabMenu", systemImage: "squares.below.rectangle")
-            }
-
             Button {
                 isFullscreenPresented = true
             } label: {

@@ -53,10 +53,8 @@ struct TabMenuModifier<Tab: Hashable>: ViewModifier {
     @State private var systemToolbarVerticalGeometry: SystemToolbarVerticalGeometry?
     /// The safe area around the content, from the last measurement of the wrapper.
     @State private var safeAreaInsets: EdgeInsets?
-    /// The frame of the menu's items in the ``SwiftUICore/CoordinateSpace/tabMenu`` space, and the bar of the menu that measured it. A frame from another bar is stale, so it's ignored.
-    @State private var measuredItems: (verticalBar: TabMenuVerticalBar?, frame: CGRect)?
-    /// The frame of the whole window, safe areas included, in the ``SwiftUICore/CoordinateSpace/tabMenu`` space.
-    @State private var windowFrame: CGRect?
+    /// The frame of the menu's items in the ``SwiftUICore/CoordinateSpace/tabMenu`` space, for each bar that has drawn the menu. Each bar keeps its own, because a menu that's leaving can report once more after the new bar's menu has (measured on the iPhone 18 Pro, iOS 27.0, rotating into the custom vertical bar).
+    @State private var measuredItemsFrames: [TabMenuVerticalBar?: CGRect] = [:]
 
     /// Where the menu goes in a vertical bar, or nil along the bottom, and in the system's vertical toolbar until it has been measured.
     private var verticalBarLayout: TabMenuVerticalBarLayout? {
@@ -91,20 +89,9 @@ struct TabMenuModifier<Tab: Hashable>: ViewModifier {
         }
     }
 
-    /// Where the menu is drawn, for the content, once both the items and the window have been measured.
+    /// Where the menu is drawn, for the content, once its items have been measured.
     private var geometry: TabMenuGeometry? {
-        guard let measuredItems, measuredItems.verticalBar == verticalBar, let windowFrame else { return nil }
-        let itemsFrame = measuredItems.frame
-        guard let verticalBarLayout else {
-            /// The horizontal bar and the space below it to the screen's bottom edge.
-            let barFrame = CGRect(x: itemsFrame.minX, y: itemsFrame.minY, width: itemsFrame.width, height: windowFrame.maxY - itemsFrame.minY)
-            return TabMenuGeometry(barFrame: barFrame, itemsFrame: itemsFrame)
-        }
-        /// A vertical bar runs the window's full height, from the screen's edge to the far side of the items.
-        let padding = verticalBarLayout.edgePadding
-        let minX = verticalBarLayout.edge == .leading ? itemsFrame.minX - padding : itemsFrame.minX
-        let barFrame = CGRect(x: minX, y: windowFrame.minY, width: itemsFrame.width + padding, height: windowFrame.height)
-        return TabMenuGeometry(barFrame: barFrame, itemsFrame: itemsFrame)
+        measuredItemsFrames[verticalBar].map { TabMenuGeometry(itemsFrame: $0) }
     }
 
     /// Records the frame of a menu's items.
@@ -113,10 +100,11 @@ struct TabMenuModifier<Tab: Hashable>: ViewModifier {
     private func measuringItems(_ menu: some View) -> some View {
         let verticalBar = verticalBar
         return menu
-            .onGeometryChange(for: CGRect.self) { proxy in
-                proxy.frame(in: .tabMenu)
-            } action: { newFrame in
-                measuredItems = (verticalBar, newFrame)
+            /// ``TabMenu`` reports its items rather than its whole frame, which runs the screen's width along the bottom. A menu that's leaving reports nil, which is ignored.
+            .onPreferenceChangeMainActor(TabMenuItemsFrameKey.self) { newFrame in
+                if let newFrame {
+                    measuredItemsFrames[verticalBar] = newFrame
+                }
             }
     }
 
@@ -161,16 +149,6 @@ struct TabMenuModifier<Tab: Hashable>: ViewModifier {
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: verticalBarLayout.edge == .leading ? .bottomLeading : .bottomTrailing)
                 .ignoresSafeArea()
             }
-        }
-        .background {
-            /// The whole window, for the bar frames that reach its edges.
-            Color.clear
-                .ignoresSafeArea()
-                .onGeometryChange(for: CGRect.self) { proxy in
-                    proxy.frame(in: .tabMenu)
-                } action: { newFrame in
-                    windowFrame = newFrame
-                }
         }
         .coordinateSpace(name: TabMenuCoordinateSpaceName())
         /// Measure the wrapper rather than `content`, so the menu's own insets can't affect the next measurement.

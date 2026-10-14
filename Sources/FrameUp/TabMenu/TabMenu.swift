@@ -85,6 +85,7 @@ public struct TabMenu<Tab: Hashable>: View {
                     }
                 }
             }
+            .reportingTabMenuItemsFrame()
             /// Centres the items when they don't fill the width.
             .frame(maxWidth: .infinity)
             .padding(.bottom, 2)
@@ -103,6 +104,7 @@ public struct TabMenu<Tab: Hashable>: View {
                     }
                 }
             }
+            .reportingTabMenuItemsFrame()
             .accessibilityElement(children: .contain)
             .accessibilityLabel(Text("Tab bar"))
         }

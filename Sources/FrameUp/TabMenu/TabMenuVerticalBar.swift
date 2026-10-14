@@ -10,7 +10,7 @@ import SwiftUI
 #if os(iOS)
 /// Where a tab menu's vertical bar is, as `tabMenuVerticalBehavior(_:)` decides.
 @available(iOS 16, *)
-enum TabMenuVerticalBar: Equatable, Sendable {
+enum TabMenuVerticalBar: Hashable, Sendable {
     /// In the system's vertical toolbar, on this edge.
     case system(HorizontalEdge)
     /// In a custom vertical bar the menu makes for itself, on this edge. Like `toolbarVerticalEdge` for the system's bar, the edge is layout-relative, while the bar keeps its physical side in a right-to-left layout (measured on the iPhone Duo, iOS 27.1).
