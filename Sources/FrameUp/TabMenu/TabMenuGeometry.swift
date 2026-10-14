@@ -21,6 +21,7 @@ import SwiftUI
 ///     }
 ///
 /// For which edge a vertical bar is on, read ``SwiftUICore/EnvironmentValues/tabMenuVerticalEdge``, which is set before anything is measured.
+@available(iOS 16, *)
 public struct TabMenuGeometry: Equatable, Sendable {
     /// The bar that holds the menu, including any part of it under the safe area: the custom vertical bar, the system's vertical toolbar, or the horizontal bar and the space below it to the screen's bottom edge.
     public let barFrame: CGRect
@@ -29,8 +30,10 @@ public struct TabMenuGeometry: Equatable, Sendable {
 }
 
 /// The name of the coordinate space that `tabMenu(selection:items:)` sets up around its content and menu.
+@available(iOS 16, *)
 struct TabMenuCoordinateSpaceName: Hashable {}
 
+@available(iOS 16, *)
 public extension CoordinateSpace {
     /// The coordinate space around the content and menu of `tabMenu(selection:items:)`, in which ``TabMenuGeometry`` gives its frames.
     static var tabMenu: CoordinateSpace {

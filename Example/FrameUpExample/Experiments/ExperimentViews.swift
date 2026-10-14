@@ -11,8 +11,10 @@ struct ExperimentViews: View {
     var body: some View {
         #if os(iOS)
         Section {
-            NavigationLink(destination: DoubleScrollTabViewExample()) {
-                Label("DoubleScrollTabView", systemImage: "scroll")
+            if #available(iOS 16, *) {
+                NavigationLink(destination: DoubleScrollTabViewExample()) {
+                    Label("DoubleScrollTabView", systemImage: "scroll")
+                }
             }
             
             NavigationLink(destination: HFlowSmartScrollViewExample()) {

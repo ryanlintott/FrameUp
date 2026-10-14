@@ -8,6 +8,7 @@
 import SwiftUI
 
 #if os(iOS)
+@available(iOS 16, *)
 public extension View {
     /// Places a ``TabMenu`` where the system would put its tab bar.
     ///
@@ -33,27 +34,15 @@ public extension View {
     ///   - selection: binding for the selected tab
     ///   - items: array of `TabMenuItem`
     /// - Returns: The view with a tab menu placed for the current screen.
-    @ViewBuilder
     func tabMenu<Tab: Hashable>(
         selection: Binding<Tab>,
         items: [TabMenuItem<Tab>]
     ) -> some View {
-        let menu = TabMenu(selection: selection, items: items)
-
-        if #available(iOS 16, *) {
-            modifier(TabMenuModifier(menu: menu))
-        } else {
-            /// Before iOS 16 the menu is always along the bottom: the custom bar needs iOS 16 and the system's vertical toolbar iOS 27.1. The version never changes while the app runs, so this branch can't reset the content's state.
-            tabMenuItemActionsDisabled()
-                .safeAreaInset(edge: .bottom, spacing: 0) {
-                    menu
-                        .environment(\.tabMenuEdge, .bottom)
-                }
-        }
+        modifier(TabMenuModifier(menu: TabMenu(selection: selection, items: items)))
     }
 }
 
-/// Puts the menu along the bottom, in the system's vertical toolbar, or in a custom vertical bar, wherever `tabMenuVerticalBehavior(_:)` chose. Before iOS 16, `tabMenu(...)` puts the menu along the bottom without it.
+/// Puts the menu along the bottom, in the system's vertical toolbar, or in a custom vertical bar, wherever `tabMenuVerticalBehavior(_:)` chose.
 @available(iOS 16, *)
 struct TabMenuModifier<Tab: Hashable>: ViewModifier {
     let menu: TabMenu<Tab>

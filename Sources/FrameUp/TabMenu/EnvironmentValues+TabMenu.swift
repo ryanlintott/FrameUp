@@ -8,60 +8,66 @@
 import SwiftUI
 
 #if os(iOS)
+@available(iOS 16, *)
 private struct TabMenuEdgeKey: EnvironmentKey {
     static let defaultValue: Edge? = nil
 }
 
+@available(iOS 16, *)
 private struct TabMenuItemStyleKey: EnvironmentKey {
     /// Computed, so the style needn't be `Sendable`.
     static var defaultValue: any TabMenuItemStyle { AutomaticTabMenuItemStyle() }
 }
 
+@available(iOS 16, *)
 private struct TabMenuItemIconIsResizableKey: EnvironmentKey {
     static let defaultValue = false
 }
 
+@available(iOS 16, *)
 private struct TabMenuHorizontalDistributionKey: EnvironmentKey {
     static let defaultValue: TabMenuHorizontalDistribution = .automatic
 }
 
+@available(iOS 16, *)
 private struct TabMenuVerticalDistributionKey: EnvironmentKey {
     static let defaultValue: TabMenuVerticalDistribution = .automatic
 }
 
+@available(iOS 16, *)
 private struct TabMenuItemReselectActionKey: EnvironmentKey {
     /// Computed, so the action needn't be `Sendable`.
     static var defaultValue: TabMenuItemAction? { nil }
 }
 
+@available(iOS 16, *)
 private struct TabMenuItemDoubleTapActionKey: EnvironmentKey {
     /// Computed, so the action needn't be `Sendable`.
     static var defaultValue: TabMenuItemAction? { nil }
 }
 
+@available(iOS 16, *)
 private struct TabMenuVerticalBehaviorKey: EnvironmentKey {
     static let defaultValue: TabMenuVerticalBehavior = .system
 }
 
+@available(iOS 16, *)
 private struct TabMenuInterfaceOrientationKey: EnvironmentKey {
     static let defaultValue: FUInterfaceOrientation? = nil
 }
 
+@available(iOS 16, *)
 private struct TabMenuGeometryKey: EnvironmentKey {
     static let defaultValue: TabMenuGeometry? = nil
 }
 
+@available(iOS 16, *)
 public extension EnvironmentValues {
     /// The edge of the vertical bar that holds tab menus placed in this view, or nil when they run along the bottom.
     ///
     /// Set by `tabMenuVerticalBehavior(_:)` for everything inside it, as `toolbarVerticalBehavior(_:)` sets `toolbarVerticalEdge`, from the same decision that places the menu, so it always matches where the menu is. Without it, this matches `toolbarVerticalEdge`, and is nil where that isn't available. Like `toolbarVerticalEdge`, it's layout-relative, while the bar keeps its physical side in a right-to-left layout. It can't be set directly.
     var tabMenuVerticalEdge: HorizontalEdge? {
-        /// Vertical bars need iOS 16, so before that the menu always runs along the bottom.
-        if #available(iOS 16, *) {
-            tabMenuVerticalBar?.edge
-        } else {
-            nil
-        }
+        tabMenuVerticalBar?.edge
     }
 
     /// Where the menu placed with `tabMenu(selection:items:)` is drawn, or nil until it has been measured.
@@ -73,6 +79,7 @@ public extension EnvironmentValues {
     }
 }
 
+@available(iOS 16, *)
 extension EnvironmentValues {
     /// The screen edge a ``TabMenu`` is placed against, which also decides the direction it lays out its items. Only `tabMenu(selection:items:)` sets it, on the menu it places, so a menu placed by hand sees nil and stays horizontal.
     var tabMenuEdge: Edge? {
@@ -117,21 +124,18 @@ extension EnvironmentValues {
     }
 
     /// Where tab menus placed in this view can stack their items in a vertical bar. Set by `tabMenuVerticalBehavior(_:)`. Without it, `.system`, so menus follow the system's vertical toolbar.
-    @available(iOS 16, *)
     var tabMenuVerticalBehavior: TabMenuVerticalBehavior {
         get { self[TabMenuVerticalBehaviorKey.self] }
         set { self[TabMenuVerticalBehaviorKey.self] = newValue }
     }
 
     /// The interface orientation, which places the custom vertical bar. Set by `tabMenuVerticalBehavior(_:)`, which tracks it.
-    @available(iOS 16, *)
     var tabMenuInterfaceOrientation: FUInterfaceOrientation? {
         get { self[TabMenuInterfaceOrientationKey.self] }
         set { self[TabMenuInterfaceOrientationKey.self] = newValue }
     }
 
     /// The vertical bar that holds tab menus placed in this view, or nil for the bottom.
-    @available(iOS 16, *)
     var tabMenuVerticalBar: TabMenuVerticalBar? {
         TabMenuVerticalBar(
             behavior: tabMenuVerticalBehavior,

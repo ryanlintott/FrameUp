@@ -9,6 +9,7 @@ import FrameUp
 import SwiftUI
 
 #if os(iOS)
+@available(iOS 16, *)
 struct TabMenuExample: View {
     @Binding var selection: Int
     let onReselect: (() -> Void)?
@@ -57,6 +58,7 @@ struct TabMenuExample: View {
     }
 }
 
+@available(iOS 16, *)
 struct DefaultTabView: View {
     @Binding var selection: Int
     
@@ -93,6 +95,7 @@ struct DefaultTabView: View {
     }
 }
 
+@available(iOS 16, *)
 struct TabMenuExample_Previews: PreviewProvider {
     static var previews: some View {
         TabMenuExample(selection: .constant(0))

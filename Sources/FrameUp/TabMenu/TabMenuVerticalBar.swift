@@ -58,9 +58,9 @@ enum TabMenuVerticalBar: Equatable, Sendable {
     }
 }
 
+@available(iOS 16, *)
 extension Edge {
     /// The screen edge a menu placed by `tabMenu(selection:items:)` is against: the bar's edge, or the bottom without a bar.
-    @available(iOS 16, *)
     static func edge(for verticalBar: TabMenuVerticalBar?) -> Edge {
         switch verticalBar?.edge {
         case .leading: .leading

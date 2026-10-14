@@ -11,6 +11,7 @@ import SwiftUI
 /// How a vertical tab menu, placed with `tabMenu(selection:items:)`, spreads its items along its bar.
 ///
 /// A horizontal menu ignores this. See ``TabMenuHorizontalDistribution``.
+@available(iOS 16, *)
 public enum TabMenuVerticalDistribution: Hashable, Sendable {
     /// Each bar's own spread: `.grouped` in the system's vertical toolbar, like the system's tab bar, and `.equal` in the custom vertical bar.
     case automatic
@@ -22,6 +23,7 @@ public enum TabMenuVerticalDistribution: Hashable, Sendable {
 #endif
 
 #if os(iOS)
+@available(iOS 16, *)
 public extension View {
     /// Sets how the items are spread along the vertical bar of tab menus in this view.
     ///

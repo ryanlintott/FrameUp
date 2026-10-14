@@ -31,7 +31,9 @@ struct ContentView: View {
         
         FlippingViewExamples()
         
-        TabMenuExamples()
+        if #available(iOS 16, *) {
+            TabMenuExamples()
+        }
         
         FULayoutExamples()
         

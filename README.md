@@ -418,7 +418,7 @@ Color.blue.overlay(Text("Front"))
 ```
 
 ## TabMenu
-*\*iOS only*
+*\*iOS 16+ only*
 
 Customizable tab menu bar view designed to mimic the style of the default tab menu bar on iPhone. By default each item's icon and title mask a color, as the iPhone tab bar in iOS 15–18 looks.
 
@@ -507,7 +507,7 @@ Since `tabMenu` creates the menu, an effect on the whole menu goes in the item s
 Apply `tabMenuVerticalBehavior(_:)` above the tab menu to choose where it can be vertical:
 
 - `.system`, the default, uses only the system's vertical toolbar, as on the iPhone Duo.
-- `.automatic` also puts the menu in a custom vertical bar on an iPhone in landscape, against the edge away from the Dynamic Island, with the content moved over to make room. This needs iOS 16.
+- `.automatic` also puts the menu in a custom vertical bar on an iPhone in landscape, against the edge away from the Dynamic Island, with the content moved over to make room.
 - `.disabled` keeps the menu along the bottom everywhere.
 
 Apply `tabMenuVerticalDistribution(_:)` to choose how the items spread along a vertical bar. `.automatic`, the default, stacks them at the bottom of the system's vertical toolbar and spreads them along the custom bar. `.equal` spreads them along either bar, and `.grouped` stacks them at the bottom of either.

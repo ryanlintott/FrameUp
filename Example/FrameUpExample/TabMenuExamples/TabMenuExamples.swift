@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+@available(iOS 16, *)
 struct TabMenuExamples: View {
     @State private var isFullscreenPresented = false
 
@@ -34,6 +35,7 @@ struct TabMenuExamples: View {
     }
 }
 
+@available(iOS 16, *)
 struct TabMenuExamples_Previews: PreviewProvider {
     static var previews: some View {
         List {

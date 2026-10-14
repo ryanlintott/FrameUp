@@ -11,6 +11,7 @@ import SwiftUI
 /// The icon of a ``TabMenuItem``, with its type erased so items with different icons can share an array. It behaves like any other view.
 ///
 /// An image, such as an SF Symbol, is kept as given, so it responds to `font` and `imageScale` as in a system `Label`. The ``TabMenuItemStyle/masked(_:)`` style makes it resizable to draw it at its fixed height.
+@available(iOS 16, *)
 public struct TabMenuItemIcon: View {
     /// The icon as given: an image, kept so a style can make it resizable, or any other view.
     enum Storage {

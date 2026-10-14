@@ -9,6 +9,7 @@ import FrameUp
 import SwiftUI
 
 #if os(iOS)
+@available(iOS 16, *)
 struct TabMenuExampleView: View {
     @State private var selection = 0
     @State private var reselect: Bool = false
@@ -143,6 +144,7 @@ struct TabMenuExampleView: View {
 
 /// Turns the iPhone Duo's vertical bar off. Only iOS 27.1 has the option.
 
+@available(iOS 16, *)
 struct TabMenuViewExampleView_Previews: PreviewProvider {
     static var previews: some View {
         TabMenuExampleView()

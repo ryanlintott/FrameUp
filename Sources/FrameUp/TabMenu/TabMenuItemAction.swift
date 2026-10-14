@@ -9,11 +9,13 @@ import SwiftUI
 
 #if os(iOS)
 /// An action a ``TabMenu`` runs on its selected item, with the name VoiceOver offers it by.
+@available(iOS 16, *)
 struct TabMenuItemAction {
     let name: Text
     let action: () -> Void
 }
 
+@available(iOS 16, *)
 public extension View {
     /// Runs an action when the selected item of a tab menu in this view is tapped again.
     ///
@@ -74,6 +76,7 @@ public extension View {
     }
 }
 
+@available(iOS 16, *)
 extension View {
     /// Clears the reselect and double-tap actions, so actions meant for a menu that `tabMenu(selection:items:)` places don't reach a `TabMenu` in its content.
     func tabMenuItemActionsDisabled() -> some View {

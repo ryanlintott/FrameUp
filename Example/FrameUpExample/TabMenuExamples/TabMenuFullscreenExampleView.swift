@@ -9,6 +9,7 @@ import FrameUp
 import SwiftUI
 
 #if os(iOS)
+@available(iOS 16, *)
 struct TabMenuFullscreenExampleView: View {
     @Environment(\.dismiss) private var dismiss
 
@@ -131,6 +132,7 @@ struct TabMenuFullscreenExampleView: View {
     }
 }
 
+@available(iOS 16, *)
 #Preview {
     TabMenuFullscreenExampleView()
 }

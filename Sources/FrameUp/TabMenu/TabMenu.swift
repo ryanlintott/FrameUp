@@ -31,6 +31,7 @@ import SwiftUI
 ///         }
 ///
 /// Placed by hand, the menu is a horizontal bar. Use `tabMenu(selection:items:)` to place it where the system would put its tab bar, which can be a vertical bar.
+@available(iOS 16, *)
 public struct TabMenu<Tab: Hashable>: View {
     /// The screen edge the menu is placed against. Only `tabMenu(selection:items:)` sets it, so a menu placed by hand sees nil and stays horizontal.
     @Environment(\.tabMenuEdge) private var edge
