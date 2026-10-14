@@ -150,26 +150,10 @@ struct TabMenuModifier<Tab: Hashable>: ViewModifier {
         }
         .coordinateSpace(name: TabMenuCoordinateSpaceName())
         /// Measure the wrapper rather than `content`, so the menu's own insets can't affect the next measurement.
-        .background {
-            GeometryReader { proxy in
-                Color.clear
-                    .preference(key: TabMenuSafeAreaInsetsKey.self, value: proxy.safeAreaInsets)
-            }
-        }
-        .onPreferenceChangeMainActor(TabMenuSafeAreaInsetsKey.self) { newInsets in
-            if let newInsets {
-                safeAreaInsets = newInsets
-            }
+        .onSafeAreaChange { newInsets in
+            safeAreaInsets = newInsets
         }
         .modifier(SystemToolbarVerticalGeometryReader(edge: verticalBar?.systemEdge, geometry: $systemToolbarVerticalGeometry))
-    }
-}
-/// The safe area around the content of `tabMenu(selection:items:)`.
-struct TabMenuSafeAreaInsetsKey: PreferenceKey {
-    static let defaultValue: EdgeInsets? = nil
-    static func reduce(value: inout EdgeInsets?, nextValue: () -> EdgeInsets?) {
-        /// SwiftUI can pass in the default value from views that don't set this key, which would otherwise replace the measured insets.
-        value = nextValue() ?? value
     }
 }
 #endif
