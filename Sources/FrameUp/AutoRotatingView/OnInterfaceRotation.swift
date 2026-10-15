@@ -73,6 +73,15 @@ internal extension Angle {
 fileprivate final class InterfaceRotationViewController: UIViewController {
     var action: (Angle, UIViewControllerTransitionCoordinator) -> Void = { _, _ in }
 
+    /// SwiftUI can hand the status bar to this view controller, which then passes it back to the SwiftUI content it's in.
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        parent?.preferredStatusBarStyle ?? super.preferredStatusBarStyle
+    }
+
+    override var prefersStatusBarHidden: Bool {
+        parent?.prefersStatusBarHidden ?? super.prefersStatusBarHidden
+    }
+
     override func loadView() {
         let view = UIView()
         view.isUserInteractionEnabled = false

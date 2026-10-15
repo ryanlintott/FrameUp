@@ -110,6 +110,15 @@ internal final class RotationLockingViewController: UIViewController {
     /// The turn the content was last turned back for.
     var counterRotatedTurnID: Int? = nil
 
+    /// SwiftUI can hand the status bar to this view controller, which then passes it back to the SwiftUI content it's in.
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        parent?.preferredStatusBarStyle ?? super.preferredStatusBarStyle
+    }
+
+    override var prefersStatusBarHidden: Bool {
+        parent?.prefersStatusBarHidden ?? super.prefersStatusBarHidden
+    }
+
     override func loadView() {
         /// The host fills the AutoRotatingView, so the content behind it can only be touched where the held content leaves room.
         let view = PassThroughView()
