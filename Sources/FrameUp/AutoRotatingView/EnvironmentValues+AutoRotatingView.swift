@@ -32,6 +32,33 @@ public extension EnvironmentValues {
         get { self[AutoRotatingOrientationKey.self] }
         set { self[AutoRotatingOrientationKey.self] = newValue }
     }
+    
+    /// An animation timed like the system's turn of the interface while the nearest enclosing `AutoRotatingView` holds its content still on the screen, or nil.
+    ///
+    /// Held content keeps its layout through the turn, apart from its safe area. Use this animation for any other change the turn brings, so it moves in step with the turn rather than at once.
+    ///
+    ///     AutoRotatingView([.portrait], systemRotation: .locked) {
+    ///         Content()
+    ///     }
+    ///
+    ///     struct Content: View {
+    ///         @Environment(\.autoRotatingHeldTurnAnimation) private var heldTurnAnimation
+    ///         @Environment(\.verticalSizeClass) private var verticalSizeClass
+    ///
+    ///         var body: some View {
+    ///             Color.blue
+    ///                 .padding(.top, verticalSizeClass == .compact ? 20 : 60)
+    ///                 .animation(heldTurnAnimation, value: verticalSizeClass)
+    ///         }
+    ///     }
+    var autoRotatingHeldTurnAnimation: Animation? {
+        get { self[AutoRotatingHeldTurnAnimationKey.self] }
+        set { self[AutoRotatingHeldTurnAnimationKey.self] = newValue }
+    }
+}
+
+private struct AutoRotatingHeldTurnAnimationKey: EnvironmentKey {
+    static let defaultValue: Animation? = nil
 }
 
 /// The content of an `AutoRotatingView`, and how it turns when the system turns the interface.

@@ -76,6 +76,7 @@ internal struct RotationLockingHost<Content: View>: UIViewControllerRepresentabl
                 /// Set inside the environment passed in, which would otherwise replace it.
                 /// While the system turns the interface and the content stays still, the safe area moves with the system's timing.
                 .environment(\.fuCounterRotationDuration, heldTurn?.duration)
+                .environment(\.autoRotatingHeldTurnAnimation, heldTurn.map { .easeInOut(duration: $0.duration) })
                 .environment(\.self, environment)
         )
         guard let heldTurn, heldTurn.id != viewController.counterRotatedTurnID else {
