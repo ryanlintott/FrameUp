@@ -11,12 +11,13 @@ import SwiftUI
 #if os(iOS)
 /// A panel that stays still on the screen when the device turns, with a title on it that turns to stay upright.
 ///
-/// The panel is an `AutoRotatingView` that only allows portrait, so it holds its place on the screen while the system turns the interface. The title is a second `AutoRotatingView` inside it that allows the other orientations, so it turns with the device, and lays itself out from the `autoRotatingOrientation` environment value.
+/// The panel is an `AutoRotatingView` that only allows portrait. Its system rotation sets how it moves while the system turns the interface: its orientation locked while the system's animation carries it, or locked completely still. The title is a second `AutoRotatingView` inside it that allows the other orientations, so it turns with the device, and lays itself out from the `autoRotatingOrientation` environment value.
 struct NestedAutoRotatingViewExample: View {
     @State private var isPresented: Bool = false
+    @State private var systemRotation: FUSystemRotationBehavior = .exampleDefault
 
     private var panel: some View {
-        AutoRotatingView([.portrait]) {
+        AutoRotatingView([.portrait], systemRotation: systemRotation) {
             ZStack {
                 RoundedRectangle(cornerRadius: 24, style: .continuous)
                     .fill(.indigo)
@@ -30,11 +31,20 @@ struct NestedAutoRotatingViewExample: View {
                 }
                 .padding(24)
             }
-            .overlay(alignment: .topTrailing) {
-                Button("Close") {
-                    isPresented = false
+            .overlay(alignment: .top) {
+                VStack(alignment: .trailing) {
+                    Button("Close") {
+                        isPresented = false
+                    }
+                    .buttonStyle(.borderedProminent)
+                    
+                    Picker("System Rotation", selection: $systemRotation) {
+                        ForEach(FUSystemRotationBehavior.exampleCases, id: \.self) { behavior in
+                            Text("\(behavior)").tag(behavior)
+                        }
+                    }
+                    .pickerStyle(.segmented)
                 }
-                .buttonStyle(.borderedProminent)
                 .padding()
             }
             .padding(20)
@@ -44,7 +54,7 @@ struct NestedAutoRotatingViewExample: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            Text("The panel only allows portrait, so it stays still on the screen as the device turns, even as the system turns the interface underneath it. The title on the panel is a nested AutoRotatingView that allows portrait and both landscapes, so it turns with the device to stay upright, and stacks across the panel in landscape.")
+            Text("The panel only allows portrait, so when the device turns the system turns the interface underneath it. Choose how the panel moves during that turn: lockedOrientation keeps its orientation while the system's animation carries it, and locked keeps it completely still (iOS 17 and later). The title on the panel is a nested AutoRotatingView that allows portrait and both landscapes, so it turns with the device to stay upright, and stacks across the panel in landscape.")
 
             Button("Show Panel") {
                 isPresented = true

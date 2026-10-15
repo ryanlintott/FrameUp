@@ -12,7 +12,7 @@ import SwiftUI
 ///
 /// Content is laid out in all the available space including any safe area around it, and a matching safe area is re-created. Content can either respect that safe area or ignore it with `ignoresSafeArea()`, and in both cases it turns around the centre of the safe area rather than drifting off the axis of rotation part way through the turn.
 ///
-/// When the device turns to an orientation the app supports but the content doesn't, the system turns the interface and the content stays completely still on the screen. On iOS 17 and later, a view that can be held still this way, one whose allowed orientations leave out an orientation the app supports, hosts its content in a view of its own that UIKit turns back in step with the system's rotation, and the content's safe area moves to its new place with the system's timing. On earlier versions the content turns with the interface and takes its place, without an animation, once the turn ends. The content gets the view's environment, but preferences set inside it, such as a navigation title, don't reach views outside, and changing `allowedOrientations` between a set that covers every orientation the app supports and one that doesn't rebuilds the content. The system clips the window as it turns, so the corners of the screen go dark part way through a turn even while the content is still.
+/// When the device turns to an orientation the app supports but the content doesn't, the system turns the interface, and the content turns back to keep its orientation. `systemRotation` sets how it moves during that turn: its orientation is locked but its position drifts with the system's animation (the default), or it's locked completely still (iOS 17 and later). See ``FUSystemRotationBehavior``. The system clips the window as it turns, so the corners of the screen go dark part way through a turn.
 ///
 /// An `AutoRotatingView` inside another turns relative to it, so content that allows more orientations turns to stay upright on a frame that's held still.
 ///
@@ -34,6 +34,8 @@ public struct AutoRotatingView<Content: View>: View {
     @State private var expectedInterfaceOrientation: FUInterfaceOrientation? = nil
     /// The rotation of the content of an enclosing `AutoRotatingView` relative to the interface, or zero if there is none.
     @Environment(\.fuAutoRotatingContentRotation) private var enclosingContentRotation
+    /// How content left where it is by the system's turn moves in an enclosing `AutoRotatingView`, or nil if there's none that can be left.
+    @Environment(\.fuAutoRotatingHeldBehavior) private var enclosingHeldBehavior
     /// The rotation of the enclosing content held while the system turns the interface, so a change to it turns this content with an animation timed like the system's rather than at once.
     @State private var heldEnclosingContentRotation: Angle? = nil
     /// The system's turn of the interface while it's under way.
@@ -47,6 +49,8 @@ public struct AutoRotatingView<Content: View>: View {
     let allowedOrientations: [FUInterfaceOrientation]
     /// Toggle to turn this modifier on or off.
     let isOn: Bool
+    /// How the content moves while the system turns the interface to an orientation the content doesn't allow.
+    let systemRotation: FUSystemRotationBehavior
     /// Animation to use when the content turns on its own. When the system rotates the interface, the content always turns with the system's own animation.
     let animation: Animation?
     /// Content for the view, built from the container geometry that SwiftUI doesn't turn with it.
@@ -60,11 +64,13 @@ public struct AutoRotatingView<Content: View>: View {
     /// - Parameters:
     ///   - allowedOrientations: Set of allowed orientations for this view. Default is all.
     ///   - isOn: Toggles ability to rotate views.
+    ///   - systemRotation: How the content moves while the system turns the interface to an orientation the content doesn't allow. Default is `.lockedOrientation`, where the system's animation carries the content and it keeps its orientation but not its place. `.locked` keeps it completely still (iOS 17 and later).
     ///   - animation: Animation to use when the content turns on its own, or nil for no animation. Default is the system's rotation animation, measured as 0.3 seconds ease in and out.
     ///   - content: Content to be rotated to match a device orientations from an allowed orientation set.
-    public init(_ allowedOrientations: [FUInterfaceOrientation] = FUInterfaceOrientation.allCases, isOn: Bool = true, animation: Animation? = .easeInOut(duration: 0.3), @ViewBuilder content: () -> Content) {
+    public init(_ allowedOrientations: [FUInterfaceOrientation] = FUInterfaceOrientation.allCases, isOn: Bool = true, systemRotation: FUSystemRotationBehavior = .lockedOrientation, animation: Animation? = .easeInOut(duration: 0.3), @ViewBuilder content: () -> Content) {
         self.allowedOrientations = allowedOrientations
         self.isOn = isOn
+        self.systemRotation = systemRotation
         self.animation = animation
         /// Built here rather than stored as a closure, so state the caller reads in it is tracked from the caller's first update.
         let content = content()
@@ -84,11 +90,13 @@ public struct AutoRotatingView<Content: View>: View {
     /// - Parameters:
     ///   - allowedOrientations: Set of allowed orientations for this view. Default is all.
     ///   - isOn: Toggles ability to rotate views.
+    ///   - systemRotation: How the content moves while the system turns the interface to an orientation the content doesn't allow. Default is `.lockedOrientation`, where the system's animation carries the content and it keeps its orientation but not its place. `.locked` keeps it completely still (iOS 17 and later).
     ///   - animation: Animation to use when the content turns on its own, or nil for no animation. Default is the system's rotation animation, measured as 0.3 seconds ease in and out.
     ///   - content: Content to be rotated to match a device orientations from an allowed orientation set, built from the container geometry that SwiftUI doesn't turn with it.
-    public init(_ allowedOrientations: [FUInterfaceOrientation] = FUInterfaceOrientation.allCases, isOn: Bool = true, animation: Animation? = .easeInOut(duration: 0.3), @ViewBuilder content: @escaping (AutoRotatingGeometryProxy) -> Content) {
+    public init(_ allowedOrientations: [FUInterfaceOrientation] = FUInterfaceOrientation.allCases, isOn: Bool = true, systemRotation: FUSystemRotationBehavior = .lockedOrientation, animation: Animation? = .easeInOut(duration: 0.3), @ViewBuilder content: @escaping (AutoRotatingGeometryProxy) -> Content) {
         self.allowedOrientations = allowedOrientations
         self.isOn = isOn
+        self.systemRotation = systemRotation
         self.animation = animation
         self.content = content
     }
@@ -167,9 +175,22 @@ public struct AutoRotatingView<Content: View>: View {
         interfaceRotation - (heldEnclosingContentRotation ?? enclosingContentRotation)
     }
     
-    /// True when the content can be held still on the screen while the system turns the interface, because the app supports an orientation the content doesn't.
-    var canHoldStill: Bool {
+    /// True when the system can turn the interface while the content stays where it is, because the app supports an orientation the content doesn't.
+    var canBeHeld: Bool {
         isOn && !Set(InfoDictionary.supportedInterfaceOrientations).isSubset(of: allowedOrientations)
+    }
+    
+    /// How the content moves while the system turns the interface. An enclosing `AutoRotatingView` with `lockedOrientation` sets it for the content inside, so the two stay in step.
+    var rotationBehavior: FUSystemRotationBehavior {
+        if let enclosingHeldBehavior, !enclosingHeldBehavior.isLocked {
+            return enclosingHeldBehavior
+        }
+        return systemRotation
+    }
+    
+    /// True when the content is hosted to hold it still on the screen while the system turns the interface.
+    var isHostedToHoldStill: Bool {
+        rotationBehavior.isLocked && canBeHeld
     }
     
     /// Called when the device turns.
@@ -180,12 +201,19 @@ public struct AutoRotatingView<Content: View>: View {
         let deviceOrientation = UIDevice.current.orientation.interfaceOrientation
         if let deviceOrientation, deviceOrientation != interfaceOrientation, InfoDictionary.supportedInterfaceOrientations.contains(deviceOrientation) {
             expectedInterfaceOrientation = deviceOrientation
+            if rotationBehavior == .lockedOrientation {
+                /// The orientations change at once, without a SwiftUI animation, and the system's rotation, which starts a moment later, carries the change. The content keeps its orientation through the turn, though its position is off until the turn ends.
+                withAnimation(nil) {
+                    updateOrientations(interfaceOrientation: deviceOrientation)
+                }
+            }
             /// The system starts turning the interface a few milliseconds later (measured in iOS 27). It doesn't when a view controller doesn't support the orientation, or for upside down on an iPhone without a Home button, though the app lists it. No API reports either, so the content turns on its own if no turn has started by then.
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 guard expectedInterfaceOrientation == deviceOrientation else { return }
                 expectedInterfaceOrientation = nil
                 withAnimation(animation) {
-                    updateOrientations(interfaceOrientation: nil)
+                    /// Content that changed ahead of the turn goes back to the interface it's still in.
+                    updateOrientations(interfaceOrientation: FUInterfaceOrientation.windowScene)
                 }
             }
         } else {
@@ -203,23 +231,15 @@ public struct AutoRotatingView<Content: View>: View {
         guard isOn && deviceScreen == .outer, let interfaceOrientation else { return }
         /// A window that resizes without turning, such as on an iPad, has nothing to turn.
         guard let newInterfaceOrientation = interfaceOrientation.rotated(by: angle), newInterfaceOrientation != interfaceOrientation else { return }
+        /// With `lockedOrientation`, the orientations already changed when the device turned.
+        guard rotationBehavior != .lockedOrientation else { return }
         let duration = coordinator.transitionDuration
         turnCount += 1
         let count = turnCount
-        guard #available(iOS 17, *) else {
-            /// Before iOS 17 the content isn't held still. It turns with the interface, and takes its new place without an animation once the turn ends, so it's right before and after. SwiftUI changes made during the system's turn are carried by UIKit's animation, which distorts the content.
-            DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
-                guard count == turnCount else { return }
-                withAnimation(nil) {
-                    updateOrientations(interfaceOrientation: newInterfaceOrientation)
-                }
-            }
-            return
-        }
         /// The content turns if the device turns to an allowed orientation it isn't in already, and otherwise stays where it is on the screen.
         let deviceOrientation = UIDevice.current.orientation.interfaceOrientation
         let isHeldStill = !(deviceOrientation.map(allowedOrientations.contains) ?? false) || deviceOrientation == contentOrientation
-        /// Set before the system lays the interface out for the turn, so the host knows to hold its content still.
+        /// Set before the system lays the interface out for the turn, so the host knows to hold its content still. Content that isn't hosted, because it allows every orientation the app supports, is carried by the system's animation instead.
         turn = InterfaceTurn(id: count, duration: duration, isHeldStill: isHeldStill)
         /// An enclosing `AutoRotatingView` held still on the screen changes its rotation without an animation, which would turn this content at once. Its rotation is held from now, before the enclosing view can change it, and follows with an animation.
         heldEnclosingContentRotation = enclosingContentRotation
@@ -293,6 +313,7 @@ public struct AutoRotatingView<Content: View>: View {
                             .environment(\.layoutDirection, layoutDirection)
                             /// Passes the turn of the content on to any `AutoRotatingView` inside it, which turns relative to it.
                             .environment(\.fuAutoRotatingContentRotation, interfaceRotation)
+                            .environment(\.fuAutoRotatingHeldBehavior, canBeHeld ? rotationBehavior : enclosingHeldBehavior)
                             .environment(\.autoRotatingOrientation, isOn && deviceScreen == .outer ? contentOrientation : nil)
                             /// Alignment guides are set to move the full size center point to the safe size center point at any rotation
                             .alignmentGuide(VerticalAlignment.center) { d in
@@ -315,7 +336,7 @@ public struct AutoRotatingView<Content: View>: View {
                 /// Laid out left to right so directions are fixed on screen. SwiftUI mirrors a right to left layout, which would turn the content the wrong way and move one of the alignment guides but not the other. The readers above fill their space, so their layout is the same in either direction.
                 .environment(\.layoutDirection, .leftToRight)
                 
-                if #available(iOS 17, *), canHoldStill {
+                if #available(iOS 17, *), isHostedToHoldStill {
                     /// Hosted in a view of its own, which UIKit turns back in step with the system's rotation so the content stays still on the screen.
                     RotationLockingHost(rotation: rotation, turn: turn, environment: environment, content: layout)
                 } else {

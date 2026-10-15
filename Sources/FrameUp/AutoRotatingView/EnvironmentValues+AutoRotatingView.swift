@@ -45,11 +45,21 @@ internal extension EnvironmentValues {
         set { self[AutoRotatingContentRotationKey.self] = newValue }
     }
     
+    /// How content left where it is by the system's turn moves in the nearest enclosing `AutoRotatingView` that can leave it, or nil if there's none.
+    var fuAutoRotatingHeldBehavior: FUSystemRotationBehavior? {
+        get { self[AutoRotatingHeldBehaviorKey.self] }
+        set { self[AutoRotatingHeldBehaviorKey.self] = newValue }
+    }
+    
     /// The duration of the system's turn while a ``RotationLockingHost`` turns its content back in step with it, or nil.
     var fuCounterRotationDuration: TimeInterval? {
         get { self[CounterRotationDurationKey.self] }
         set { self[CounterRotationDurationKey.self] = newValue }
     }
+}
+
+private struct AutoRotatingHeldBehaviorKey: EnvironmentKey {
+    static let defaultValue: FUSystemRotationBehavior? = nil
 }
 
 private struct CounterRotationDurationKey: EnvironmentKey {
