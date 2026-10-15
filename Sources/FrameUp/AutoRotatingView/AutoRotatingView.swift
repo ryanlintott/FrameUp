@@ -193,6 +193,11 @@ public struct AutoRotatingView<Content: View>: View {
         rotationBehavior.isLocked && canBeHeld
     }
     
+    /// True when the orientations change as the device turns, and the system's rotation carries the change. Otherwise they change in step with the system's turn, which content inside a locked `AutoRotatingView` needs, as nothing carries a change made beforehand there.
+    var changesAsDeviceTurns: Bool {
+        rotationBehavior == .lockedOrientation && enclosingHeldBehavior?.isLocked != true
+    }
+    
     /// Called when the device turns.
     ///
     /// When the device turns to an orientation the app supports, the system turns the interface a moment later, and the orientations change in step with it in ``interfaceWillRotate(by:coordinator:)``. Otherwise the content turns on its own.
@@ -201,7 +206,7 @@ public struct AutoRotatingView<Content: View>: View {
         let deviceOrientation = UIDevice.current.orientation.interfaceOrientation
         if let deviceOrientation, deviceOrientation != interfaceOrientation, InfoDictionary.supportedInterfaceOrientations.contains(deviceOrientation) {
             expectedInterfaceOrientation = deviceOrientation
-            if rotationBehavior == .lockedOrientation {
+            if changesAsDeviceTurns {
                 /// The orientations change at once, without a SwiftUI animation, and the system's rotation, which starts a moment later, carries the change. The content keeps its orientation through the turn, though its position is off until the turn ends.
                 withAnimation(nil) {
                     updateOrientations(interfaceOrientation: deviceOrientation)
@@ -231,8 +236,8 @@ public struct AutoRotatingView<Content: View>: View {
         guard isOn && deviceScreen == .outer, let interfaceOrientation else { return }
         /// A window that resizes without turning, such as on an iPad, has nothing to turn.
         guard let newInterfaceOrientation = interfaceOrientation.rotated(by: angle), newInterfaceOrientation != interfaceOrientation else { return }
-        /// With `lockedOrientation`, the orientations already changed when the device turned.
-        guard rotationBehavior != .lockedOrientation else { return }
+        /// The orientations may already have changed when the device turned.
+        guard !changesAsDeviceTurns else { return }
         let duration = coordinator.transitionDuration
         turnCount += 1
         let count = turnCount
