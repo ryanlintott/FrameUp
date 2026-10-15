@@ -42,6 +42,8 @@ public struct AutoRotatingView<Content: View>: View {
     @State private var turn: InterfaceTurn? = nil
     /// The number of times the system has turned the interface, so a turn can tell when another has started after it.
     @State private var turnCount = 0
+    /// A turn that holds the content still, from when the system announces it until ``turn`` is set.
+    @State private var pendingHeldTurn = PendingHeldTurn()
     /// The environment, passed on to content that is hosted to hold it still on the screen.
     @Environment(\.self) private var environment
     
@@ -252,6 +254,7 @@ public struct AutoRotatingView<Content: View>: View {
         let isHeldStill = contentState.isHeldStill(deviceOrientation: deviceOrientation)
         /// Set before the system lays the interface out for the turn, so the host knows to hold its content still. Content that isn't hosted, because it allows every orientation the app supports, is carried by the system's animation instead.
         turn = InterfaceTurn(id: count, duration: duration, isHeldStill: isHeldStill)
+        pendingHeldTurn.id = isHeldStill ? count : nil
         /// An enclosing `AutoRotatingView` changes its rotation without an animation, and its change reaches this content a few frames into the turn, later still in a hosted view. This content turns relative to where the enclosing content will be, worked out now, so its orientation, frame and rotation all change together as the turn starts.
         heldEnclosingContentRotation = enclosingContent.rotation
         let enclosingRotation = enclosingContent.rotation(afterInterfaceTurnBy: angle, to: newInterfaceOrientation, deviceOrientation: deviceOrientation)
@@ -275,6 +278,7 @@ public struct AutoRotatingView<Content: View>: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
             guard count == turnCount else { return }
             turn = nil
+            pendingHeldTurn.id = nil
             heldEnclosingContentRotation = nil
         }
     }
@@ -352,7 +356,7 @@ public struct AutoRotatingView<Content: View>: View {
                 
                 if #available(iOS 17, *), isHostedToHoldStill {
                     /// Hosted in a view of its own, which UIKit turns back in step with the system's rotation so the content stays still on the screen.
-                    RotationLockingHost(rotation: rotation, turn: turn, environment: environment, content: layout)
+                    RotationLockingHost(rotation: rotation, turn: turn, isTurnPending: pendingHeldTurn.id.map { $0 != turn?.id } ?? false, environment: environment, content: layout)
                 } else {
                     layout
                 }
@@ -382,6 +386,13 @@ public struct AutoRotatingView<Content: View>: View {
         }
         .onDeviceScreenChange(changeScreen(to:))
     }
+}
+
+/// A turn that holds the content still, from when the system announces it until the turn's state reaches the view.
+///
+/// SwiftUI lays the interface out at its new size before state set when the system announces a turn reaches the view (measured in iOS 27). That layout has the new size and safe area but the old rotation. A reference keeps the turn visible to that layout, so a ``RotationLockingHost`` keeps the content as it was, and the safe area animates from where it was before the turn.
+private final class PendingHeldTurn {
+    var id: Int? = nil
 }
 
 /// Applies the safe area, and while a ``RotationLockingHost`` turns the content back in step with the system's rotation, moves it to its new place with an animation timed like the system's.

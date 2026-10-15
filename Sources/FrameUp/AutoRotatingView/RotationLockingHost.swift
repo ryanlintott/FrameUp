@@ -21,6 +21,29 @@ fileprivate struct RotationLockingRoot: View {
 
     var body: some View {
         model.content
+            /// Behind the content, so a touch reaches it only where nothing of the content takes the touch.
+            .background(HitTestMarker())
+    }
+}
+
+/// A view that fills the space behind the held content, so the host can tell where the content takes a touch.
+@available(iOS 17, *)
+fileprivate struct HitTestMarker: UIViewRepresentable {
+    func makeUIView(context: Context) -> HitTestMarkerView {
+        HitTestMarkerView()
+    }
+
+    func updateUIView(_ uiView: HitTestMarkerView, context: Context) { }
+}
+
+fileprivate final class HitTestMarkerView: UIView { }
+
+/// A view that takes a touch only where its subviews' content does, so touches elsewhere reach the views behind it.
+fileprivate final class PassThroughView: UIView {
+    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        let view = super.hitTest(point, with: event)
+        /// Either this view or the marker behind the content means nothing of the content is at that point.
+        return view === self || view is HitTestMarkerView ? nil : view
     }
 }
 
@@ -33,6 +56,8 @@ internal struct RotationLockingHost<Content: View>: UIViewControllerRepresentabl
     let rotation: Angle
     /// The system's turn of the interface while it's under way, or nil.
     let turn: InterfaceTurn?
+    /// True when the system has announced a turn that holds the content still, but `turn` and `rotation` don't have it yet.
+    let isTurnPending: Bool
     /// The environment to pass on to the content, which a hosting controller doesn't inherit.
     let environment: EnvironmentValues
     let content: Content
@@ -42,6 +67,8 @@ internal struct RotationLockingHost<Content: View>: UIViewControllerRepresentabl
     }
 
     func updateUIViewController(_ viewController: RotationLockingViewController, context: Context) {
+        /// The interface is laid out at its new size before the turn reaches the content. Until it does, the content keeps its last layout, so its safe area animates from where it was before the turn rather than from insets that match neither rotation.
+        guard !isTurnPending else { return }
         let heldTurn = turn?.isHeldStill == true ? turn : nil
         viewController.heldTurn = heldTurn
         let content = AnyView(
@@ -83,7 +110,8 @@ internal final class RotationLockingViewController: UIViewController {
     var counterRotatedTurnID: Int? = nil
 
     override func loadView() {
-        let view = UIView()
+        /// The host fills the AutoRotatingView, so the content behind it can only be touched where the held content leaves room.
+        let view = PassThroughView()
         view.backgroundColor = .clear
         self.view = view
     }

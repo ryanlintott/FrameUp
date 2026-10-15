@@ -45,6 +45,9 @@ public extension View {
 struct TabMenuModifier<Tab: Hashable>: ViewModifier {
     let menu: TabMenu<Tab>
 
+    /// How the menu that's leaving fades out and the new one fades in when the menu moves to another bar, timed like the system's turn of the interface (measured as 0.3 seconds ease in and out). Only the menus fade, and the content moves at once.
+    private static var barChangeAnimation: Animation { .easeInOut(duration: 0.3) }
+
     @Environment(\.tabMenuVerticalBar) private var verticalBar
     @Environment(\.tabMenuVerticalDistribution) private var verticalDistribution
     /// Where the menu goes in the system's vertical toolbar, from the last measurement by ``SystemToolbarVerticalGeometryReader``. Only used while the bar is `.system`.
@@ -117,11 +120,15 @@ struct TabMenuModifier<Tab: Hashable>: ViewModifier {
                 /// Before the inset, so the bottom menu still gets the actions.
                 .tabMenuItemActionsDisabled()
                 .safeAreaInset(edge: .bottom, spacing: 0) {
-                    /// Like the system's tab bar, it spans the full width even across an active fold (measured on the iPhone Duo with the vertical bar turned off).
-                    if verticalBar == nil {
-                        measuringItems(menu)
-                            .environment(\.tabMenuEdge, .bottom)
+                    ZStack {
+                        /// Like the system's tab bar, it spans the full width even across an active fold (measured on the iPhone Duo with the vertical bar turned off).
+                        if verticalBar == nil {
+                            measuringItems(menu)
+                                .environment(\.tabMenuEdge, .bottom)
+                                .transition(.opacity)
+                        }
                     }
+                    .animation(Self.barChangeAnimation, value: verticalBar)
                 }
                 /// Changing the edge changes an argument, not the structure, so the content keeps its state as the bar moves.
                 .safeAreaInset(edge: verticalBarLayout?.edge ?? .leading, spacing: 0) {
@@ -132,21 +139,27 @@ struct TabMenuModifier<Tab: Hashable>: ViewModifier {
                 }
         }
         .overlay {
-            /// The system's vertical toolbar has to be measured, so a screen with one shows no menu until then rather than flashing the horizontal one.
-            if let verticalBarLayout {
-                measuringItems(
-                    menu
-                        .environment(\.tabMenuEdge, verticalBar?.menuEdge ?? .bottom)
-                        .frame(width: verticalBarLayout.menuWidth)
-                        .frame(maxHeight: verticalBarLayout.maxMenuHeight)
-                )
-                .padding(verticalBarLayout.edge == .leading ? .leading : .trailing, verticalBarLayout.edgePadding)
-                .padding(.top, verticalBarLayout.topPadding)
-                .padding(.bottom, verticalBarLayout.bottomPadding)
-                /// Spans the whole window, so the menu can sit in its bar, outside the content's safe area, and stays put when the keyboard appears.
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: verticalBarLayout.edge == .leading ? .bottomLeading : .bottomTrailing)
-                .ignoresSafeArea()
+            ZStack {
+                /// The system's vertical toolbar has to be measured, so a screen with one shows no menu until then rather than flashing the horizontal one.
+                if let verticalBarLayout {
+                    measuringItems(
+                        menu
+                            .environment(\.tabMenuEdge, verticalBar?.menuEdge ?? .bottom)
+                            .frame(width: verticalBarLayout.menuWidth)
+                            .frame(maxHeight: verticalBarLayout.maxMenuHeight)
+                    )
+                    .padding(verticalBarLayout.edge == .leading ? .leading : .trailing, verticalBarLayout.edgePadding)
+                    .padding(.top, verticalBarLayout.topPadding)
+                    .padding(.bottom, verticalBarLayout.bottomPadding)
+                    /// Spans the whole window, so the menu can sit in its bar, outside the content's safe area, and stays put when the keyboard appears.
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: verticalBarLayout.edge == .leading ? .bottomLeading : .bottomTrailing)
+                    .ignoresSafeArea()
+                    /// Each bar is its own menu, so a menu moving to another bar fades out of the old one and into the new one rather than sliding across.
+                    .id(verticalBar)
+                    .transition(.opacity)
+                }
             }
+            .animation(Self.barChangeAnimation, value: verticalBar)
         }
         .coordinateSpace(name: TabMenuCoordinateSpaceName())
         /// Measure the wrapper rather than `content`, so the menu's own insets can't affect the next measurement.
