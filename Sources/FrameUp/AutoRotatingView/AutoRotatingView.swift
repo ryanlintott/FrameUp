@@ -268,7 +268,7 @@ public struct AutoRotatingView<Content: View>: View {
                 }
             } else {
                 /// Relative to its frame the content turns with a SwiftUI animation timed like the system's, which only has to look smooth, since the frame is either turning with the interface or held still.
-                withAnimation(.easeInOut(duration: duration)) {
+                withAnimation(.interfaceTurn(duration: duration)) {
                     updateOrientations(interfaceOrientation: newInterfaceOrientation)
                     heldEnclosingContentRotation = enclosingRotation
                 }
