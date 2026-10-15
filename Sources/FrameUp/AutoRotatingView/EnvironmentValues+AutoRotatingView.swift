@@ -34,15 +34,41 @@ public extension EnvironmentValues {
     }
 }
 
-private struct AutoRotatingContentRotationKey: EnvironmentKey {
-    static let defaultValue: Angle = .zero
+/// The content of an `AutoRotatingView`, and how it turns when the system turns the interface.
+internal struct AutoRotatingContentState: Equatable {
+    /// The rotation of the content relative to the interface.
+    var rotation: Angle = .zero
+    /// The orientation of the content.
+    var orientation: FUInterfaceOrientation? = nil
+    /// The orientations the content allows.
+    var allowedOrientations: [FUInterfaceOrientation] = []
+    /// True when the content changes in step with the system's turn of the interface, rather than when the device turns or not at all.
+    var turnsWithInterface: Bool = false
+    
+    /// True when the content stays where it is on the screen while the system turns the interface, because the device turned to an orientation it doesn't allow or the one it's in already.
+    func isHeldStill(deviceOrientation: FUInterfaceOrientation?) -> Bool {
+        !(deviceOrientation.map(allowedOrientations.contains) ?? false) || deviceOrientation == orientation
+    }
+    
+    /// The rotation of the content once the system has turned the interface by an angle to a new orientation.
+    ///
+    /// Content held still turns back by exactly as much as the interface turns. Otherwise it takes the device orientation.
+    func rotation(afterInterfaceTurnBy angle: Angle, to newInterfaceOrientation: FUInterfaceOrientation, deviceOrientation: FUInterfaceOrientation?) -> Angle {
+        guard turnsWithInterface else { return rotation }
+        guard let deviceOrientation, !isHeldStill(deviceOrientation: deviceOrientation) else { return rotation - angle }
+        return rotation.closestEquivalent(to: deviceOrientation.rotation(to: newInterfaceOrientation))
+    }
+}
+
+private struct AutoRotatingContentKey: EnvironmentKey {
+    static let defaultValue = AutoRotatingContentState()
 }
 
 internal extension EnvironmentValues {
-    /// The rotation of the content of the nearest enclosing `AutoRotatingView` relative to the interface.
-    var fuAutoRotatingContentRotation: Angle {
-        get { self[AutoRotatingContentRotationKey.self] }
-        set { self[AutoRotatingContentRotationKey.self] = newValue }
+    /// The content of the nearest enclosing `AutoRotatingView`, or a content that never turns if there's none.
+    var fuAutoRotatingContent: AutoRotatingContentState {
+        get { self[AutoRotatingContentKey.self] }
+        set { self[AutoRotatingContentKey.self] = newValue }
     }
     
     /// How content left where it is by the system's turn moves in the nearest enclosing `AutoRotatingView` that can leave it, or nil if there's none.
