@@ -43,6 +43,19 @@ private struct TabMenuVerticalBehaviorKey: EnvironmentKey {
     static let defaultValue: TabMenuVerticalBehavior = .system
 }
 
+private struct TabMenuVerticalEdgeSettingKey: EnvironmentKey {
+    static let defaultValue: TabMenuVerticalEdge = .automatic
+}
+
+private struct TabMenuPlacedVerticalBarKey: EnvironmentKey {
+    static let defaultValue: TabMenuPlacedVerticalBar? = nil
+}
+
+/// The vertical bar a tab menu was placed in, or nil for the bottom, wrapped so the environment can tell it apart from not having been placed.
+struct TabMenuPlacedVerticalBar: Hashable, Sendable {
+    let bar: TabMenuVerticalBar?
+}
+
 private struct TabMenuInterfaceOrientationKey: EnvironmentKey {
     static let defaultValue: FUInterfaceOrientation? = nil
 }
@@ -54,9 +67,14 @@ private struct TabMenuGeometryKey: EnvironmentKey {
 public extension EnvironmentValues {
     /// The edge of the vertical bar that holds tab menus placed in this view, or nil when they run along the bottom.
     ///
-    /// Set by `tabMenuVerticalBehavior(_:)` for everything inside it, as `toolbarVerticalBehavior(_:)` sets `toolbarVerticalEdge`, from the same decision that places the menu, so it always matches where the menu is. Without it, this matches `toolbarVerticalEdge`, and is nil where that isn't available. Like `toolbarVerticalEdge`, it's layout-relative, while the bar keeps its physical side in a right-to-left layout. It can't be set directly.
+    /// Set by `tabMenuVerticalBehavior(_:)` for everything inside it, as `toolbarVerticalBehavior(_:)` sets `toolbarVerticalEdge`, from the same decision that places the menu, so it always matches where the menu is. Inside `tabMenu(selection:items:)` it's the menu's own placement, which follows the safe area as the interface turns. Without either, this matches `toolbarVerticalEdge`, and is nil where that isn't available. Like `toolbarVerticalEdge`, it's layout-relative, while the bar keeps its physical side in a right-to-left layout.
+    ///
+    /// Choose the edge with `tabMenuVerticalEdge(_:)`. This reports where the bar ended up.
     var tabMenuVerticalEdge: HorizontalEdge? {
-        tabMenuVerticalBar?.edge
+        if let tabMenuPlacedVerticalBar {
+            return tabMenuPlacedVerticalBar.bar?.edge
+        }
+        return tabMenuVerticalBar(safeAreaInsets: nil)?.edge
     }
 
     /// Where the menu placed with `tabMenu(selection:items:)` is drawn, or nil until it has been measured.
@@ -117,6 +135,18 @@ extension EnvironmentValues {
         set { self[TabMenuVerticalBehaviorKey.self] = newValue }
     }
 
+    /// The edge set for the vertical bar. Set by `tabMenuVerticalEdge(_:)`.
+    var tabMenuVerticalEdgeSetting: TabMenuVerticalEdge {
+        get { self[TabMenuVerticalEdgeSettingKey.self] }
+        set { self[TabMenuVerticalEdgeSettingKey.self] = newValue }
+    }
+
+    /// The vertical bar `tabMenu(selection:items:)` placed its menu in. Set by `tabMenu(selection:items:)` for its content.
+    var tabMenuPlacedVerticalBar: TabMenuPlacedVerticalBar? {
+        get { self[TabMenuPlacedVerticalBarKey.self] }
+        set { self[TabMenuPlacedVerticalBarKey.self] = newValue }
+    }
+
     /// The interface orientation, which places the custom vertical bar. Set by `tabMenuVerticalBehavior(_:)`, which tracks it.
     var tabMenuInterfaceOrientation: FUInterfaceOrientation? {
         get { self[TabMenuInterfaceOrientationKey.self] }
@@ -124,10 +154,13 @@ extension EnvironmentValues {
     }
 
     /// The vertical bar that holds tab menus placed in this view, or nil for the bottom.
-    var tabMenuVerticalBar: TabMenuVerticalBar? {
+    /// - Parameter safeAreaInsets: The safe area around the menu's content, measured in the same update, or nil if it isn't known.
+    func tabMenuVerticalBar(safeAreaInsets: EdgeInsets?) -> TabMenuVerticalBar? {
         TabMenuVerticalBar(
             behavior: tabMenuVerticalBehavior,
+            edge: tabMenuVerticalEdgeSetting,
             systemEdge: toolbarVerticalEdgeIfAvailable,
+            safeAreaInsets: safeAreaInsets,
             verticalSizeClass: verticalSizeClass,
             interfaceOrientation: tabMenuInterfaceOrientation,
             layoutDirection: layoutDirection

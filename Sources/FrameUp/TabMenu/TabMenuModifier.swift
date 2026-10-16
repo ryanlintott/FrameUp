@@ -48,23 +48,43 @@ struct TabMenuModifier<Tab: Hashable>: ViewModifier {
     /// How the menu that's leaving fades out and the new one fades in when the menu moves to another bar, timed like the system's turn of the interface (measured as 0.3 seconds ease in and out). Only the menus fade, and the content moves at once.
     private static var barChangeAnimation: Animation { .easeInOut(duration: 0.3) }
 
-    @Environment(\.tabMenuVerticalBar) private var verticalBar
+    @Environment(\.tabMenuVerticalBehavior) private var verticalBehavior
+    @Environment(\.tabMenuVerticalEdgeSetting) private var verticalEdgeSetting
+    @Environment(\.toolbarVerticalEdgeIfAvailable) private var systemEdge
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
+    @Environment(\.tabMenuInterfaceOrientation) private var interfaceOrientation
+    @Environment(\.layoutDirection) private var layoutDirection
     @Environment(\.tabMenuVerticalDistribution) private var verticalDistribution
     /// Where the menu goes in the system's vertical toolbar, from the last measurement by ``SystemToolbarVerticalGeometryReader``. Only used while the bar is `.system`.
     @State private var systemToolbarVerticalGeometry: SystemToolbarVerticalGeometry?
-    /// The safe area around the content, from the last measurement of the wrapper.
-    @State private var safeAreaInsets: EdgeInsets?
     /// The frame of the menu's items in the ``SwiftUICore/CoordinateSpace/tabMenu`` space, for each bar that has drawn the menu. Each bar keeps its own, because a menu that's leaving can report once more after the new bar's menu has (measured on the iPhone 18 Pro, iOS 27.0, rotating into the custom vertical bar).
     @State private var measuredItemsFrames: [TabMenuVerticalBar?: CGRect] = [:]
 
+    /// The vertical bar for the menu, or nil for the bottom, decided as `tabMenuVerticalBehavior(_:)` chose.
+    /// - Parameter safeAreaInsets: The safe area around the content, measured in the same update.
+    private func verticalBar(safeAreaInsets: EdgeInsets) -> TabMenuVerticalBar? {
+        TabMenuVerticalBar(
+            behavior: verticalBehavior,
+            edge: verticalEdgeSetting,
+            systemEdge: systemEdge,
+            safeAreaInsets: safeAreaInsets,
+            verticalSizeClass: verticalSizeClass,
+            interfaceOrientation: interfaceOrientation,
+            layoutDirection: layoutDirection
+        )
+    }
+
     /// Where the menu goes in a vertical bar, or nil along the bottom, and in the system's vertical toolbar until it has been measured.
-    private var verticalBarLayout: TabMenuVerticalBarLayout? {
+    /// - Parameters:
+    ///   - verticalBar: The vertical bar for the menu, or nil for the bottom.
+    ///   - safeAreaInsets: The safe area around the content, measured in the same update.
+    private func verticalBarLayout(_ verticalBar: TabMenuVerticalBar?, safeAreaInsets: EdgeInsets) -> TabMenuVerticalBarLayout? {
         switch verticalBar {
         case nil:
             return nil
         case let .custom(edge):
             /// The part of the bar's width that the safe area on that edge doesn't already cover. An iPhone with a Home button has no side safe area in landscape.
-            let safeAreaInset = (edge == .leading ? safeAreaInsets?.leading : safeAreaInsets?.trailing) ?? 0
+            let safeAreaInset = edge == .leading ? safeAreaInsets.leading : safeAreaInsets.trailing
             /// Sits against the screen's edge rather than inside the safe area on that side, and runs the screen's full height. In landscape an iPhone's safe area is as deep on the side away from the Dynamic Island as on the side with it, only to clear the rounded corners.
             return TabMenuVerticalBarLayout(
                 edge: edge,
@@ -91,16 +111,15 @@ struct TabMenuModifier<Tab: Hashable>: ViewModifier {
     }
 
     /// Where the menu is drawn, for the content, once its items have been measured.
-    private var geometry: TabMenuGeometry? {
+    private func geometry(_ verticalBar: TabMenuVerticalBar?) -> TabMenuGeometry? {
         measuredItemsFrames[verticalBar].map { TabMenuGeometry(itemsFrame: $0) }
     }
 
     /// Records the frame of a menu's items.
     ///
     /// Each bar draws its own menu, so the bar when the body runs is the one this menu is in.
-    private func measuringItems(_ menu: some View) -> some View {
-        let verticalBar = verticalBar
-        return menu
+    private func measuringItems(_ menu: some View, in verticalBar: TabMenuVerticalBar?) -> some View {
+        menu
             /// ``TabMenu`` reports its items rather than its whole frame, which runs the screen's width along the bottom. A menu that's leaving reports nil, which is ignored.
             .onPreferenceChangeMainActor(TabMenuItemsFrameKey.self) { newFrame in
                 if let newFrame {
@@ -110,20 +129,32 @@ struct TabMenuModifier<Tab: Hashable>: ViewModifier {
     }
 
     func body(content: Content) -> some View {
-        let verticalBar = verticalBar
-        let verticalBarLayout = verticalBarLayout
+        /// Read here, outside the menu's own insets, and in the same update as the content's layout, so the bar follows the safe area as the interface turns. See ``TabMenuVerticalBar/systemEdge(_:safeAreaInsets:)``.
+        GeometryReader { proxy in
+            placingMenu(content, safeAreaInsets: proxy.safeAreaInsets)
+        }
+    }
+
+    /// The content with the menu placed beside it.
+    /// - Parameters:
+    ///   - content: The content.
+    ///   - safeAreaInsets: The safe area around the content, measured in the same update.
+    private func placingMenu(_ content: Content, safeAreaInsets: EdgeInsets) -> some View {
+        let verticalBar = verticalBar(safeAreaInsets: safeAreaInsets)
+        let verticalBarLayout = verticalBarLayout(verticalBar, safeAreaInsets: safeAreaInsets)
 
         /// The content keeps the same structure in every placement, so turning the device doesn't reset its state. Only the menu moves.
-        ZStack {
+        return ZStack {
             content
-                .environment(\.tabMenuGeometry, geometry)
+                .environment(\.tabMenuGeometry, geometry(verticalBar))
+                .environment(\.tabMenuPlacedVerticalBar, TabMenuPlacedVerticalBar(bar: verticalBar))
                 /// Before the inset, so the bottom menu still gets the actions.
                 .tabMenuItemActionsDisabled()
                 .safeAreaInset(edge: .bottom, spacing: 0) {
                     ZStack {
                         /// Like the system's tab bar, it spans the full width even across an active fold (measured on the iPhone Duo with the vertical bar turned off).
                         if verticalBar == nil {
-                            measuringItems(menu)
+                            measuringItems(menu, in: verticalBar)
                                 .environment(\.tabMenuEdge, .bottom)
                                 .transition(.opacity)
                         }
@@ -146,7 +177,8 @@ struct TabMenuModifier<Tab: Hashable>: ViewModifier {
                         menu
                             .environment(\.tabMenuEdge, verticalBar?.menuEdge ?? .bottom)
                             .frame(width: verticalBarLayout.menuWidth)
-                            .frame(maxHeight: verticalBarLayout.maxMenuHeight)
+                            .frame(maxHeight: verticalBarLayout.maxMenuHeight),
+                        in: verticalBar
                     )
                     .padding(verticalBarLayout.edge == .leading ? .leading : .trailing, verticalBarLayout.edgePadding)
                     .padding(.top, verticalBarLayout.topPadding)
@@ -162,10 +194,6 @@ struct TabMenuModifier<Tab: Hashable>: ViewModifier {
             .animation(Self.barChangeAnimation, value: verticalBar)
         }
         .coordinateSpace(name: TabMenuCoordinateSpaceName())
-        /// Measure the wrapper rather than `content`, so the menu's own insets can't affect the next measurement.
-        .onSafeAreaChange { newInsets in
-            safeAreaInsets = newInsets
-        }
         .modifier(SystemToolbarVerticalGeometryReader(edge: verticalBar?.systemEdge, geometry: $systemToolbarVerticalGeometry))
     }
 }
