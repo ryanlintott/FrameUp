@@ -316,7 +316,14 @@ struct AutoRotatingLayer<Content: View>: View {
         let enclosingChange = enclosingRotation - enclosingContent.rotation
         /// Hosted content that turns to a new orientation is turned by its host too, with the same timing as the system's rotation, so it stays in step with the window rather than lagging behind it on a SwiftUI animation.
         let isTurnedByHost = !isHeldStill && isHostedToHoldStill
-        let hostedRotation: Angle? = isTurnedByHost ? newContentOrientation(deviceOrientation: deviceOrientation, orientationMap: orientationMap, isChangingDeviceScreen: false).map { contentRotation.closestEquivalent(to: $0.rotation(to: newInterfaceOrientation), enclosingChange: enclosingChange) - enclosingRotation } : nil
+        let hostedRotation: Angle? = if isTurnedByHost {
+            newContentOrientation(deviceOrientation: deviceOrientation, orientationMap: orientationMap, isChangingDeviceScreen: false).map { contentRotation.closestEquivalent(to: $0.rotation(to: newInterfaceOrientation), enclosingChange: enclosingChange) - enclosingRotation }
+        } else if isHeldStill && isHostedToHoldStill {
+            /// Held still, the content turns back by the interface's turn, relative to where the enclosing content will be. Inside an enclosing frame that's held still too, that can leave its rotation as it was, so the host is told what to expect rather than waiting for a change that never comes, and takes the turn's new layout at once.
+            (contentRotation - angle) - enclosingRotation
+        } else {
+            nil
+        }
         /// Set before the system lays the interface out for the turn, so the host knows to hold its content still. Content that isn't hosted, because it allows every orientation the app supports, is carried by the system's animation instead.
         turn = InterfaceTurn(id: count, duration: duration, isHeldStill: isHeldStill || isTurnedByHost, rotation: hostedRotation)
         pendingHeldTurn.id = isHeldStill || isTurnedByHost ? count : nil
@@ -400,9 +407,11 @@ struct AutoRotatingLayer<Content: View>: View {
             GeometryReader { fullProxy in
                 /// The readers are read in the caller's direction, and their values renamed left to right here, by swapping leading and trailing for a right to left caller. The rotation below is laid out left to right, so leading is always the left of the screen. Values handed to the content are named for the caller's direction again.
                 let fullSize = fullProxy.size
-                /// Content that fills an enclosing `AutoRotatingView` takes the safe area that view is moving to, rather than the one its animation is passing through. Through a turn the enclosing safe area can move between edges of the frame, and turning each step of that with this content's new rotation would send the safe area the long way round.
+                /// Content that fills an enclosing `AutoRotatingView` takes the safe area that view is moving to, rather than each step of its animation, and animates there itself with the turn's timing (see ``HeldLayout``). Each step of the enclosing animation arrives as an update with no animation, which would cut short this content's own animation and make it jump, and turned by this content's new rotation, those steps can send the safe area the long way round. Content that doesn't fill it reads its own safe area, step by step.
                 let fillsEnclosingLayout = enclosingLayout.map { abs($0.size.width - fullSize.width) < 1 && abs($0.size.height - fullSize.height) < 1 } ?? false
                 let safeAreaInsets = (fillsEnclosingLayout ? enclosingLayout?.safeAreaInsets : nil) ?? safeProxy.safeAreaInsets.named(for: layoutDirection)
+                /// How long the safe area and size take to move: this content's own turn when no host animates it, or else the enclosing view's turn, whose safe area this content takes at once.
+                let layoutDuration = (isHostedToHoldStill ? nil : turn?.duration) ?? (fillsEnclosingLayout ? enclosingLayout?.turnDuration : nil)
                 let rotatedFullSize = fullSize.rotated(by: rotation)
                 let maxDimension = max(fullSize.width, fullSize.height)
                 let rotatedSafeAreaInsets = safeAreaInsets.rotated(by: rotation, layoutDirection: .leftToRight)
@@ -427,14 +436,14 @@ struct AutoRotatingLayer<Content: View>: View {
                             /// The content frame fills the available area
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                             /// Safe areas are applied based on the rotation of the view, and the full area including safe areas is set so that a safe area can be inset inside it.
-                            .modifier(HeldLayout(insets: rotatedSafeAreaInsets.named(for: layoutDirection), size: rotatedFullSize))
+                            .modifier(HeldLayout(insets: rotatedSafeAreaInsets.named(for: layoutDirection), size: rotatedFullSize, turnDuration: layoutDuration))
                             /// The turned frame is the container the system's bar is described in, so `systemBarInset` can find where a view inside is relative to it.
                             .coordinateSpace(name: SystemBarContainerSpace())
                             /// The content is laid out in the caller's direction, inside the left to right rotation.
                             .environment(\.layoutDirection, layoutDirection)
                             /// Passes the turn of the content on to any `AutoRotatingView` inside it, which turns relative to it.
                             .environment(\.fuAutoRotatingContent, contentState)
-                            .environment(\.fuAutoRotatingEnclosingLayout, AutoRotatingEnclosingLayout(size: rotatedFullSize, safeAreaInsets: rotatedSafeAreaInsets))
+                            .environment(\.fuAutoRotatingEnclosingLayout, AutoRotatingEnclosingLayout(size: rotatedFullSize, safeAreaInsets: rotatedSafeAreaInsets, turnDuration: turn?.duration ?? layoutDuration))
                             /// The system's bar is turned with the content, like the safe area, so its edge is the edge of the content it's really on.
                             .environment(\.fuSystemBar, (turnStartSystemBar ?? systemBar?.rotated(by: rotation, container: .zero))?.rotated(by: .zero, container: CGRect(origin: .zero, size: rotatedFullSize)))
                             .environment(\.interfaceTurn, FUInterfaceTurn(interfaceRotation))
@@ -512,14 +521,16 @@ private final class PendingHeldTurn {
 private struct HeldLayout: ViewModifier {
     let insets: EdgeInsets
     let size: CGSize
+    /// The duration of the system's turn while content that no host animates turns with it, or takes the safe area of an enclosing view that's turning, so its safe area and size move with the turn's timing like hosted content's.
+    var turnDuration: TimeInterval? = nil
     @Environment(\.fuCounterRotationDuration) private var counterRotationDuration
 
     func body(content: Content) -> some View {
         if #available(iOS 17, *) {
             content
                 .transaction { transaction in
-                    if let counterRotationDuration {
-                        transaction.animation = .easeInOut(duration: counterRotationDuration)
+                    if let duration = counterRotationDuration ?? turnDuration {
+                        transaction.animation = .easeInOut(duration: duration)
                     }
                 } body: { content in
                     content

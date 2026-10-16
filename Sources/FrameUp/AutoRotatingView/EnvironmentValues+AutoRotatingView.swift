@@ -92,10 +92,12 @@ internal struct AutoRotatingContentState: Equatable {
     }
 }
 
-/// The frame an `AutoRotatingView` gives its content, and the safe area it's moving to, named left to right.
+/// The frame an `AutoRotatingView` gives its content, the safe area it's moving to, named left to right, and how long that takes.
 internal struct AutoRotatingEnclosingLayout: Equatable {
     var size: CGSize
     var safeAreaInsets: EdgeInsets
+    /// The duration of the turn the enclosing view's safe area and size are moving with, or nil when they aren't.
+    var turnDuration: TimeInterval?
 }
 
 private struct AutoRotatingEnclosingLayoutKey: EnvironmentKey {
