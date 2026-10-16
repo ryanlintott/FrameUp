@@ -489,7 +489,9 @@ struct AutoRotatingLayer<Content: View>: View {
                 
                 if #available(iOS 17, *), isHostedToHoldStill {
                     /// Hosted in a view of its own, which UIKit turns in step with the system's rotation so the content stays still on the screen.
-                    RotationLockingHost(heldTurn: heldTurn, isTurnPending: isTurnPending, environment: environment, content: layout)
+                    RotationLockingHost(heldTurn: heldTurn, isTurnPending: isTurnPending, environment: environment, content: layout
+                        /// The environment passed to the host is read outside this view's clock, so the clock is set inside it.
+                        .environment(\.fuTurnClock, clock))
                 } else {
                     layout
                 }

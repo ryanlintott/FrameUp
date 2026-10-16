@@ -46,6 +46,7 @@ struct NestedTurnTests {
         let turn = LayerTurn(enclosing: AutoRotatingContentState(startRotation: .degrees(-90), rotationChange: .degrees(90)), start: .degrees(17), target: .degrees(-163), isShortWay: true)
         #expect(turn.rotation(progress: 0) == turn.startRotation)
         #expect(turn.rotation(progress: 1) == turn.targetRotation)
+        #expect(turn.rotation(progress: 0.5) == turn.startRotation + .degrees(turn.rotationChange.degrees / 2))
         let start = LayerFrame(size: CGSize(width: 402.3, height: 874.1), safeAreaInsets: EdgeInsets(top: 62.3, leading: 0, bottom: 34.1, trailing: 0))
         let end = LayerFrame(size: CGSize(width: 874.1, height: 402.3), safeAreaInsets: EdgeInsets(top: 0, leading: 62.3, bottom: 21, trailing: 62.3))
         #expect(start.interpolated(to: end, progress: 0) == start)

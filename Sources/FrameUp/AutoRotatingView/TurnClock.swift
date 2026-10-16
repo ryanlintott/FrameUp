@@ -168,26 +168,19 @@ internal struct TurnClockDriver: ViewModifier, @preconcurrency Animatable {
     func body(content: Content) -> some View {
         let progress = turn.map { min(max(count - Double($0.id - 1), 0), 1) } ?? 1
         content
+            /// Turns are started without an animation, which the content keeps.
+            .animation(nil, value: turn?.id)
             .environment(\.fuTurnClock, TurnClock(turn: turn, progress: progress, announcement: announcement))
     }
 }
 
 internal extension View {
     /// Starts the clock that every `AutoRotatingView` inside turns on. Only the turn's progress takes its animation.
+    ///
+    /// The turn's animation applies to the transaction that starts the turn, and the clock takes it off again for the content inside, which keeps the transaction's own animation, none. An environment value set inside `transaction(_:body:)` doesn't reach the content, so that can't keep the animation to the progress.
     func turnClock(_ turn: AutoRotatingTurn?, announcement: TurnAnnouncement) -> some View {
-        Group {
-            if #available(iOS 17, *) {
-                transaction { transaction in
-                    transaction.animation = turn?.animation
-                } body: { content in
-                    content.modifier(TurnClockDriver(turn: turn, announcement: announcement))
-                }
-            } else {
-                /// Before iOS 17 the animation can't be kept to the progress, and the content takes it too. The content's rotation at the start of a turn is where it already is, so it has nothing to animate.
-                modifier(TurnClockDriver(turn: turn, announcement: announcement))
-                    .animation(turn?.animation, value: turn?.id)
-            }
-        }
+        modifier(TurnClockDriver(turn: turn, announcement: announcement))
+            .animation(turn?.animation, value: turn?.id)
     }
 }
 
