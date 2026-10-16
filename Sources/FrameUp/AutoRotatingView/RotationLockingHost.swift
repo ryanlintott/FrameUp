@@ -89,13 +89,20 @@ internal struct RotationLockingHost<Content: View>: UIViewControllerRepresentabl
             }
             return
         }
-        /// The turn has started, but the content's new rotation arrives in a later update. Until then the content keeps its last layout, rather than briefly taking a shape that matches neither.
-        guard let previousRotation = viewController.rotation, rotation != previousRotation else { return }
+        /// The turn has started, but the content's new rotation arrives in a later update. Until then the content keeps its last layout, rather than briefly taking a shape that matches neither. Content the host turns to a new orientation may keep its rotation relative to the frame, so it waits for the rotation the turn names instead.
+        guard let previousRotation = viewController.rotation else { return }
+        if let turnRotation = heldTurn.rotation {
+            guard abs((rotation - turnRotation).degrees) < 0.01 else { return }
+        } else {
+            guard rotation != previousRotation else { return }
+        }
         viewController.rotation = rotation
         viewController.counterRotatedTurnID = heldTurn.id
         viewController.update(content: content, animation: nil)
-        /// The content turns back to stay where it is. It's shown at its new rotation at once, and the host turns it back to where it was and then with the system's animation to its new place.
-        viewController.counterRotate(by: rotation - previousRotation, duration: heldTurn.duration)
+        /// The content is shown at its new rotation at once, and the host turns it back to where it was and then with the system's animation to its new place. Content that keeps its rotation relative to the frame is carried by the system's rotation alone.
+        if rotation != previousRotation {
+            viewController.counterRotate(by: rotation - previousRotation, duration: heldTurn.duration)
+        }
     }
 }
 

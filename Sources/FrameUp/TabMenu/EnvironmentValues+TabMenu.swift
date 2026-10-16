@@ -111,6 +111,12 @@ extension EnvironmentValues {
         set { self[TabMenuHorizontalDistributionKey.self] = newValue }
     }
 
+    /// True when a horizontal ``TabMenu`` takes all the height it's given rather than the system's 50 points. Set by `tabMenuFillsHeight(_:)`.
+    var tabMenuFillsHeight: Bool {
+        get { self[TabMenuFillsHeightKey.self] }
+        set { self[TabMenuFillsHeightKey.self] = newValue }
+    }
+
     /// How a vertical tab menu spreads its items along its bar. Set by `tabMenuVerticalDistribution(_:)`.
     var tabMenuVerticalDistribution: TabMenuVerticalDistribution {
         get { self[TabMenuVerticalDistributionKey.self] }

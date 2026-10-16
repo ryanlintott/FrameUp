@@ -63,6 +63,17 @@ public extension View {
     }
 }
 
+public extension View {
+    /// Adds an action to perform when a device with a hinge, such as a foldable iPhone, first reports the screen the view is on, and whenever the view moves to another screen.
+    ///
+    /// Unlike `onDeviceScreenChange(_:)`, the action only ever runs on a device with a hinge, so a report means the device folds: ``FUDeviceScreen/outer`` is then a foldable's outer screen, not the only screen of an iPhone that doesn't fold. Until the first report, and on any other device, the action doesn't run. It needs iOS 27.1 and the iOS 27.1 SDK or later.
+    /// - Parameter action: The action to perform with the screen the view is on.
+    /// - Returns: A view that performs the action when a device with a hinge reports its screen.
+    @preconcurrency func onHingeScreenChange(_ action: @escaping @MainActor (FUDeviceScreen) -> Void) -> some View {
+        modifier(OnDeviceScreenChange(requiresHinge: true) { screen, _ in action(screen) })
+    }
+}
+
 internal extension View {
     /// Adds an action to perform when a device with a hinge first reports the screen the view is on, and whenever the view moves to another screen. The action passes the new screen, and true for the first report.
     func onHingeScreenChange(_ action: @escaping @MainActor (FUDeviceScreen, Bool) -> Void) -> some View {

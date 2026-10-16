@@ -67,14 +67,19 @@ internal struct AutoRotatingContentState: Equatable {
     var rotation: Angle = .zero
     /// The orientation of the content.
     var orientation: FUInterfaceOrientation? = nil
-    /// The orientations the content allows.
-    var allowedOrientations: [FUInterfaceOrientation] = []
+    /// The orientation the content presents in each orientation of the device.
+    var orientationMap: [FUInterfaceOrientation: FUInterfaceOrientation] = [:]
     /// True when the content changes in step with the system's turn of the interface, rather than when the device turns or not at all.
     var turnsWithInterface: Bool = false
     
-    /// True when the content stays where it is on the screen while the system turns the interface, because the device turned to an orientation it doesn't allow or the one it's in already.
+    /// The orientation the content presents in a device orientation, or nil if it stays in the one it's in.
+    func presentedOrientation(deviceOrientation: FUInterfaceOrientation?) -> FUInterfaceOrientation? {
+        deviceOrientation.flatMap { orientationMap[$0] }
+    }
+    
+    /// True when the content stays where it is on the screen while the system turns the interface, because the device turned to an orientation that leaves the content as it is, or presents the one it's in already.
     func isHeldStill(deviceOrientation: FUInterfaceOrientation?) -> Bool {
-        !(deviceOrientation.map(allowedOrientations.contains) ?? false) || deviceOrientation == orientation
+        presentedOrientation(deviceOrientation: deviceOrientation).map { $0 == orientation } ?? true
     }
     
     /// The rotation of the content once the system has turned the interface by an angle to a new orientation.
@@ -82,8 +87,26 @@ internal struct AutoRotatingContentState: Equatable {
     /// Content held still turns back by exactly as much as the interface turns. Otherwise it takes the device orientation.
     func rotation(afterInterfaceTurnBy angle: Angle, to newInterfaceOrientation: FUInterfaceOrientation, deviceOrientation: FUInterfaceOrientation?) -> Angle {
         guard turnsWithInterface else { return rotation }
-        guard let deviceOrientation, !isHeldStill(deviceOrientation: deviceOrientation) else { return rotation - angle }
-        return rotation.closestEquivalent(to: deviceOrientation.rotation(to: newInterfaceOrientation))
+        guard let presentedOrientation = presentedOrientation(deviceOrientation: deviceOrientation), !isHeldStill(deviceOrientation: deviceOrientation) else { return rotation - angle }
+        return rotation.closestEquivalent(to: presentedOrientation.rotation(to: newInterfaceOrientation))
+    }
+}
+
+/// The frame an `AutoRotatingView` gives its content, and the safe area it's moving to, named left to right.
+internal struct AutoRotatingEnclosingLayout: Equatable {
+    var size: CGSize
+    var safeAreaInsets: EdgeInsets
+}
+
+private struct AutoRotatingEnclosingLayoutKey: EnvironmentKey {
+    static let defaultValue: AutoRotatingEnclosingLayout? = nil
+}
+
+internal extension EnvironmentValues {
+    /// The frame and final safe area of the nearest enclosing `AutoRotatingView`'s content, or nil if there's none.
+    var fuAutoRotatingEnclosingLayout: AutoRotatingEnclosingLayout? {
+        get { self[AutoRotatingEnclosingLayoutKey.self] }
+        set { self[AutoRotatingEnclosingLayoutKey.self] = newValue }
     }
 }
 

@@ -15,8 +15,10 @@ internal struct InterfaceTurn: Equatable, Sendable {
     let id: Int
     /// The duration of the system's animation.
     let duration: TimeInterval
-    /// True when the content of an `AutoRotatingView` stays still on the screen through the turn.
+    /// True when the content of an `AutoRotatingView` is turned by its host through the turn, rather than by SwiftUI or the system's animation.
     let isHeldStill: Bool
+    /// The rotation of the content relative to its frame once it has turned, when its host turns it to a new orientation rather than holding it still, or nil.
+    var rotation: Angle? = nil
 }
 
 /// An animation timed like the system's turn of the interface, measured from when the turn started rather than from when SwiftUI first draws it.

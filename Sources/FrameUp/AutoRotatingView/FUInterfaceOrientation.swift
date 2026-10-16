@@ -111,4 +111,44 @@ internal extension FUInterfaceOrientation {
         }
     }
 }
+
+internal extension Dictionary where Key == FUInterfaceOrientation, Value == FUInterfaceOrientation {
+    /// A map from each orientation to itself.
+    static func identity(_ orientations: [FUInterfaceOrientation]) -> Self {
+        Dictionary(orientations.map { ($0, $0) }, uniquingKeysWith: { first, _ in first })
+    }
+}
+internal extension FUInterfaceOrientation {
+    /// The edge of the device, in its own portrait, that faces up in this orientation. Leading and trailing are the left and right edges.
+    var upEdge: Edge {
+        switch self {
+        case .portrait: .top
+        case .portraitUpsideDown: .bottom
+        /// Turned clockwise, the device's left edge is at the top.
+        case .landscapeRight: .leading
+        case .landscapeLeft: .trailing
+        }
+    }
+    
+    /// The way the device is held when an edge of it, in its own portrait, faces up. Leading and trailing are the left and right edges.
+    init(up edge: Edge) {
+        switch edge {
+        case .top: self = .portrait
+        case .bottom: self = .portraitUpsideDown
+        /// Content in landscape right turns a quarter turn anticlockwise in a portrait frame, so its top faces the left edge.
+        case .leading: self = .landscapeRight
+        case .trailing: self = .landscapeLeft
+        }
+    }
+    
+    /// The orientation content presents in this orientation so that its top points to an edge as the user sees it.
+    /// - Parameter edge: Where the content's top points as the user sees it: `.top` for upright, `.leading` and `.trailing` for the user's left and right, `.bottom` for upside down.
+    func presenting(up edge: Edge) -> Self {
+        /// Edges in clockwise order, both around the device and around the user's view of it.
+        let clockwise: [Edge] = [.top, .trailing, .bottom, .leading]
+        let upIndex = clockwise.firstIndex(of: upEdge) ?? 0
+        let offset = clockwise.firstIndex(of: edge) ?? 0
+        return Self(up: clockwise[(upIndex + offset) % clockwise.count])
+    }
+}
 #endif

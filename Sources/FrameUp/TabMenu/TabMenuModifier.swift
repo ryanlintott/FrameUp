@@ -156,6 +156,8 @@ struct TabMenuModifier<Tab: Hashable>: ViewModifier {
                         if verticalBar == nil {
                             measuringItems(menu, in: verticalBar)
                                 .environment(\.tabMenuEdge, .bottom)
+                                /// The modifier sizes its menus itself.
+                                .environment(\.tabMenuFillsHeight, false)
                                 .transition(.opacity)
                         }
                     }
@@ -176,6 +178,7 @@ struct TabMenuModifier<Tab: Hashable>: ViewModifier {
                     measuringItems(
                         menu
                             .environment(\.tabMenuEdge, verticalBar?.menuEdge ?? .bottom)
+                            .environment(\.tabMenuFillsHeight, false)
                             .frame(width: verticalBarLayout.menuWidth)
                             .frame(maxHeight: verticalBarLayout.maxMenuHeight),
                         in: verticalBar

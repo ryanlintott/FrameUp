@@ -38,6 +38,15 @@ public enum TabMenuHorizontalDistribution: Hashable, Sendable {
 
 #if os(iOS)
 public extension View {
+    /// Sets whether a horizontal ``TabMenu`` inside this view takes all the height it's given, rather than the system's 50 points.
+    ///
+    /// Use it for a menu placed by hand in a bar of another size, such as one whose items turn on their own to stay upright in a turned frame, where the bar's depth is each item's width. `tabMenu(selection:items:)` sizes its menus itself and ignores this.
+    /// - Parameter fills: True to fill the height given.
+    /// - Returns: A view whose horizontal tab menus fill their height or not.
+    func tabMenuFillsHeight(_ fills: Bool = true) -> some View {
+        environment(\.tabMenuFillsHeight, fills)
+    }
+
     /// Sets how the items are spread across the width of horizontal tab menus in this view.
     ///
     /// It can go outside `tabMenu(selection:items:)`, since the menu is inside it. A vertical menu ignores this, and uses `tabMenuVerticalDistribution(_:)`.
@@ -52,4 +61,10 @@ public extension View {
         environment(\.tabMenuHorizontalDistribution, distribution)
     }
 }
+#if os(iOS)
+struct TabMenuFillsHeightKey: EnvironmentKey {
+    static let defaultValue = false
+}
+#endif
+
 #endif

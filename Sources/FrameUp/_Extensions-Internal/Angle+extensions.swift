@@ -19,4 +19,11 @@ internal extension Angle {
     func closestEquivalent(to angle: Angle) -> Angle {
         .degrees(degrees + (angle.degrees - degrees).remainder(dividingBy: 360))
     }
+    
+    /// The angle equivalent to another that's closest to this one relative to an enclosing frame that turns by `enclosingChange` at the same time.
+    ///
+    /// Content inside a turning frame is seen to turn by its change less the frame's, so that's the change kept under half a turn. With no enclosing change it's the same as `closestEquivalent(to:)`.
+    func closestEquivalent(to angle: Angle, enclosingChange: Angle) -> Angle {
+        (self + enclosingChange).closestEquivalent(to: angle)
+    }
 }

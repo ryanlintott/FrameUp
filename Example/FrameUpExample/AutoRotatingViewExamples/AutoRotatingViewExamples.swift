@@ -30,6 +30,9 @@ struct AutoRotatingViewExamples: View {
                 NavigationLink(destination: InnerHoldProbeExample()) {
                     Label("Inner Hold Probe", systemImage: "lock.rotation")
                 }
+                NavigationLink(destination: TopEdgesExample()) {
+                    Label("Top Edges", systemImage: "rectangle.landscape.rotate")
+                }
             }
             #else
             UnavailableView()

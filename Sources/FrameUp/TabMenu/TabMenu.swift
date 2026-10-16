@@ -36,6 +36,7 @@ public struct TabMenu<Tab: Hashable>: View {
     @Environment(\.tabMenuEdge) private var edge
     @Environment(\.tabMenuItemStyle) private var environmentItemStyle
     @Environment(\.tabMenuHorizontalDistribution) private var horizontalDistribution
+    @Environment(\.tabMenuFillsHeight) private var fillsHeight
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.tabMenuItemReselectAction) private var environmentReselect
     @Environment(\.tabMenuItemDoubleTapAction) private var environmentDoubleTap
@@ -89,7 +90,8 @@ public struct TabMenu<Tab: Hashable>: View {
             .frame(maxWidth: .infinity)
             .padding(.bottom, 2)
             .padding(.horizontal, 1)
-            .frame(height: 50)
+            /// The system's 50 points, or all the height it's given, set with `tabMenuFillsHeight(_:)`.
+            .frame(minHeight: fillsHeight ? 0 : 50, maxHeight: fillsHeight ? .infinity : 50)
             .accessibilityElement(children: .contain)
             .accessibilityLabel(Text("Tab bar"))
         case .vertical:
