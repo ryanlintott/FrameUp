@@ -284,7 +284,8 @@ private struct PresentedTabs: View {
                 .task(id: systemBarDescription) {
                     /// Logged once the bar has settled after a turn or a fold.
                     try? await Task.sleep(for: .seconds(1))
-                    guard !Task.isCancelled else { return }
+                    /// An iPhone that doesn't fold places its bar along the tab view's bottom itself, not where the system's bar is.
+                    guard !Task.isCancelled, screen != .iPhone else { return }
                     let result = systemBar?.edge == .bottom ? "ok" : "MISMATCH"
                     logger.info("system bar \(result, privacy: .public) inside \(systemBarDescription, privacy: .public) presented \(orientation.map { "\($0)" } ?? "none", privacy: .public)")
                 }
@@ -320,10 +321,7 @@ private struct PresentedTabs: View {
         .overlay {
             EdgeOutlines()
         }
-        /// A menu placed by hand where the system's bar is, which, with the tab view's top facing away from it, is along the tab view's bottom. Each item turns on its own to stay upright.
-        .systemBarInset { bar in
-            SystemBarTabs(bar: bar, tab: $tab, orientations: screen.uprightOrientations)
-        }
+        .modifier(TabBarPlacement(screen: screen, tab: $tab))
         .onChange(of: tab) {
             logger.info("selected \(tab, privacy: .public)")
         }
@@ -340,8 +338,57 @@ private struct PresentedTabs: View {
 
 /// The tab menu in the system's bar: spread along a bar at the bottom, and grouped at the user's bottom end of a vertical toolbar, as the system groups its own, with the items listed from the user's top or leading end.
 @available(iOS 17, *)
+/// Places the tab bar along the tab view's bottom.
+///
+/// On the iPhone Duo it goes where the system's bar is, which the tab view's top always faces away from. An iPhone that doesn't fold has no vertical toolbar, and its system bar is along the interface's bottom, which is the side of a tab view held in portrait. So there the bar goes along the tab view's own bottom instead, away from the Dynamic Island in landscape, as Wordhord does.
+@available(iOS 17, *)
+private struct TabBarPlacement: ViewModifier {
+    let screen: TopEdgesScreen
+    @Binding var tab: String
+    @Environment(\.interfaceTurn) private var turn
+    /// The tab view's safe area along its bottom, measured outside the bar's own inset.
+    @State private var bottomSafeArea: CGFloat = 0
+    
+    /// How deep the bar is from the screen's edge: 50 points above the safe area when the tab view is upright, like the system's tab bar, and 84 points from the edge when it's held sideways, like a vertical toolbar, whose depth the turned items need for their titles.
+    var barDepth: CGFloat {
+        turn.isSideways ? 84 : 50 + bottomSafeArea
+    }
+    
+    func body(content: Content) -> some View {
+        switch screen {
+        case .iPhone:
+            content
+                /// The content moves up only as far as the bar reaches past the safe area it already has.
+                .safeAreaInset(edge: .bottom, spacing: 0) {
+                    Color.clear
+                        .frame(height: max(0, barDepth - bottomSafeArea))
+                }
+                .overlay(alignment: .bottom) {
+                    SystemBarTabs(edge: .bottom, isGrouped: false, usableStart: 0, usableEnd: 0, tab: $tab, orientations: screen.uprightOrientations)
+                        .frame(height: barDepth)
+                        .ignoresSafeArea(edges: .bottom)
+                }
+                .onGeometryChange(for: CGFloat.self) { $0.safeAreaInsets.bottom } action: {
+                    bottomSafeArea = $0
+                }
+        case .foldableOuter, .foldableInner, .foldableInnerLeftWindow:
+            content
+                .systemBarInset { bar in
+                    SystemBarTabs(bar: bar, tab: $tab, orientations: screen.uprightOrientations)
+                }
+        }
+    }
+}
+
+@available(iOS 17, *)
 private struct SystemBarTabs: View {
-    let bar: SystemBarGeometry
+    /// The edge of the tab view the bar is on.
+    let edge: Edge
+    /// True to group the items at the user's bottom end, as the system does in its vertical toolbar, rather than spreading them along the bar.
+    let isGrouped: Bool
+    /// How far the part of the bar free for items is from each end.
+    let usableStart: CGFloat
+    let usableEnd: CGFloat
     @Binding var tab: String
     let orientations: [FUInterfaceOrientation]
     @Environment(\.interfaceTurn) private var turn
@@ -354,9 +401,23 @@ private struct SystemBarTabs: View {
     /// How far the bar's colour reaches past the container.
     static let extent: CGFloat = 2000
     
+    init(edge: Edge, isGrouped: Bool, usableStart: CGFloat, usableEnd: CGFloat, tab: Binding<String>, orientations: [FUInterfaceOrientation]) {
+        self.edge = edge
+        self.isGrouped = isGrouped
+        self.usableStart = usableStart
+        self.usableEnd = usableEnd
+        self._tab = tab
+        self.orientations = orientations
+    }
+    
+    /// The tab menu in the system's bar.
+    init(bar: SystemBarGeometry, tab: Binding<String>, orientations: [FUInterfaceOrientation]) {
+        self.init(edge: bar.edge, isGrouped: bar.kind == .verticalToolbar, usableStart: bar.usableStart, usableEnd: bar.usableEnd, tab: tab, orientations: orientations)
+    }
+    
     /// True when the bar runs along this view's top or bottom.
     var isHorizontal: Bool {
-        bar.edge == .top || bar.edge == .bottom
+        edge == .top || edge == .bottom
     }
     
     /// True when the bar's start, its leading or top end, isn't where the user starts reading: the top of the interface, or its leading end.
@@ -377,7 +438,7 @@ private struct SystemBarTabs: View {
     
     /// Away from the container's edge, so the menu sits clear of the safe area the bar includes, such as the Home indicator.
     var innerAlignment: Alignment {
-        switch bar.edge {
+        switch edge {
         case .top: .bottom
         case .bottom: .top
         case .leading: .trailing
@@ -393,7 +454,6 @@ private struct SystemBarTabs: View {
     var body: some View {
         /// A horizontal `TabMenu` pads each item 10 points either side, so a slot needs that much more length.
         let groupLength = (Self.slotLength + 20) * CGFloat(items.count)
-        let isGrouped = bar.kind == .verticalToolbar
         TabMenu(selection: $tab, items: items)
             .tabMenuItemStyle(UprightTabMenuItemStyle(orientations: orientations, base: .masked { isSelected in
                 isSelected ? Color.accentColor : Color.secondary
@@ -401,18 +461,18 @@ private struct SystemBarTabs: View {
             .onTabMenuItemReselect("Reselect") {
                 logger.info("reselected \(tab, privacy: .public)")
             }
-            /// In the system's vertical toolbar the menu runs across the toolbar's full depth, which is each turned item's width. Along the bottom it keeps the system's 50 points, clear of the Home indicator.
-            .tabMenuFillsHeight(isGrouped)
+            /// The menu runs across the bar's full depth, which is each turned item's width when the bar is vertical to the user.
+            .tabMenuFillsHeight(isGrouped || turn.isSideways)
             .frame(width: isGrouped && isHorizontal ? groupLength : nil, height: isGrouped && !isHorizontal ? groupLength : nil)
             .padding(Edge.Set(turn.localEdge(of: .bottom, layoutDirection: layoutDirection)), isGrouped ? Self.groupMargin : 0)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: isGrouped ? groupAlignment : innerAlignment)
             /// The part of the bar clear of the camera, the status items and the hinge.
-            .padding(isHorizontal ? .leading : .top, bar.usableStart)
-            .padding(isHorizontal ? .trailing : .bottom, bar.usableEnd)
+            .padding(isHorizontal ? .leading : .top, usableStart)
+            .padding(isHorizontal ? .trailing : .bottom, usableEnd)
             .background {
                 /// Reaches far out past the container's edge and along it, like the red strip, so it covers anything behind the content during a turn.
                 Color.yellow
-                    .padding(Edge.Set(bar.edge), -Self.extent)
+                    .padding(Edge.Set(edge), -Self.extent)
                     .padding(isHorizontal ? .horizontal : .vertical, -Self.extent)
                     .allowsHitTesting(false)
             }
