@@ -43,7 +43,8 @@ internal struct TurnClock: Equatable {
 
     /// True when the system has announced a turn and the outermost `AutoRotatingView` hasn't taken it yet.
     var isAnnouncedTurnPending: Bool {
-        announcement.id != turn?.id
+        /// Before the first turn neither has an id, and nothing is pending.
+        announcement.id != (turn?.id ?? 0)
     }
 
     /// True while the system's turn is under way.
