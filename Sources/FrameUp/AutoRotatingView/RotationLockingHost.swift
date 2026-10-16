@@ -9,7 +9,7 @@
 import SwiftUI
 import UIKit
 
-/// The content of a ``RotationLockingHost`` and the values it's built from, which change inside the host's own SwiftUI graph so its animations carry across.
+/// The content of a ``RotationLockingHost``, which changes inside the host's own SwiftUI graph so its animations carry across.
 @available(iOS 17, *)
 fileprivate final class RotationLockingModel: ObservableObject {
     @Published var content: AnyView = AnyView(EmptyView())
@@ -47,16 +47,25 @@ fileprivate final class PassThroughView: UIView {
     }
 }
 
+/// The system's turn of the interface, while a ``RotationLockingHost`` turns its content in step with it.
+internal struct HeldTurn: Equatable {
+    /// The id of the turn, so the host turns its content once for each.
+    let id: Int
+    /// When the system's animation started, from `CACurrentMediaTime()`.
+    let startTime: TimeInterval
+    let duration: TimeInterval
+    /// How far the content turns relative to the host's frame.
+    let rotationChange: Angle
+}
+
 /// Hosts content that is turned to stay still on the screen while the system turns the interface.
 ///
-/// SwiftUI can't keep an animation in step with the system's rotation, which runs outside the app, and the system doesn't hand its timing to SwiftUI. The host holds its content in a view of its own, and turns that view back with a Core Animation animation that uses the same timing as the system's, so the two cancel exactly on the screen.
+/// SwiftUI can't keep an animation in step with the system's rotation, which runs outside the app. The host holds its content in a view of its own, and turns that view with a Core Animation animation that starts when the system's does and has the same timing, so the two cancel exactly on the screen.
 @available(iOS 17, *)
 internal struct RotationLockingHost<Content: View>: UIViewControllerRepresentable {
-    /// The rotation of the content relative to the host's frame.
-    let rotation: Angle
-    /// The system's turn of the interface while it's under way, or nil.
-    let turn: InterfaceTurn?
-    /// True when the system has announced a turn that holds the content still, but `turn` and `rotation` don't have it yet.
+    /// The system's turn while it's under way and the content has taken its new rotation, or nil.
+    let heldTurn: HeldTurn?
+    /// True when the system has announced a turn and the content hasn't taken it yet.
     let isTurnPending: Bool
     /// The environment to pass on to the content, which a hosting controller doesn't inherit.
     let environment: EnvironmentValues
@@ -67,41 +76,27 @@ internal struct RotationLockingHost<Content: View>: UIViewControllerRepresentabl
     }
 
     func updateUIViewController(_ viewController: RotationLockingViewController, context: Context) {
-        /// The interface is laid out at its new size before the turn reaches the content. Until it does, the content keeps its last layout, so its safe area animates from where it was before the turn rather than from insets that match neither rotation.
+        /// The interface is laid out at its new size before the turn reaches the content. Until it does, the content keeps its last layout.
         guard !isTurnPending else { return }
-        let heldTurn = turn?.isHeldStill == true ? turn : nil
         viewController.heldTurn = heldTurn
         let content = AnyView(
             self.content
                 /// Set inside the environment passed in, which would otherwise replace it.
-                /// While the system turns the interface and the content stays still, the safe area moves with the system's timing.
-                .environment(\.fuCounterRotationDuration, heldTurn?.duration)
-                .environment(\.autoRotatingHeldTurnAnimation, heldTurn.map { .easeInOut(duration: $0.duration) })
+                .environment(\.autoRotatingHeldTurnAnimation, heldTurn.map { .systemTurn(startTime: $0.startTime, duration: $0.duration) })
                 .environment(\.self, environment)
         )
-        guard let heldTurn, heldTurn.id != viewController.counterRotatedTurnID else {
-            viewController.rotation = rotation
-            if heldTurn != nil {
-                /// The layout changes at once, apart from the safe area, which animates on its own.
-                viewController.update(content: content, animation: nil)
-            } else {
-                viewController.update(content: content, transaction: context.transaction)
-            }
+        guard let heldTurn else {
+            viewController.update(content: content, transaction: context.transaction)
             return
         }
-        /// The turn has started, but the content's new rotation arrives in a later update. Until then the content keeps its last layout, rather than briefly taking a shape that matches neither. Content the host turns to a new orientation may keep its rotation relative to the frame, so it waits for the rotation the turn names instead.
-        guard let previousRotation = viewController.rotation else { return }
-        if let turnRotation = heldTurn.rotation {
-            guard abs((rotation - turnRotation).degrees) < 0.01 else { return }
-        } else {
-            guard rotation != previousRotation else { return }
-        }
-        viewController.rotation = rotation
-        viewController.counterRotatedTurnID = heldTurn.id
+        /// Through the turn the content is laid out at each step of the turn's progress, at once.
         viewController.update(content: content, animation: nil)
-        /// The content is shown at its new rotation at once, and the host turns it back to where it was and then with the system's animation to its new place. Content that keeps its rotation relative to the frame is carried by the system's rotation alone.
-        if rotation != previousRotation {
-            viewController.counterRotate(by: rotation - previousRotation, duration: heldTurn.duration)
+        if heldTurn.id != viewController.counterRotatedTurnID {
+            viewController.counterRotatedTurnID = heldTurn.id
+            /// The content is shown at its new rotation, and the host turns it back to where it was and then with the system's animation to its new place. Content that keeps its rotation relative to the frame is carried by the system's rotation alone.
+            if heldTurn.rotationChange != .zero {
+                viewController.counterRotate(by: heldTurn.rotationChange, startTime: heldTurn.startTime, duration: heldTurn.duration)
+            }
         }
     }
 }
@@ -110,10 +105,8 @@ internal struct RotationLockingHost<Content: View>: UIViewControllerRepresentabl
 internal final class RotationLockingViewController: UIViewController {
     fileprivate let model = RotationLockingModel()
     private lazy var hostingController = UIHostingController(rootView: RotationLockingRoot(model: model))
-    /// The rotation of the content last shown, or nil before it's first shown.
-    var rotation: Angle? = nil
-    /// The system's turn of the interface while it's under way and the content stays still on the screen, or nil.
-    var heldTurn: InterfaceTurn? = nil
+    /// The system's turn of the interface while it's under way and the host turns the content, or nil.
+    var heldTurn: HeldTurn? = nil
     /// The turn the content was last turned back for.
     var counterRotatedTurnID: Int? = nil
 
@@ -179,8 +172,8 @@ internal final class RotationLockingViewController: UIViewController {
         }
     }
 
-    /// Turns the content back by an angle at once, and then to where it is with the timing of the system's rotation.
-    func counterRotate(by angle: Angle, duration: TimeInterval) {
+    /// Turns the content back by an angle, and then to where it is with the timing of the system's rotation, from when that started.
+    func counterRotate(by angle: Angle, startTime: TimeInterval, duration: TimeInterval) {
         let animation = CABasicAnimation(keyPath: "transform.rotation.z")
         animation.fromValue = -angle.radians
         animation.toValue = 0
@@ -188,7 +181,11 @@ internal final class RotationLockingViewController: UIViewController {
         animation.duration = duration
         /// The system's rotation eases in and out (measured in iOS 27).
         animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-        hostingController.view.layer.add(animation, forKey: "FrameUp.counterRotation")
+        let layer = hostingController.view.layer
+        /// Started when the system's turn started, so the content is as far through as the system's rotation even when it first draws a few frames late.
+        animation.beginTime = layer.convertTime(startTime, from: nil)
+        animation.fillMode = .backwards
+        layer.add(animation, forKey: "FrameUp.counterRotation")
     }
 }
 

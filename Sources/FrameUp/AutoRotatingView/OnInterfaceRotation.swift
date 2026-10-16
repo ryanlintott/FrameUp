@@ -9,58 +9,6 @@
 import SwiftUI
 import UIKit
 
-/// A turn of the interface by the system, while it's under way.
-internal struct InterfaceTurn: Equatable, Sendable {
-    /// Counts the turns, so a turn can be told apart from the one before it.
-    let id: Int
-    /// The duration of the system's animation.
-    let duration: TimeInterval
-    /// True when the content of an `AutoRotatingView` is turned by its host through the turn, rather than by SwiftUI or the system's animation.
-    let isHeldStill: Bool
-    /// The rotation of the content relative to its frame once it has turned, when its host turns it to a new orientation rather than holding it still, or nil.
-    var rotation: Angle? = nil
-}
-
-/// An animation timed like the system's turn of the interface, measured from when the turn started rather than from when SwiftUI first draws it.
-///
-/// SwiftUI starts an animation's clock on the first frame it draws, which can be a few frames into the system's turn, more on the first turn, when the app lays itself out at the new size for the first time. The system's turn eases in and out (measured in iOS 27), so content that starts late lags all the way through. This animation takes its progress from the time since the turn started, so it catches up on its first frame and stays in step.
-@available(iOS 17, *)
-internal struct InterfaceTurnAnimation: CustomAnimation {
-    /// When the turn started, from `CACurrentMediaTime()`.
-    let startTime: TimeInterval
-    /// The duration of the system's animation.
-    let duration: TimeInterval
-
-    func animate<V: VectorArithmetic>(value: V, time: TimeInterval, context: inout AnimationContext<V>) -> V? {
-        /// How far into the turn the animation's first frame is, fixed then so the animation runs on SwiftUI's own clock from there.
-        let lateness: TimeInterval
-        if let storedLateness = context.state[LatenessKey.self] {
-            lateness = storedLateness
-        } else {
-            lateness = min(max(CACurrentMediaTime() - startTime - time, 0), duration)
-            context.state[LatenessKey.self] = lateness
-        }
-        let elapsed = time + lateness
-        guard elapsed < duration else { return nil }
-        return value.scaled(by: UnitCurve.easeInOut.value(at: elapsed / duration))
-    }
-    
-    private struct LatenessKey: AnimationStateKey {
-        static var defaultValue: TimeInterval? { nil }
-    }
-}
-
-internal extension Animation {
-    /// An animation timed like the system's turn of the interface, which started now and lasts a duration.
-    static func interfaceTurn(duration: TimeInterval) -> Animation {
-        if #available(iOS 17, *) {
-            Animation(InterfaceTurnAnimation(startTime: CACurrentMediaTime(), duration: duration))
-        } else {
-            .easeInOut(duration: duration)
-        }
-    }
-}
-
 internal extension Angle {
     /// The turn of the interface that a transition coordinator's `targetTransform` describes.
     ///

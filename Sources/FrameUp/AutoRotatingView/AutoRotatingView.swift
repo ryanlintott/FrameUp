@@ -14,7 +14,7 @@ import SwiftUI
 ///
 /// When the device turns to an orientation the app supports but the content doesn't, the system turns the interface, and the content turns back to keep its orientation. `systemRotation` sets how it moves during that turn: its orientation is locked but its position drifts with the system's animation (the default), or it's locked completely still (iOS 17 and later). See ``FUSystemRotationBehavior``. The system clips the window as it turns, so the corners of the screen go dark part way through a turn.
 ///
-/// An `AutoRotatingView` inside another turns relative to it, so content that allows more orientations turns to stay upright on a frame that's held still.
+/// An `AutoRotatingView` inside another turns relative to it, so content that allows more orientations turns to stay upright on a frame that's held still. The outermost one starts every turn and all of them move on its progress, so they turn together and arrive together. When the content turns on its own, every one inside turns with the outermost one's `animation`.
 ///
 /// On the inner screen of a foldable iPhone the system ignores an app's supported orientations and turns the interface to every orientation of the device. The content keeps to its allowed orientations there too, named as the inner screen's interface names them, so a portrait content stays taller than it is wide on either screen. When the device is folded or unfolded, the content takes the orientation it allows on the new screen without an animation: the device's, if it's allowed, or otherwise the one it's most likely held in, judged from how it was held on the old screen.
 ///
