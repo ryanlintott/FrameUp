@@ -26,6 +26,11 @@ struct AutoRotatingViewExamples: View {
             NavigationLink(destination: RotationDirectionExample()) {
                 Label("Rotation Direction", systemImage: "arrow.clockwise")
             }
+            if #available(iOS 17, *) {
+                NavigationLink(destination: InnerHoldProbeExample()) {
+                    Label("Inner Hold Probe", systemImage: "lock.rotation")
+                }
+            }
             #else
             UnavailableView()
             #endif

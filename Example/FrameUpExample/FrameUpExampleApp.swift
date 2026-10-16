@@ -11,7 +11,15 @@ import SwiftUI
 struct FrameUpExampleApp: App {
     var body: some Scene {
         WindowGroup {
+            #if os(iOS)
+            if #available(iOS 17, *), ProcessInfo.processInfo.arguments.contains("-FUInnerHoldProbeScreen") {
+                InnerHoldProbeExample()
+            } else {
+                ContentView()
+            }
+            #else
             ContentView()
+            #endif
         }
     }
 }

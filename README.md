@@ -153,7 +153,7 @@ AutoRotatingView([.portrait], systemRotation: .locked) {
 }
 ```
 
-On the inner screen of a foldable iPhone the system ignores an app's supported orientations and always follows the device, so `AutoRotatingView` does the same there: its content matches the interface and the allowed orientations have no effect. Folding back to the outer screen picks the allowed orientation nearest the device orientation, as the system does.
+On the inner screen of a foldable iPhone the system ignores an app's supported orientations and turns the interface to every orientation of the device. `AutoRotatingView` keeps its content to the allowed orientations there too, named as the inner screen names them, so portrait content stays taller than it is wide on either screen. Folding or unfolding picks the allowed orientation nearest the new screen's orientation, without an animation.
 
 ## Frame Adjustment
 ### WidthReader

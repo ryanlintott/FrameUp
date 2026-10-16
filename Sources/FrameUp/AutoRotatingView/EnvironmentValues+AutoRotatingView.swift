@@ -15,7 +15,7 @@ private struct AutoRotatingOrientationKey: EnvironmentKey {
 public extension EnvironmentValues {
     /// The orientation of the content of the nearest enclosing `AutoRotatingView`, named for the way the device is held when the content is upright, or nil outside one.
     ///
-    /// It's also nil when the view is off, and on the inner screen of a foldable iPhone, where the content always matches the interface.
+    /// It's also nil when the view is off. On the inner screen of a foldable iPhone it's named as that screen's interface names its orientations, so portrait is taller than it is wide on either screen.
     ///
     ///     AutoRotatingView([.portrait, .landscapeLeft]) {
     ///         Content()
