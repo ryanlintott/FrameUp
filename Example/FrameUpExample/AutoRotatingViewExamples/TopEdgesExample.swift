@@ -48,11 +48,20 @@ enum TopEdgesScreen {
     case foldableInner
     /// The inner screen's left split window, where the column is on the left.
     case foldableInnerLeftWindow
+    /// An iPad window of regular width, with the tab bar on its trailing edge.
+    case iPadRegular
+    /// An iPad window of compact width, with the tab bar along the bottom.
+    case iPadCompact
     
     /// - Parameters:
     ///   - hingeScreen: The screen of a foldable iPhone, or nil on one that doesn't fold.
     ///   - systemBar: The system's bar, measured outside the rotation. Only a window change moves the column to the left, never a turn, so the dictionary changes then.
-    init(hingeScreen: FUDeviceScreen?, systemBar: SystemBarGeometry?) {
+    ///   - horizontalSizeClass: The window's horizontal size class, which on an iPad changes only as the window is resized (measured: compact below about 665 points wide).
+    init(hingeScreen: FUDeviceScreen?, systemBar: SystemBarGeometry?, horizontalSizeClass: UserInterfaceSizeClass?) {
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            self = horizontalSizeClass == .compact ? .iPadCompact : .iPadRegular
+            return
+        }
         switch hingeScreen {
         case .outer: self = .foldableOuter
         case .inner: self = systemBar?.kind == .verticalToolbar && systemBar?.edge == .leading ? .foldableInnerLeftWindow : .foldableInner
@@ -65,6 +74,10 @@ enum TopEdgesScreen {
         switch self {
         /// Held in device portrait, so the tab bar stays on the device's bottom edge, away from the Dynamic Island in landscape. The interface doesn't turn upside down, so that's left out.
         case .iPhone: [.portrait: .top, .landscapeRight: .trailing, .landscapeLeft: .leading]
+        /// The tab view's top always points to the user's leading side, so its bottom, and the tab bar, is on the trailing edge, in every orientation.
+        case .iPadRegular: [.portrait: .leading, .landscapeRight: .leading, .landscapeLeft: .leading, .portraitUpsideDown: .leading]
+        /// Upright in every orientation, with the tab bar along the bottom.
+        case .iPadCompact: [.portrait: .top, .landscapeRight: .top, .landscapeLeft: .top, .portraitUpsideDown: .top]
         /// The column is on the right in portrait and landscape right, and on the left in landscape left: it follows the camera in landscape. The interface doesn't turn upside down, so the column stays wherever the last orientation left it, and upside down is left out to keep the content with it.
         case .foldableOuter: [.portrait: .leading, .landscapeRight: .leading, .landscapeLeft: .trailing]
         /// The column is on the right in either landscape, and there's none in portrait, where the tab bar is along the bottom.
@@ -79,6 +92,7 @@ enum TopEdgesScreen {
         switch self {
         case .foldableInner, .foldableInnerLeftWindow: FUInterfaceOrientation.allCases
         case .iPhone, .foldableOuter: [.portrait, .landscapeLeft, .landscapeRight]
+        case .iPadRegular, .iPadCompact: FUInterfaceOrientation.allCases
         }
     }
     
@@ -101,6 +115,7 @@ struct TopEdgesProbe: View {
         TopEdgesRotation(isPresented: $isPresented)
             /// Measured outside the rotation; the tab view reads it turned into its own frame.
             .measuresSystemBarGeometry()
+            .sizeClassProbe()
     }
 }
 
@@ -111,9 +126,10 @@ private struct TopEdgesRotation: View {
     @State private var hingeScreen: FUDeviceScreen? = nil
     /// The system's bar outside the rotation.
     @Environment(\.systemBarGeometry) private var systemBar
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     
     var screen: TopEdgesScreen {
-        TopEdgesScreen(hingeScreen: hingeScreen, systemBar: systemBar)
+        TopEdgesScreen(hingeScreen: hingeScreen, systemBar: systemBar, horizontalSizeClass: horizontalSizeClass)
     }
     
     var body: some View {
@@ -191,6 +207,8 @@ private struct ToolbarEdgeCheck: ViewModifier {
                     /// The edge and the orientation settle a moment after a turn or a fold.
                     try? await Task.sleep(for: .seconds(1))
                     guard !Task.isCancelled, let orientation else { return }
+                    /// iPads have no vertical toolbar, and place their bar themselves.
+                    guard screen != .iPadRegular, screen != .iPadCompact else { return }
                     guard screen.topEdges[orientation] != nil else {
                         logger.info("toolbar check skipped screen \(String(describing: screen), privacy: .public) orientation \(String(describing: orientation), privacy: .public): not in the dictionary, so the content stays put")
                         return
@@ -209,6 +227,53 @@ private struct ToolbarEdgeCheck: ViewModifier {
     }
 }
 #endif
+
+@available(iOS 17, *)
+extension View {
+    /// Shows and logs the window's size and size classes whenever they change, to see when resizing a window changes them.
+    func sizeClassProbe() -> some View {
+        modifier(SizeClassProbe())
+    }
+}
+
+@available(iOS 17, *)
+private struct SizeClassProbe: ViewModifier {
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
+    @State private var windowSize: CGSize = .zero
+    
+    var description: String {
+        func name(_ sizeClass: UserInterfaceSizeClass?) -> String {
+            switch sizeClass {
+            case .compact: "C"
+            case .regular: "R"
+            default: "?"
+            }
+        }
+        return "window \(Int(windowSize.width))x\(Int(windowSize.height)) size classes W \(name(horizontalSizeClass)) H \(name(verticalSizeClass))"
+    }
+    
+    func body(content: Content) -> some View {
+        content
+            .onGeometryChange(for: CGSize.self) { proxy in
+                /// The window, including its safe area.
+                CGSize(width: proxy.size.width + proxy.safeAreaInsets.leading + proxy.safeAreaInsets.trailing, height: proxy.size.height + proxy.safeAreaInsets.top + proxy.safeAreaInsets.bottom)
+            } action: {
+                windowSize = $0
+            }
+            .overlay(alignment: .top) {
+                Text(description)
+                    .font(.caption.monospaced())
+                    .padding(6)
+                    .background(.regularMaterial, in: .capsule)
+                    .padding(.top, 4)
+                    .allowsHitTesting(false)
+            }
+            .onChange(of: description, initial: true) {
+                logger.info("size class probe \(description, privacy: .public)")
+            }
+    }
+}
 
 extension View {
     /// Logs the size, safe area, reserved regions and the system's vertical toolbar edge as this view sees them, whenever they change, to compare them inside and outside a rotation.
@@ -285,7 +350,7 @@ private struct PresentedTabs: View {
                     /// Logged once the bar has settled after a turn or a fold.
                     try? await Task.sleep(for: .seconds(1))
                     /// An iPhone that doesn't fold places its bar along the tab view's bottom itself, not where the system's bar is.
-                    guard !Task.isCancelled, screen != .iPhone else { return }
+                    guard !Task.isCancelled, screen != .iPhone, screen != .iPadRegular, screen != .iPadCompact else { return }
                     let result = systemBar?.edge == .bottom ? "ok" : "MISMATCH"
                     logger.info("system bar \(result, privacy: .public) inside \(systemBarDescription, privacy: .public) presented \(orientation.map { "\($0)" } ?? "none", privacy: .public)")
                 }
@@ -356,7 +421,7 @@ private struct TabBarPlacement: ViewModifier {
     
     func body(content: Content) -> some View {
         switch screen {
-        case .iPhone:
+        case .iPhone, .iPadRegular, .iPadCompact:
             content
                 /// The content moves up only as far as the bar reaches past the safe area it already has.
                 .safeAreaInset(edge: .bottom, spacing: 0) {
