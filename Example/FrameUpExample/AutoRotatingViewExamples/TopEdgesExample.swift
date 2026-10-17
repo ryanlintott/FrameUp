@@ -554,6 +554,8 @@ private struct SystemBarTabs: View {
                     .padding(isHorizontal ? .horizontal : .vertical, -Self.extent)
                     .allowsHitTesting(false)
             }
+            /// The items spread across the bar's full length, past the safe area at its ends, so they're centred on the screen when the bar is on its side.
+            .ignoresSafeArea(.all, edges: [.leading, .trailing])
     }
 }
 
