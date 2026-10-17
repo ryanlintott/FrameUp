@@ -411,8 +411,16 @@ private struct TabBarPlacement: ViewModifier {
     let screen: TopEdgesScreen
     @Binding var tab: String
     @Environment(\.interfaceTurn) private var turn
+    @Environment(\.autoRotatingHeldTurnAnimation) private var heldTurnAnimation
+    /// The orientation the tab view presents in, which changes as a turn starts.
+    @Environment(\.autoRotatingOrientation) private var presentedOrientation
     /// The tab view's safe area along its bottom, measured outside the bar's own inset.
     @State private var bottomSafeArea: CGFloat = 0
+    
+    /// True to spread the items along the system's vertical toolbar rather than group them, as on the outer screen held in landscape. The tab view is portrait-shaped there, with its top to the user's side.
+    var spreadsItems: Bool {
+        screen == .foldableOuter && (presentedOrientation == .portrait || presentedOrientation == .portraitUpsideDown)
+    }
     
     /// How deep the bar is from the screen's edge: 50 points above the safe area when the tab view is upright, like the system's tab bar, and 84 points from the edge when it's held sideways, like a vertical toolbar, whose depth the turned items need for their titles.
     var barDepth: CGFloat {
@@ -439,7 +447,9 @@ private struct TabBarPlacement: ViewModifier {
         case .foldableOuter, .foldableInner, .foldableInnerLeftWindow:
             content
                 .systemBarInset { bar in
-                    SystemBarTabs(bar: bar, tab: $tab, orientations: screen.uprightOrientations)
+                    SystemBarTabs(edge: bar.edge, isGrouped: bar.kind == .verticalToolbar && !spreadsItems, usableStart: bar.usableStart, usableEnd: bar.usableEnd, tab: $tab, orientations: screen.uprightOrientations)
+                        /// The items move between grouped and spread in step with the turn.
+                        .animation(heldTurnAnimation, value: spreadsItems)
                 }
         }
     }
@@ -473,11 +483,6 @@ private struct SystemBarTabs: View {
         self.usableEnd = usableEnd
         self._tab = tab
         self.orientations = orientations
-    }
-    
-    /// The tab menu in the system's bar.
-    init(bar: SystemBarGeometry, tab: Binding<String>, orientations: [FUInterfaceOrientation]) {
-        self.init(edge: bar.edge, isGrouped: bar.kind == .verticalToolbar, usableStart: bar.usableStart, usableEnd: bar.usableEnd, tab: tab, orientations: orientations)
     }
     
     /// True when the bar runs along this view's top or bottom.
