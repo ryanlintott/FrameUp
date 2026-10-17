@@ -65,13 +65,25 @@ internal struct RotationHold {
     }
 }
 
-internal extension CGAffineTransform {
-    /// The transform that turns a view back by the system's turn of the interface, so it stays still on the screen.
+internal extension CALayer {
+    /// The key of the animation that turns a held view back by the system's turn.
+    static let counterRotationKey = "FrameUp.counterRotation"
+
+    /// Turns the layer back by the system's turn of the interface, so it stays still on the screen while the system turns it.
     ///
-    /// UIKit animates a transform the short way round, and takes a half turn the positive way, as the system turns the interface (measured in iOS 27). Content turned back by a half turn has to go the other way, so its angle is a millionth of a radian short of a half turn, which takes it the negative way. The host resets the transform as soon as the turn is over.
-    init(counterTurning angle: Angle) {
-        let radians = abs(abs(angle.degrees) - 180) < 1 ? .pi - 1e-6 : angle.radians
-        self.init(rotationAngle: -radians)
+    /// The layer takes its final transform at once, and an additive animation of its rotation turns it from where it was. Animating the rotation angle, rather than the transform, takes a half turn the way the angle says (the system turns a half turn the positive way, measured in iOS 27) and keeps the layer exactly in step with the system's rotation, which eases in and out (measured in iOS 27). Added in the same transaction as the system's animations, the animation starts with them.
+    func addCounterRotation(by angle: Angle, duration: TimeInterval) {
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        setAffineTransform(CGAffineTransform(rotationAngle: -angle.radians))
+        CATransaction.commit()
+        let animation = CABasicAnimation(keyPath: "transform.rotation.z")
+        animation.fromValue = angle.radians
+        animation.toValue = 0
+        animation.isAdditive = true
+        animation.duration = duration
+        animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        add(animation, forKey: Self.counterRotationKey)
     }
 }
 
@@ -231,23 +243,17 @@ internal final class RotationLockingViewController: UIViewController {
         }
     }
 
-    /// Turns the content back by the system's turn, in the system's own animation, so the two cancel on the screen, and releases the hold when the animation is over.
+    /// Turns the content back by the system's turn, in step with the system's animation, so the two cancel on the screen, and releases the hold when the counter-rotation is over.
     ///
-    /// The transition's completion runs as soon as a half turn starts (measured in iOS 27), so the hold ends with its own animation instead.
+    /// The transition's completion runs as soon as a half turn starts (measured in iOS 27), so the hold ends with the counter-rotation instead, from a transaction of its own that waits for it.
     private func counterRotate(_ hold: RotationHold) {
-        let hostedView = hostingController.view!
-        let transform = CGAffineTransform(counterTurning: hold.angle)
         CATransaction.begin()
         CATransaction.setCompletionBlock { [weak self] in
             self?.release(hold)
         }
-        if UIView.inheritedAnimationDuration > 0 {
-            hostedView.transform = transform
-        } else {
-            /// Should the system run this outside its animation, the content turns back with the system's timing, which eases in and out (measured in iOS 27).
-            UIView.animate(withDuration: hold.duration, delay: 0, options: .curveEaseInOut) {
-                hostedView.transform = transform
-            }
+        /// Inside the transition's animation, a UIKit animation of the view's transform would otherwise replace the counter-rotation.
+        UIView.performWithoutAnimation {
+            hostingController.view.layer.addCounterRotation(by: hold.angle, duration: hold.duration)
         }
         CATransaction.commit()
     }
@@ -268,7 +274,7 @@ internal final class RotationLockingViewController: UIViewController {
             withAnimation(nil) {
                 model.content = makeContent(hold)
             }
-            hostedView.layer.removeAnimation(forKey: "transform")
+            hostedView.layer.removeAnimation(forKey: CALayer.counterRotationKey)
             hostedView.transform = .identity
             hostedView.bounds = CGRect(origin: .zero, size: view.bounds.size)
             hostedView.center = CGPoint(x: view.bounds.midX, y: view.bounds.midY)
