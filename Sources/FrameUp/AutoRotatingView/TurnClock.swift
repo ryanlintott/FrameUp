@@ -60,7 +60,7 @@ internal struct TurnClock: Equatable {
 
 /// What the outermost `AutoRotatingView` knows of the system's turn from the moment the system announces it.
 ///
-/// SwiftUI lays the interface out at its new size before state set when the system announces a turn reaches the view (measured in iOS 27). That layout has the new size and safe area but the old rotation. A reference keeps the turn visible to that layout, so a ``RotationLockingHost`` keeps its content as it was.
+/// SwiftUI lays the interface out at its new size before state set when the system announces a turn reaches the view (measured in iOS 27). That layout has the new size and safe area but the old rotation. A reference keeps the turn visible to that layout, so the outermost view keeps its frame from before the turn to turn from.
 internal final class TurnAnnouncement {
     /// The id of the latest turn, taken or not.
     var id = 0

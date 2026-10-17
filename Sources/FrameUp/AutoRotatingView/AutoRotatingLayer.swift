@@ -48,6 +48,8 @@ struct AutoRotatingLayer<Content: View>: View {
     @Environment(\.fuTurnClock) private var enclosingClock
     /// How content left where it is by the system's turn moves in an enclosing `AutoRotatingView`, or nil if there's none that can be left.
     @Environment(\.fuAutoRotatingHeldBehavior) private var enclosingHeldBehavior
+    /// The interface orientations an enclosing host holds its content still for when the system turns the interface to them.
+    @Environment(\.fuHostHeldOrientations) private var enclosingHostHeldOrientations
     /// The environment, passed on to content that is hosted to hold it still on the screen.
     @Environment(\.self) private var environment
     
@@ -403,10 +405,16 @@ struct AutoRotatingLayer<Content: View>: View {
         return turnStart
     }
     
-    /// The system's turn while it's under way and a host turns this view's content with it, or nil.
-    private func heldTurn(_ clock: TurnClock?, turnStart: TurnStart?, layerTurn: LayerTurn) -> HeldTurn? {
-        guard isHostedToHoldStill, let clock, clock.isSystemTurning, let turnStart, case let .system(_, startTime, duration) = clock.turn?.kind else { return nil }
-        return HeldTurn(id: turnStart.id, startTime: startTime, duration: duration, rotationChange: layerTurn.rotationChange)
+    /// An animation timed like the system's turn while it's under way and this view's content is hosted to hold it still, or nil.
+    private func heldTurnAnimation(_ clock: TurnClock?) -> Animation? {
+        guard isHostedToHoldStill, let clock, clock.isSystemTurning, currentTurnStart(clock) != nil, case let .system(_, startTime, duration) = clock.turn?.kind else { return nil }
+        return .systemTurn(startTime: startTime, duration: duration)
+    }
+    
+    /// The interface orientations the content stays still on the screen for when the system turns the interface to them. On the outer screen the system turns the interface to the device's orientation, and on the inner screen `deviceOrientation(interfaceOrientation:)` is the interface's.
+    private var heldOrientations: Set<FUInterfaceOrientation> {
+        guard isOn && !isAwaitingScreenLayout else { return [] }
+        return Set(FUInterfaceOrientation.allCases.filter { isHeldStill(deviceOrientation: $0) })
     }
     
     private func layout(clock: TurnClock?) -> some View {
@@ -415,89 +423,113 @@ struct AutoRotatingLayer<Content: View>: View {
             GeometryReader { fullProxy in
                 /// The readers are read in the caller's direction, and their values renamed left to right here, by swapping leading and trailing for a right to left caller. The rotation below is laid out left to right, so leading is always the left of the screen. Values handed to the content are named for the caller's direction again.
                 let frame = LayerFrame(size: fullProxy.size, safeAreaInsets: safeProxy.safeAreaInsets.named(for: layoutDirection))
-                let isTurnPending = clock.map { $0.isAnnouncedTurnPending || ($0.isSystemTurning && currentTurnStart($0) == nil) } ?? false
                 /// The outermost view keeps its frame from before the system announces a turn, as the system lays it out at its new size before the turn reaches it.
-                let _ = isOutermost && !isTurnPending ? announcement.frame = frame : ()
-                let progress = clock?.progress ?? 1
-                let turnStart = currentTurnStart(clock)
-                /// Content that didn't take the turn stays where it is relative to the interface, as does content held still. Content that turns to a new orientation takes the short way round relative to its frame.
-                let layerTurn = LayerTurn(enclosing: enclosingContent, start: turnStart?.rotation ?? interfaceRotation, target: interfaceRotation, isShortWay: turnStart.map { !$0.isHeldStill } ?? false)
-                let heldTurn = heldTurn(clock, turnStart: turnStart, layerTurn: layerTurn)
-                /// A host turns its content with Core Animation, so the content takes its new rotation at once. Otherwise it turns at each step of the turn's progress.
-                let rotation = heldTurn == nil ? layerTurn.rotation(progress: progress) : layerTurn.targetRotation
-                /// The content's frame and safe area move from where they were to where they're going with the turn's progress. The outermost view starts from its frame before the system's turn.
-                let targetFrame = frame.rotated(by: layerTurn.targetRotation)
-                let contentFrame = (turnStart?.frame ?? frame).rotated(by: layerTurn.startRotation).interpolated(to: targetFrame, progress: progress)
-                let maxDimension = max(frame.size.width, frame.size.height)
-                /// The system's bar as the content saw it when the turn started, until the bar's new measurement arrives or the turn ends.
-                let turnStartSystemBar = turnStart.flatMap { progress < 1 && $0.systemBar == systemBar ? $0.turnedSystemBar : nil }
+                let _ = isOutermost && clock?.isAnnouncedTurnPending != true ? announcement.frame = frame : ()
                 /// The full size reader's corners are the container's own. It has to be read in the caller's direction: in any other direction SwiftUI names system UI in a corner for the reader's direction but the rounded corners for the app's (iOS 27.1), and no single swap can fix that.
                 let cornerInsets = fullProxy.fuContainerCornerInsets.named(for: layoutDirection)
                 let cornerRadii = fullProxy.fuConcentricCornerRadii?.named(for: layoutDirection)
-                let geometry = AutoRotatingGeometryProxy(
-                    cornerInsets: cornerInsets.rotatedInsets(by: layerTurn.targetRotation, layoutDirection: .leftToRight).named(for: layoutDirection),
-                    cornerRadii: cornerRadii?.rotated(by: layerTurn.targetRotation, layoutDirection: .leftToRight).named(for: layoutDirection)
-                )
-                let contentInsets = contentFrame.safeAreaInsets
-                
-                let layout = Color.clear.overlay {
-                    ZStack {
-                        /// This clear view is larger than any content and it helps the rotation effect stay centered. The rotation point is not in the middle of the content due to the safe areas and the content changes sizes when rotating. Trying to keep track of all that in a rotation anchor would be too complicated. It's much easier to make a much larger canvas and rotate that instead.
-                        Color.clear
-                            .frame(width: maxDimension * 2, height: maxDimension * 2)
-                            .allowsHitTesting(false)
-                        
-                        content(geometry)
-                            /// The content frame fills the available area
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            /// Safe areas are applied based on the rotation of the view, and the full area including safe areas is set so that a safe area can be inset inside it.
-                            .safeAreaInsets(contentInsets.named(for: layoutDirection))
-                            .frame(width: contentFrame.size.width, height: contentFrame.size.height)
-                            /// The size at this step of the turn, for content that places views against the frame's edges.
-                            .environment(\.fuAnimatedFrameSize, contentFrame.size)
-                            /// The turned frame is the container the system's bar is described in, so `systemBarInset` can find where a view inside is relative to it.
-                            .coordinateSpace(name: SystemBarContainerSpace())
-                            /// The content is laid out in the caller's direction, inside the left to right rotation.
-                            .environment(\.layoutDirection, layoutDirection)
-                            /// Passes the turn of the content on to any `AutoRotatingView` inside it, which turns relative to it.
-                            .environment(\.fuAutoRotatingContent, layerTurn.content)
-                            /// The system's bar is turned with the content, like the safe area, so its edge is the edge of the content it's really on.
-                            .environment(\.fuSystemBar, (turnStartSystemBar ?? systemBar?.rotated(by: layerTurn.targetRotation, container: .zero))?.rotated(by: .zero, container: CGRect(origin: .zero, size: targetFrame.size)))
-                            .environment(\.interfaceTurn, FUInterfaceTurn(interfaceRotation))
-                            .environment(\.fuAutoRotatingHeldBehavior, canBeHeld ? rotationBehavior : enclosingHeldBehavior)
-                            .environment(\.autoRotatingOrientation, isOn ? contentOrientation : nil)
-                            /// Alignment guides are set to move the full size center point to the safe size center point at any rotation
-                            .alignmentGuide(VerticalAlignment.center) { d in
-                                d[VerticalAlignment.center] + ((contentInsets.top - contentInsets.bottom) / 2)
-                            }
-                            .alignmentGuide(HorizontalAlignment.center) { d in
-                                d[HorizontalAlignment.center] + ((contentInsets.leading - contentInsets.trailing) / 2)
-                            }
-                    }
-                    /// Rotation always occurs around the centre of the content (or a supplied anchor point). It doesn't care about alignment guides as those are for layout.
-                    .rotationEffect(rotation)
-                    /// These alignment guides move the centre point to the middle of the safe area instead of the
-                    .alignmentGuide(VerticalAlignment.center) { d in
-                        d[VerticalAlignment.center] + ((frame.safeAreaInsets.bottom - frame.safeAreaInsets.top) / 2)
-                    }
-                    .alignmentGuide(HorizontalAlignment.center) { d in
-                        d[HorizontalAlignment.center] + ((frame.safeAreaInsets.trailing - frame.safeAreaInsets.leading) / 2)
-                    }
-                }
-                /// Laid out left to right so directions are fixed on screen. SwiftUI mirrors a right to left layout, which would turn the content the wrong way and move one of the alignment guides but not the other. The readers above fill their space, so their layout is the same in either direction.
-                .environment(\.layoutDirection, .leftToRight)
                 
                 if #available(iOS 17, *), isHostedToHoldStill {
-                    /// Hosted in a view of its own, which UIKit turns in step with the system's rotation so the content stays still on the screen.
-                    RotationLockingHost(heldTurn: heldTurn, isTurnPending: isTurnPending, environment: environment, content: layout
-                        /// The environment passed to the host is read outside this view's clock, so the clock is set inside it.
-                        .environment(\.fuTurnClock, clock))
+                    let heldOrientations = heldOrientations
+                    /// Hosted in a view of its own, which UIKit holds still on the screen while the system turns the interface. A host inside another that holds for the same turn leaves it to that one.
+                    RotationLockingHost(
+                        frame: frame,
+                        interfaceOrientation: interfaceOrientation,
+                        heldOrientations: heldOrientations.subtracting(enclosingHostHeldOrientations),
+                        heldTurnAnimation: heldTurnAnimation(clock),
+                        environment: environment
+                    ) { hold in
+                        turningContent(frame: frame, clock: clock, hold: hold, cornerInsets: cornerInsets, cornerRadii: cornerRadii)
+                            .environment(\.fuHostHeldOrientations, enclosingHostHeldOrientations.union(heldOrientations))
+                            /// The environment passed to the host is read outside this view's clock, so the clock is set inside it.
+                            .environment(\.fuTurnClock, clock)
+                    }
                 } else {
-                    layout
+                    turningContent(frame: frame, clock: clock, hold: nil, cornerInsets: cornerInsets, cornerRadii: cornerRadii)
                 }
             }
             .ignoresSafeArea()
         }
+    }
+    
+    /// The content, turned and resized in this view's frame for the latest turn.
+    /// - Parameters:
+    ///   - frame: This view's frame.
+    ///   - hold: How a host holds the content still through the system's turn, or nil when it isn't hosted.
+    private func turningContent(frame: LayerFrame, clock: TurnClock?, hold: RotationHold?, cornerInsets: FUCornerInsets, cornerRadii: FUCornerRadii?) -> some View {
+        let turnStart = currentTurnStart(clock)
+        /// The host's hold, while it holds the content and keeps its frame from before the turn.
+        let holding = hold.flatMap { $0.isReleased ? nil : $0 }
+        let isHoldTurn = hold?.isFor(clock?.turn) ?? false
+        /// True once the content has taken the turn its host holds it through.
+        let isHeldThroughTurn = holding != nil && isHoldTurn && turnStart != nil
+        /// Once the host has handed over the new frame, the content is where the turn takes it, even if the clock is a frame behind.
+        let progress = isHoldTurn && hold?.isReleased == true ? 1 : clock?.progress ?? 1
+        /// Content that didn't take the turn stays where it is relative to the interface, as does content held still. Content that turns to a new orientation takes the short way round relative to its frame.
+        let layerTurn = LayerTurn(enclosing: enclosingContent, start: turnStart?.rotation ?? interfaceRotation, target: interfaceRotation, isShortWay: turnStart.map { !$0.isHeldStill } ?? false)
+        /// The frame the content is laid out in, which is the one from before the turn while the host holds it.
+        let layoutFrame = holding?.frame ?? frame
+        /// The content turns relative to its frame at each step of the turn's progress. The host turns the frame from before the turn back by the system's turn, so the content inside turns as far again.
+        let rotation = layerTurn.rotation(progress: progress) + (isHeldThroughTurn ? .degrees(hold!.angle.degrees * progress) : .zero)
+        /// The content's frame and safe area move from where they were to where they're going with the turn's progress. The outermost view starts from its frame before the system's turn. Until the content takes the turn its host holds, it stays in the frame from before it.
+        let targetFrame = (holding != nil && !isHeldThroughTurn ? layoutFrame : frame).rotated(by: layerTurn.targetRotation)
+        let contentFrame = (turnStart?.frame ?? layoutFrame).rotated(by: layerTurn.startRotation).interpolated(to: targetFrame, progress: progress)
+        let maxDimension = max(frame.size.width, frame.size.height)
+        /// The system's bar as the content saw it when the turn started, until the bar's new measurement arrives or the turn ends.
+        let turnStartSystemBar = turnStart.flatMap { progress < 1 && $0.systemBar == systemBar ? $0.turnedSystemBar : nil }
+        let geometry = AutoRotatingGeometryProxy(
+            cornerInsets: cornerInsets.rotatedInsets(by: layerTurn.targetRotation, layoutDirection: .leftToRight).named(for: layoutDirection),
+            cornerRadii: cornerRadii?.rotated(by: layerTurn.targetRotation, layoutDirection: .leftToRight).named(for: layoutDirection)
+        )
+        let contentInsets = contentFrame.safeAreaInsets
+        let frameInsets = layoutFrame.safeAreaInsets
+        
+        return Color.clear.overlay {
+            ZStack {
+                /// This clear view is larger than any content and it helps the rotation effect stay centered. The rotation point is not in the middle of the content due to the safe areas and the content changes sizes when rotating. Trying to keep track of all that in a rotation anchor would be too complicated. It's much easier to make a much larger canvas and rotate that instead.
+                Color.clear
+                    .frame(width: maxDimension * 2, height: maxDimension * 2)
+                    .allowsHitTesting(false)
+                
+                content(geometry)
+                    /// The content frame fills the available area
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    /// Safe areas are applied based on the rotation of the view, and the full area including safe areas is set so that a safe area can be inset inside it.
+                    .safeAreaInsets(contentInsets.named(for: layoutDirection))
+                    .frame(width: contentFrame.size.width, height: contentFrame.size.height)
+                    /// The size at this step of the turn, for content that places views against the frame's edges.
+                    .environment(\.fuAnimatedFrameSize, contentFrame.size)
+                    /// The turned frame is the container the system's bar is described in, so `systemBarInset` can find where a view inside is relative to it.
+                    .coordinateSpace(name: SystemBarContainerSpace())
+                    /// The content is laid out in the caller's direction, inside the left to right rotation.
+                    .environment(\.layoutDirection, layoutDirection)
+                    /// Passes the turn of the content on to any `AutoRotatingView` inside it, which turns relative to it.
+                    .environment(\.fuAutoRotatingContent, layerTurn.content)
+                    /// The system's bar is turned with the content, like the safe area, so its edge is the edge of the content it's really on.
+                    .environment(\.fuSystemBar, (turnStartSystemBar ?? systemBar?.rotated(by: layerTurn.targetRotation, container: .zero))?.rotated(by: .zero, container: CGRect(origin: .zero, size: targetFrame.size)))
+                    .environment(\.interfaceTurn, FUInterfaceTurn(interfaceRotation))
+                    .environment(\.fuAutoRotatingHeldBehavior, canBeHeld ? rotationBehavior : enclosingHeldBehavior)
+                    .environment(\.autoRotatingOrientation, isOn ? contentOrientation : nil)
+                    /// Alignment guides are set to move the full size center point to the safe size center point at any rotation
+                    .alignmentGuide(VerticalAlignment.center) { d in
+                        d[VerticalAlignment.center] + ((contentInsets.top - contentInsets.bottom) / 2)
+                    }
+                    .alignmentGuide(HorizontalAlignment.center) { d in
+                        d[HorizontalAlignment.center] + ((contentInsets.leading - contentInsets.trailing) / 2)
+                    }
+            }
+            /// Rotation always occurs around the centre of the content (or a supplied anchor point). It doesn't care about alignment guides as those are for layout.
+            .rotationEffect(rotation)
+            /// These alignment guides move the centre point to the middle of the safe area instead of the
+            .alignmentGuide(VerticalAlignment.center) { d in
+                d[VerticalAlignment.center] + ((frameInsets.bottom - frameInsets.top) / 2)
+            }
+            .alignmentGuide(HorizontalAlignment.center) { d in
+                d[HorizontalAlignment.center] + ((frameInsets.trailing - frameInsets.leading) / 2)
+            }
+        }
+        /// Laid out left to right so directions are fixed on screen. SwiftUI mirrors a right to left layout, which would turn the content the wrong way and move one of the alignment guides but not the other. The readers above fill their space, so their layout is the same in either direction.
+        .environment(\.layoutDirection, .leftToRight)
     }
     
     var body: some View {

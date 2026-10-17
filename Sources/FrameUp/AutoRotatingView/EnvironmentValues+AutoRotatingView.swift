@@ -85,6 +85,16 @@ internal extension EnvironmentValues {
         get { self[AutoRotatingHeldBehaviorKey.self] }
         set { self[AutoRotatingHeldBehaviorKey.self] = newValue }
     }
+    
+    /// The interface orientations that enclosing hosts hold their content still for when the system turns the interface to them, or none outside a host.
+    var fuHostHeldOrientations: Set<FUInterfaceOrientation> {
+        get { self[HostHeldOrientationsKey.self] }
+        set { self[HostHeldOrientationsKey.self] = newValue }
+    }
+}
+
+private struct HostHeldOrientationsKey: EnvironmentKey {
+    static let defaultValue: Set<FUInterfaceOrientation> = []
 }
 
 private struct AutoRotatingHeldBehaviorKey: EnvironmentKey {
