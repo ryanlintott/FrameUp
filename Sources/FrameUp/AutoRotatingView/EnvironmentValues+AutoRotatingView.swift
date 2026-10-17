@@ -131,11 +131,21 @@ internal extension EnvironmentValues {
         set { self[SafeAreaTurnKey.self] = newValue }
     }
     
+    /// True while the system's bar in ``fuSystemBar`` is as the nearest enclosing `AutoRotatingView`'s content saw it when its turn started, seen from where the content started, rather than the bar's new measurement seen from where it's going.
+    var fuSystemBarIsTurnStart: Bool {
+        get { self[SystemBarIsTurnStartKey.self] }
+        set { self[SystemBarIsTurnStartKey.self] = newValue }
+    }
+    
     /// The interface orientations that enclosing hosts hold their content still for when the system turns the interface to them, or none outside a host.
     var fuHostHeldOrientations: Set<FUInterfaceOrientation> {
         get { self[HostHeldOrientationsKey.self] }
         set { self[HostHeldOrientationsKey.self] = newValue }
     }
+}
+
+private struct SystemBarIsTurnStartKey: EnvironmentKey {
+    static let defaultValue = false
 }
 
 private struct HostHeldOrientationsKey: EnvironmentKey {
