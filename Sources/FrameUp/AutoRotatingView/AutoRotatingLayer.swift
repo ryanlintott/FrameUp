@@ -482,11 +482,10 @@ struct AutoRotatingLayer<Content: View>: View {
             cornerRadii: cornerRadii?.rotated(by: layerTurn.targetRotation, layoutDirection: .leftToRight).named(for: layoutDirection)
         )
         let contentInsets = contentFrame.safeAreaInsets
-        let frameInsets = layoutFrame.safeAreaInsets
         
         return Color.clear.overlay {
             ZStack {
-                /// This clear view is larger than any content and it helps the rotation effect stay centered. The rotation point is not in the middle of the content due to the safe areas and the content changes sizes when rotating. Trying to keep track of all that in a rotation anchor would be too complicated. It's much easier to make a much larger canvas and rotate that instead.
+                /// This clear view is larger than the content at any rotation, so the turned content is centred in it and never pushes the layout.
                 Color.clear
                     .frame(width: maxDimension * 2, height: maxDimension * 2)
                     .allowsHitTesting(false)
@@ -510,25 +509,11 @@ struct AutoRotatingLayer<Content: View>: View {
                     .environment(\.interfaceTurn, FUInterfaceTurn(interfaceRotation))
                     .environment(\.fuAutoRotatingHeldBehavior, canBeHeld ? rotationBehavior : enclosingHeldBehavior)
                     .environment(\.autoRotatingOrientation, isOn ? contentOrientation : nil)
-                    /// Alignment guides are set to move the full size center point to the safe size center point at any rotation
-                    .alignmentGuide(VerticalAlignment.center) { d in
-                        d[VerticalAlignment.center] + ((contentInsets.top - contentInsets.bottom) / 2)
-                    }
-                    .alignmentGuide(HorizontalAlignment.center) { d in
-                        d[HorizontalAlignment.center] + ((contentInsets.leading - contentInsets.trailing) / 2)
-                    }
             }
-            /// Rotation always occurs around the centre of the content (or a supplied anchor point). It doesn't care about alignment guides as those are for layout.
+            /// The content fills its frame, so it turns around the frame's centre, as the system turns the interface. Its safe area changes inside it without moving it.
             .rotationEffect(rotation)
-            /// These alignment guides move the centre point to the middle of the safe area instead of the
-            .alignmentGuide(VerticalAlignment.center) { d in
-                d[VerticalAlignment.center] + ((frameInsets.bottom - frameInsets.top) / 2)
-            }
-            .alignmentGuide(HorizontalAlignment.center) { d in
-                d[HorizontalAlignment.center] + ((frameInsets.trailing - frameInsets.leading) / 2)
-            }
         }
-        /// Laid out left to right so directions are fixed on screen. SwiftUI mirrors a right to left layout, which would turn the content the wrong way and move one of the alignment guides but not the other. The readers above fill their space, so their layout is the same in either direction.
+        /// Laid out left to right so directions are fixed on screen. SwiftUI mirrors a right to left layout, which would turn the content the wrong way. The readers above fill their space, so their layout is the same in either direction.
         .environment(\.layoutDirection, .leftToRight)
     }
     
