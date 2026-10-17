@@ -363,7 +363,8 @@ private struct PresentedTabs: View {
     @State private var tab = "book"
     
     var tabs: some View {
-        TabView(selection: $tab) {
+        /// The pages are stacked and only the selected one shows, as in Wordhord. A `TabView` would host each page in UIKit, which gives it the window's safe area rather than the tab view's turned one.
+        ZStack {
             ForEach(Self.items, id: \.tab) { item in
                 /// The information turns to stay upright, whichever way the tab view faces, in the orientations the screen supports. Elsewhere it stays as it was.
                 AutoRotatingView(screen.uprightOrientations) {
@@ -379,8 +380,8 @@ private struct PresentedTabs: View {
                     .padding()
                     .border(.yellow, width: 2)
                 }
-                .toolbar(.hidden, for: .tabBar)
-                .tag(item.tab)
+                .opacity(tab == item.tab ? 1 : 0)
+                .allowsHitTesting(tab == item.tab)
             }
         }
         .overlay {
@@ -401,7 +402,7 @@ private struct PresentedTabs: View {
     ]
 }
 
-/// The tab menu in the system's bar: spread along a bar at the bottom, and grouped at the user's bottom end of a vertical toolbar, as the system groups its own, with the items listed from the user's top or leading end.
+/// The tab menu in the system's bar: spread along a bar at the bottom, and grouped at the user's bottom end of a vertical toolbar, as the system groups its own. The items keep the same order along the bar in every orientation, so none of them moves to another place as the device turns.
 @available(iOS 17, *)
 /// Places the tab bar along the tab view's bottom.
 ///
@@ -414,8 +415,8 @@ private struct TabBarPlacement: ViewModifier {
     @Environment(\.autoRotatingHeldTurnAnimation) private var heldTurnAnimation
     /// The orientation the tab view presents in, which changes as a turn starts.
     @Environment(\.autoRotatingOrientation) private var presentedOrientation
-    /// The tab view's safe area along its bottom, measured outside the bar's own inset.
-    @State private var bottomSafeArea: CGFloat = 0
+    /// The tab view's safe area once the current turn ends, so the bar's depth doesn't follow the safe area as it moves through the turn.
+    @Environment(\.autoRotatingTargetSafeAreaInsets) private var targetSafeArea
     
     /// True to spread the items along the system's vertical toolbar rather than group them, as on the outer screen held in landscape. The tab view is portrait-shaped there, with its top to the user's side.
     var spreadsItems: Bool {
@@ -424,7 +425,7 @@ private struct TabBarPlacement: ViewModifier {
     
     /// How deep the bar is from the screen's edge: 50 points above the safe area when the tab view is upright, like the system's tab bar, and 84 points from the edge when it's held sideways, like a vertical toolbar, whose depth the turned items need for their titles.
     var barDepth: CGFloat {
-        turn.isSideways ? 84 : 50 + bottomSafeArea
+        turn.isSideways ? 84 : 50 + targetSafeArea.bottom
     }
     
     func body(content: Content) -> some View {
@@ -434,20 +435,21 @@ private struct TabBarPlacement: ViewModifier {
                 /// The content moves up only as far as the bar reaches past the safe area it already has.
                 .safeAreaInset(edge: .bottom, spacing: 0) {
                     Color.clear
-                        .frame(height: max(0, barDepth - bottomSafeArea))
+                        .frame(height: max(0, barDepth - targetSafeArea.bottom))
+                        /// In step with the system's turn.
+                        .animation(heldTurnAnimation, value: barDepth)
                 }
                 .overlay(alignment: .bottom) {
-                    SystemBarTabs(edge: .bottom, isGrouped: false, usableStart: 0, usableEnd: 0, tab: $tab, orientations: screen.uprightOrientations)
+                    SystemBarTabs(edge: .bottom, isGrouped: false, usableStart: 0, usableEnd: 0, depth: barDepth, tab: $tab, orientations: screen.uprightOrientations)
                         .frame(height: barDepth)
+                        /// In step with the system's turn.
+                        .animation(heldTurnAnimation, value: barDepth)
                         .ignoresSafeArea(edges: .bottom)
-                }
-                .onGeometryChange(for: CGFloat.self) { $0.safeAreaInsets.bottom } action: {
-                    bottomSafeArea = $0
                 }
         case .foldableOuter, .foldableInner, .foldableInnerLeftWindow:
             content
                 .systemBarInset { bar in
-                    SystemBarTabs(edge: bar.edge, isGrouped: bar.kind == .verticalToolbar && !spreadsItems, usableStart: bar.usableStart, usableEnd: bar.usableEnd, tab: $tab, orientations: screen.uprightOrientations)
+                    SystemBarTabs(edge: bar.edge, isGrouped: bar.kind == .verticalToolbar && !spreadsItems, usableStart: bar.usableStart, usableEnd: bar.usableEnd, depth: bar.depth, tab: $tab, orientations: screen.uprightOrientations)
                         /// The items move between grouped and spread in step with the turn.
                         .animation(heldTurnAnimation, value: spreadsItems)
                 }
@@ -464,10 +466,13 @@ private struct SystemBarTabs: View {
     /// How far the part of the bar free for items is from each end.
     let usableStart: CGFloat
     let usableEnd: CGFloat
+    /// How deep the bar is from the tab view's edge.
+    let depth: CGFloat
     @Binding var tab: String
     let orientations: [FUInterfaceOrientation]
     @Environment(\.interfaceTurn) private var turn
     @Environment(\.layoutDirection) private var layoutDirection
+    @Environment(\.autoRotatingHeldTurnAnimation) private var heldTurnAnimation
     
     /// The length of each item's slot in the system's vertical toolbar: the system's natural item height, as FrameUp's own vertical bar uses.
     static let slotLength: CGFloat = 50
@@ -476,11 +481,12 @@ private struct SystemBarTabs: View {
     /// How far the bar's colour reaches past the container.
     static let extent: CGFloat = 2000
     
-    init(edge: Edge, isGrouped: Bool, usableStart: CGFloat, usableEnd: CGFloat, tab: Binding<String>, orientations: [FUInterfaceOrientation]) {
+    init(edge: Edge, isGrouped: Bool, usableStart: CGFloat, usableEnd: CGFloat, depth: CGFloat, tab: Binding<String>, orientations: [FUInterfaceOrientation]) {
         self.edge = edge
         self.isGrouped = isGrouped
         self.usableStart = usableStart
         self.usableEnd = usableEnd
+        self.depth = depth
         self._tab = tab
         self.orientations = orientations
     }
@@ -490,11 +496,6 @@ private struct SystemBarTabs: View {
         edge == .top || edge == .bottom
     }
     
-    /// True when the bar's start, its leading or top end, isn't where the user starts reading: the top of the interface, or its leading end.
-    var isReversed: Bool {
-        let startSide = turn.interfaceEdge(of: isHorizontal ? .leading : .top, layoutDirection: layoutDirection)
-        return startSide != .top && startSide != .leading
-    }
     
     /// Where the items group in a vertical toolbar: the end of the bar at the bottom of the interface.
     var groupAlignment: Alignment {
@@ -516,9 +517,14 @@ private struct SystemBarTabs: View {
         }
     }
     
+    /// How deep the menu is: the system's 50 points when the bar is upright, and the whole bar when it's grouped or on its side, where the turned items need the depth for their titles.
+    var menuDepth: CGFloat {
+        isGrouped || turn.isSideways ? depth : Self.slotLength
+    }
+    
     var items: [TabMenuItem<String>] {
         let items = PresentedTabs.items.map { TabMenuItem(LocalizedStringKey($0.title), systemImage: $0.tab, tab: $0.tab) }
-        return isReversed ? items.reversed() : items
+        return items
     }
     
     var body: some View {
@@ -531,8 +537,10 @@ private struct SystemBarTabs: View {
             .onTabMenuItemReselect("Reselect") {
                 logger.info("reselected \(tab, privacy: .public)")
             }
-            /// The menu runs across the bar's full depth, which is each turned item's width when the bar is vertical to the user.
-            .tabMenuFillsHeight(isGrouped || turn.isSideways)
+            /// The menu takes the depth it's given, which changes in step with the system's turn rather than jumping between the system's 50 points and the whole bar.
+            .tabMenuFillsHeight()
+            .frame(height: isHorizontal ? menuDepth : nil)
+            .animation(heldTurnAnimation, value: menuDepth)
             .frame(width: isGrouped && isHorizontal ? groupLength : nil, height: isGrouped && !isHorizontal ? groupLength : nil)
             .padding(Edge.Set(turn.localEdge(of: .bottom, layoutDirection: layoutDirection)), isGrouped ? Self.groupMargin : 0)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: isGrouped ? groupAlignment : innerAlignment)
@@ -557,8 +565,16 @@ private struct UprightTabMenuItemStyle<Base: TabMenuItemStyle>: TabMenuItemStyle
     
     func makeBody(configuration: Configuration) -> some View {
         AutoRotatingView(orientations) {
-            base.makeBody(configuration: configuration)
+            ZStack {
+                base.makeBody(configuration: configuration)
+            }
+            /// The content's frame and centre.
+            .border(.red)
+            .overlay(Crosshair().stroke(.red, lineWidth: 1))
         }
+        /// The `AutoRotatingView`'s frame and centre, which the content turns around.
+        .border(.blue)
+        .overlay(Crosshair().stroke(.blue, lineWidth: 1))
     }
 }
 

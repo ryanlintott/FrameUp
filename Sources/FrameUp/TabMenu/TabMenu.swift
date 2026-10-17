@@ -79,7 +79,8 @@ public struct TabMenu<Tab: Hashable>: View {
                 ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                     itemView(item, at: index) { styledItem in
                         styledItem
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            /// At the bottom of the bar, as in the system's tab bar.
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
                             .padding(.horizontal, 10)
                             .frame(maxWidth: maxItemWidth)
                     }

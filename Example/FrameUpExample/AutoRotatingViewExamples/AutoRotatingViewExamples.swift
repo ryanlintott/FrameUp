@@ -33,6 +33,9 @@ struct AutoRotatingViewExamples: View {
                 NavigationLink(destination: TopEdgesExample()) {
                     Label("Top Edges", systemImage: "rectangle.landscape.rotate")
                 }
+                NavigationLink(destination: RotationCentreExample()) {
+                    Label("Rotation Centre", systemImage: "scope")
+                }
             }
             #else
             UnavailableView()

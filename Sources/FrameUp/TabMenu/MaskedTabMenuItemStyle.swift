@@ -17,11 +17,15 @@ public struct MaskedTabMenuItemStyle<Fill: View>: TabMenuItemStyle {
     var showsTitle = true
 
     public func makeBody(configuration: Configuration) -> some View {
-        fill(configuration.isSelected)
-            .mask(
-                configuration.label
-                    .labelStyle(MaskedTabMenuItemLabelStyle(axis: configuration.axis, showsTitle: showsTitle))
-            )
+        let label = configuration.label
+            .labelStyle(MaskedTabMenuItemLabelStyle(axis: configuration.axis, showsTitle: showsTitle))
+        /// The item is the size of its icon and title, and the menu places it in its cell.
+        label
+            .hidden()
+            .overlay {
+                fill(configuration.isSelected)
+                    .mask(label)
+            }
             /// VoiceOver can't read a mask, so it reads the label instead: its title, once.
             .accessibilityRepresentation {
                 configuration.label
@@ -62,7 +66,7 @@ public extension TabMenuItemStyle where Self == AutomaticTabMenuItemStyle {
     static var automatic: AutomaticTabMenuItemStyle { AutomaticTabMenuItemStyle() }
 }
 
-/// Lays out the icon and title for ``MaskedTabMenuItemStyle``, filling the item so they can be placed in it.
+/// Lays out the icon and title for ``MaskedTabMenuItemStyle`` at their own size.
 struct MaskedTabMenuItemLabelStyle: LabelStyle {
     let axis: Axis
     /// Passed on from ``MaskedTabMenuItemStyle``. Remove with TabMenu+Deprecated.swift.
@@ -70,8 +74,6 @@ struct MaskedTabMenuItemLabelStyle: LabelStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         VStack(spacing: 2) {
-            Spacer(minLength: 0)
-
             configuration.icon
                 /// An SF Symbol or image resource isn't resizable as given, so it would otherwise draw at its natural size.
                 .environment(\.tabMenuItemIconIsResizable, true)
@@ -82,11 +84,6 @@ struct MaskedTabMenuItemLabelStyle: LabelStyle {
                 configuration.title
                     /// The vertical bar is narrow, so a long title truncates rather than wrapping.
                     .lineLimit(axis == .vertical ? 1 : nil)
-            }
-
-            /// Centres the icon and title in a vertical item. A horizontal item keeps them at the bottom.
-            if axis == .vertical {
-                Spacer(minLength: 0)
             }
         }
         /// Also reaches text in a custom icon, as before this style existed.
