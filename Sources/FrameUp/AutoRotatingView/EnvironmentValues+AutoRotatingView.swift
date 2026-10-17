@@ -55,10 +55,49 @@ public extension EnvironmentValues {
         get { self[AutoRotatingHeldTurnAnimationKey.self] }
         set { self[AutoRotatingHeldTurnAnimationKey.self] = newValue }
     }
+    
+    /// The safe area the content of the nearest enclosing `AutoRotatingView` has once its current turn is over, in the content's own frame, or no insets outside one. When the content isn't turning, it's the content's safe area.
+    ///
+    /// During a turn the content's safe area moves from where it was to where it's going with the turn's progress. Size something by where the safe area ends up, rather than by the safe area as it moves.
+    ///
+    ///     AutoRotatingView(topEdges: [.portrait: .top, .landscapeLeft: .top, .landscapeRight: .top]) {
+    ///         TabBar()
+    ///     }
+    ///
+    ///     struct TabBar: View {
+    ///         @Environment(\.autoRotatingTargetSafeAreaInsets) private var targetSafeArea
+    ///
+    ///         var body: some View {
+    ///             Color.brown
+    ///                 .frame(height: 50 + targetSafeArea.bottom)
+    ///                 .frame(maxHeight: .infinity, alignment: .bottom)
+    ///                 .ignoresSafeArea()
+    ///         }
+    ///     }
+    var autoRotatingTargetSafeAreaInsets: EdgeInsets {
+        get { self[AutoRotatingTargetSafeAreaInsetsKey.self] }
+        set { self[AutoRotatingTargetSafeAreaInsetsKey.self] = newValue }
+    }
 }
 
 private struct AutoRotatingHeldTurnAnimationKey: EnvironmentKey {
     static let defaultValue: Animation? = nil
+}
+
+private struct AutoRotatingTargetSafeAreaInsetsKey: EnvironmentKey {
+    static let defaultValue = EdgeInsets()
+}
+
+/// How the safe area of an `AutoRotatingView`'s content moves during its latest turn, named left to right.
+internal struct SafeAreaTurn: Equatable {
+    /// The safe area at this step of the turn.
+    var current: EdgeInsets
+    /// The safe area once the turn is over.
+    var target: EdgeInsets
+}
+
+private struct SafeAreaTurnKey: EnvironmentKey {
+    static let defaultValue: SafeAreaTurn? = nil
 }
 
 /// The rotation of an `AutoRotatingView`'s content relative to the interface during the latest turn.
@@ -84,6 +123,12 @@ internal extension EnvironmentValues {
     var fuAutoRotatingHeldBehavior: FUSystemRotationBehavior? {
         get { self[AutoRotatingHeldBehaviorKey.self] }
         set { self[AutoRotatingHeldBehaviorKey.self] = newValue }
+    }
+    
+    /// How the safe area of the nearest enclosing `AutoRotatingView`'s content moves during its turn, or nil outside one.
+    var fuSafeAreaTurn: SafeAreaTurn? {
+        get { self[SafeAreaTurnKey.self] }
+        set { self[SafeAreaTurnKey.self] = newValue }
     }
     
     /// The interface orientations that enclosing hosts hold their content still for when the system turns the interface to them, or none outside a host.

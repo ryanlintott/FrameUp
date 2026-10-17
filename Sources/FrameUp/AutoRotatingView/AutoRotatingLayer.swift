@@ -48,6 +48,8 @@ struct AutoRotatingLayer<Content: View>: View {
     @Environment(\.fuTurnClock) private var enclosingClock
     /// How content left where it is by the system's turn moves in an enclosing `AutoRotatingView`, or nil if there's none that can be left.
     @Environment(\.fuAutoRotatingHeldBehavior) private var enclosingHeldBehavior
+    /// How the safe area of an enclosing `AutoRotatingView`'s content moves during its turn, or nil if there's none.
+    @Environment(\.fuSafeAreaTurn) private var enclosingSafeAreaTurn
     /// The interface orientations an enclosing host holds its content still for when the system turns the interface to them.
     @Environment(\.fuHostHeldOrientations) private var enclosingHostHeldOrientations
     /// The environment, passed on to content that is hosted to hold it still on the screen.
@@ -349,7 +351,7 @@ struct AutoRotatingLayer<Content: View>: View {
         let duration = coordinator.transitionDuration
         let newInterfaceOrientation = expectedOrientation ?? (interfaceOrientation ?? FUInterfaceOrientation.windowScene)?.rotated(by: angle)
         /// Set before the system lays the interface out for the turn, so a host knows to keep its content as it is.
-        let turn = AutoRotatingTurn(id: announcement.nextID(), kind: .system(angle: angle, startTime: startTime, duration: duration), interfaceOrientation: newInterfaceOrientation, animation: .systemTurn(startTime: startTime, duration: duration))
+        let turn = AutoRotatingTurn(id: announcement.systemTurnID(for: coordinator), kind: .system(angle: angle, startTime: startTime, duration: duration), interfaceOrientation: newInterfaceOrientation, animation: .systemTurn(startTime: startTime, duration: duration))
         announcement.interfaceOrientation = newInterfaceOrientation
         announcement.endTime = startTime + duration
         let startFrame = announcement.frame
@@ -435,6 +437,7 @@ struct AutoRotatingLayer<Content: View>: View {
                     RotationLockingHost(
                         frame: frame,
                         interfaceOrientation: interfaceOrientation,
+                        announcement: clock?.announcement,
                         heldOrientations: heldOrientations.subtracting(enclosingHostHeldOrientations),
                         heldTurnAnimation: heldTurnAnimation(clock),
                         environment: environment
@@ -482,6 +485,13 @@ struct AutoRotatingLayer<Content: View>: View {
             cornerRadii: cornerRadii?.rotated(by: layerTurn.targetRotation, layoutDirection: .leftToRight).named(for: layoutDirection)
         )
         let contentInsets = contentFrame.safeAreaInsets
+        /// The safe area of this view's frame once the turn is over. An enclosing view's turn moves the frame's safe area with its progress, so it's moved on by as much as the enclosing content's safe area has still to move. Until the content takes the turn its host holds, it's the frame's from before the turn.
+        let frameTargetInsets = if holding != nil && !isHeldThroughTurn {
+            layoutFrame.safeAreaInsets
+        } else {
+            frame.safeAreaInsets + (enclosingSafeAreaTurn.map { $0.target - $0.current } ?? EdgeInsets())
+        }
+        let targetInsets = frameTargetInsets.rotated(by: layerTurn.targetRotation, layoutDirection: .leftToRight)
         
         return Color.clear.overlay {
             ZStack {
@@ -496,6 +506,8 @@ struct AutoRotatingLayer<Content: View>: View {
                     /// Safe areas are applied based on the rotation of the view, and the full area including safe areas is set so that a safe area can be inset inside it.
                     .safeAreaInsets(contentInsets.named(for: layoutDirection))
                     .frame(width: contentFrame.size.width, height: contentFrame.size.height)
+                    .environment(\.fuSafeAreaTurn, SafeAreaTurn(current: contentInsets, target: targetInsets))
+                    .environment(\.autoRotatingTargetSafeAreaInsets, targetInsets.named(for: layoutDirection))
                     /// The size at this step of the turn, for content that places views against the frame's edges.
                     .environment(\.fuAnimatedFrameSize, contentFrame.size)
                     /// The turned frame is the container the system's bar is described in, so `systemBarInset` can find where a view inside is relative to it.

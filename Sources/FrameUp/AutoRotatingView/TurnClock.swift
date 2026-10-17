@@ -7,6 +7,7 @@
 
 #if os(iOS)
 import SwiftUI
+import UIKit
 
 /// A change of orientation that every `AutoRotatingView` inside the outermost one makes together.
 ///
@@ -71,10 +72,23 @@ internal final class TurnAnnouncement {
     /// The outermost view's frame as it was last laid out before the latest turn was announced.
     var frame: LayerFrame? = nil
 
+    /// The transition the latest system turn's id was given for, and the id.
+    private weak var systemTurnCoordinator: AnyObject? = nil
+    private var systemTurnID = 0
+
     /// The id for a new turn.
     func nextID() -> Int {
         id += 1
         return id
+    }
+
+    /// The id of the system's turn in a transition. The outermost `AutoRotatingView` and any host hear of the turn separately, in either order, and both get the same id.
+    func systemTurnID(for coordinator: UIViewControllerTransitionCoordinator) -> Int {
+        if systemTurnCoordinator !== coordinator {
+            systemTurnCoordinator = coordinator
+            systemTurnID = nextID()
+        }
+        return systemTurnID
     }
 
     /// True while the system is turning the interface to an orientation.

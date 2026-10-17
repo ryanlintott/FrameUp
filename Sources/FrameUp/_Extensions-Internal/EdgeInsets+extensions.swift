@@ -8,6 +8,15 @@
 import SwiftUI
 
 internal extension EdgeInsets {
+    /// The insets edge by edge.
+    static func + (lhs: EdgeInsets, rhs: EdgeInsets) -> EdgeInsets {
+        EdgeInsets(top: lhs.top + rhs.top, leading: lhs.leading + rhs.leading, bottom: lhs.bottom + rhs.bottom, trailing: lhs.trailing + rhs.trailing)
+    }
+    
+    static func - (lhs: EdgeInsets, rhs: EdgeInsets) -> EdgeInsets {
+        EdgeInsets(top: lhs.top - rhs.top, leading: lhs.leading - rhs.leading, bottom: lhs.bottom - rhs.bottom, trailing: lhs.trailing - rhs.trailing)
+    }
+    
     /// These insets as measured in the local space of a view that has been rotated by the supplied angle, with each inset moved to the edge it lines up with.
     ///
     /// A `rotationEffect` does not carry a safe area through it, so insets measured outside a rotation have to be moved to the edges they meet inside one.

@@ -49,8 +49,8 @@ fileprivate final class PassThroughView: UIView {
 
 /// How a ``RotationLockingHost`` holds its content still through one turn of the interface by the system.
 internal struct RotationHold {
-    /// When the system announced the turn, from `CACurrentMediaTime()`.
-    let startTime: TimeInterval
+    /// The id of the system's turn, which the outermost `AutoRotatingView` gives the same turn.
+    let turnID: Int
     let duration: TimeInterval
     /// The system's turn of the interface.
     let angle: Angle
@@ -59,10 +59,19 @@ internal struct RotationHold {
     /// True once the turn is over and the content has the host's new frame.
     var isReleased = false
 
-    /// True when a turn is the system's turn this hold is for. The turn and the hold both start when the system announces the turn.
+    /// True when a turn is the system's turn this hold is for.
     func isFor(_ turn: AutoRotatingTurn?) -> Bool {
-        guard case let .system(_, turnStartTime, _) = turn?.kind else { return false }
-        return abs(turnStartTime - startTime) < 0.05
+        turn?.id == turnID
+    }
+}
+
+internal extension CGAffineTransform {
+    /// The transform that turns a view back by the system's turn of the interface, so it stays still on the screen.
+    ///
+    /// UIKit animates a transform the short way round, and takes a half turn the positive way, as the system turns the interface (measured in iOS 27). Content turned back by a half turn has to go the other way, so its angle is a millionth of a radian short of a half turn, which takes it the negative way. The host resets the transform as soon as the turn is over.
+    init(counterTurning angle: Angle) {
+        let radians = abs(abs(angle.degrees) - 180) < 1 ? .pi - 1e-6 : angle.radians
+        self.init(rotationAngle: -radians)
     }
 }
 
@@ -77,6 +86,8 @@ internal struct RotationLockingHost<Content: View>: UIViewControllerRepresentabl
     let frame: LayerFrame
     /// The interface orientation before any turn.
     let interfaceOrientation: FUInterfaceOrientation?
+    /// What the outermost `AutoRotatingView` knows of the system's turns, so the host's hold and the turn have the same id.
+    let announcement: TurnAnnouncement?
     /// The interface orientations that the host holds its content still for when the system turns the interface to them.
     let heldOrientations: Set<FUInterfaceOrientation>
     /// An animation timed like the system's turn while it's under way and the content is held, or nil.
@@ -93,6 +104,7 @@ internal struct RotationLockingHost<Content: View>: UIViewControllerRepresentabl
     func updateUIViewController(_ viewController: RotationLockingViewController, context: Context) {
         viewController.frame = frame
         viewController.hostInterfaceOrientation = interfaceOrientation
+        viewController.announcement = announcement
         viewController.heldOrientations = heldOrientations
         viewController.isSystemTurning = heldTurnAnimation != nil
         viewController.makeContent = { [content, heldTurnAnimation, environment] hold in
@@ -115,6 +127,7 @@ internal final class RotationLockingViewController: UIViewController {
     var frame: LayerFrame? = nil
     /// The interface orientation, and the ones the content is held still for when the system turns the interface to them.
     var hostInterfaceOrientation: FUInterfaceOrientation? = nil
+    var announcement: TurnAnnouncement? = nil
     var heldOrientations: Set<FUInterfaceOrientation> = []
     /// True while the system's turn is under way and the content is held.
     var isSystemTurning = false
@@ -122,8 +135,6 @@ internal final class RotationLockingViewController: UIViewController {
     var makeContent: (RotationHold?) -> AnyView = { _ in AnyView(EmptyView()) }
     /// The latest hold, or nil before the first.
     private var hold: RotationHold? = nil
-
-    private static let counterRotationKey = "FrameUp.counterRotation"
 
     /// True while the host holds its content still through the system's turn.
     private var isHolding: Bool {
@@ -185,17 +196,15 @@ internal final class RotationLockingViewController: UIViewController {
         let angle = Angle(interfaceTurn: coordinator.targetTransform)
         /// A window that resizes without turning, such as on an iPad, and a change with no animation, such as moving between the screens of a foldable iPhone, take the new layout at once.
         guard coordinator.isAnimated, coordinator.transitionDuration > 0, abs(angle.degrees) > 1,
-              let frame,
+              let frame, let announcement,
               let newOrientation = (hostInterfaceOrientation ?? FUInterfaceOrientation.windowScene)?.rotated(by: angle),
               heldOrientations.contains(newOrientation)
         else { return }
-        let hold = RotationHold(startTime: CACurrentMediaTime(), duration: coordinator.transitionDuration, angle: angle, frame: frame)
+        let hold = RotationHold(turnID: announcement.systemTurnID(for: coordinator), duration: coordinator.transitionDuration, angle: angle, frame: frame)
         /// Set before the system lays the interface out at its new size, which this view ignores while it holds.
         self.hold = hold
         let isAnimated = coordinator.animate(alongsideTransition: { [weak self] _ in
-            self?.counterRotate(by: angle, duration: hold.duration)
-        }, completion: { [weak self] _ in
-            self?.release(hold)
+            self?.counterRotate(hold)
         })
         guard isAnimated else {
             self.hold = nil
@@ -222,36 +231,30 @@ internal final class RotationLockingViewController: UIViewController {
         }
     }
 
-    /// Turns the content back by the system's turn, in the system's animation, so it stays still on the screen.
+    /// Turns the content back by the system's turn, in the system's own animation, so the two cancel on the screen, and releases the hold when the animation is over.
     ///
-    /// The view's transform takes the turn back at once, and an additive animation of its rotation takes it the way the system turns. A transform animation alone could take a half turn either way.
-    private func counterRotate(by angle: Angle, duration: TimeInterval) {
+    /// The transition's completion runs as soon as a half turn starts (measured in iOS 27), so the hold ends with its own animation instead.
+    private func counterRotate(_ hold: RotationHold) {
         let hostedView = hostingController.view!
-        UIView.performWithoutAnimation {
-            hostedView.transform = CGAffineTransform(rotationAngle: -angle.radians)
+        let transform = CGAffineTransform(counterTurning: hold.angle)
+        CATransaction.begin()
+        CATransaction.setCompletionBlock { [weak self] in
+            self?.release(hold)
         }
-        let animation = CABasicAnimation(keyPath: "transform.rotation.z")
-        animation.fromValue = angle.radians
-        animation.toValue = 0
-        animation.isAdditive = true
-        animation.duration = duration
-        /// The system's rotation eases in and out (measured in iOS 27). Added in the same transaction as the system's animations, it starts at the same time.
-        animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-        hostedView.layer.add(animation, forKey: Self.counterRotationKey)
+        if UIView.inheritedAnimationDuration > 0 {
+            hostedView.transform = transform
+        } else {
+            /// Should the system run this outside its animation, the content turns back with the system's timing, which eases in and out (measured in iOS 27).
+            UIView.animate(withDuration: hold.duration, delay: 0, options: .curveEaseInOut) {
+                hostedView.transform = transform
+            }
+        }
+        CATransaction.commit()
     }
 
-    /// Releases a hold once its turn is over.
-    ///
-    /// The transition's completion can run as soon as a half turn starts (measured in iOS 27), so the hold lasts the turn's duration from its start either way.
+    /// Releases a hold, unless another has taken over from it.
     private func release(_ hold: RotationHold) {
-        guard isHolding, self.hold?.startTime == hold.startTime else { return }
-        let remaining = hold.startTime + hold.duration - CACurrentMediaTime()
-        guard remaining <= 0.01 else {
-            DispatchQueue.main.asyncAfter(deadline: .now() + remaining) { [weak self] in
-                self?.release(hold)
-            }
-            return
-        }
+        guard isHolding, self.hold?.turnID == hold.turnID else { return }
         release()
     }
 
@@ -265,7 +268,7 @@ internal final class RotationLockingViewController: UIViewController {
             withAnimation(nil) {
                 model.content = makeContent(hold)
             }
-            hostedView.layer.removeAnimation(forKey: Self.counterRotationKey)
+            hostedView.layer.removeAnimation(forKey: "transform")
             hostedView.transform = .identity
             hostedView.bounds = CGRect(origin: .zero, size: view.bounds.size)
             hostedView.center = CGPoint(x: view.bounds.midX, y: view.bounds.midY)
