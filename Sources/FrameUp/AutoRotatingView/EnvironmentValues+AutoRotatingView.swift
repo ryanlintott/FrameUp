@@ -37,6 +37,8 @@ public extension EnvironmentValues {
     ///
     /// Held content keeps its layout through the turn, apart from its safe area. Use this animation for any other change the turn brings, so it moves in step with the turn rather than at once.
     ///
+    /// Apply it with `animation(_:value:)`. The scoped `animation(_:body:)` doesn't animate inside held content (measured in iOS 27).
+    ///
     ///     AutoRotatingView([.portrait], systemRotation: .locked) {
     ///         Content()
     ///     }

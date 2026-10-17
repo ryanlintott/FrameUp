@@ -66,6 +66,8 @@ Before upgrading, resolve any deprecation warnings from `0.9.11` — `HFlowLegac
 
 ### Changed
 
+- Every `AutoRotatingView` inside another now turns on the outermost one's clock, and takes each turn in the same layout pass, so nested views turn together rather than a frame apart, and nothing taken from where the content is going, such as the system's bar, jumps at the start of a turn. The outermost view also tells the views inside whether the system's bar is still as it was when the turn started, or its new measurement, so each turns it the right way.
+- `AutoRotatingView` content that's held still through the system's turn is held by UIKit, in step with the system's own rotation, so it stays still on the screen from the first frame to the last. Held content turns around its frame's centre, so it doesn't move while its safe area changes.
 - `AutoRotatingView`'s `animation` now applies only when the content turns on its own, and its default changes from `.default` to the system's rotation animation, `.easeInOut(duration: 0.3)`, measured in the iPhone simulator. The content turns on its own when the device turns to an orientation the system doesn't turn to, such as upside down on an iPhone without a Home button.
 
 - Raised the minimum Swift tools version to 6.0, so the package now builds in the Swift 6 language mode, and raised minimum platform versions to iOS 15, macOS 12, watchOS 9, and tvOS 15, meeting the minimum deployment versions required by Xcode 27. visionOS stays at 1.
