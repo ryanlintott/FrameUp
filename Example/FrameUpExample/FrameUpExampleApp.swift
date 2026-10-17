@@ -14,8 +14,6 @@ struct FrameUpExampleApp: App {
             #if os(iOS)
             if #available(iOS 17, *), ProcessInfo.processInfo.arguments.contains("-FUInnerHoldProbeScreen") {
                 InnerHoldProbeExample()
-            } else if #available(iOS 17, *), ProcessInfo.processInfo.arguments.contains("-FURotationCentreScreen") {
-                RotationCentreExample()
             } else if #available(iOS 17, *), ProcessInfo.processInfo.arguments.contains("-FUTopEdgesScreen") {
                 TopEdgesProbe(isPresented: .constant(true))
             } else {
