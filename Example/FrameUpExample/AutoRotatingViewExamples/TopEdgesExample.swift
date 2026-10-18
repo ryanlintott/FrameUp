@@ -361,6 +361,8 @@ private struct PresentedTabs: View {
     }
     
     @State private var tab = "book"
+    /// Outlines each tab item's `AutoRotatingView` and its content, with a crosshair on each centre.
+    @AppStorage(TopEdgesOutline.key) private var showsOutlines = true
     
     var tabs: some View {
         /// The pages are stacked and only the selected one shows, as in Wordhord. A `TabView` would host each page in UIKit, which gives it the window's safe area rather than the tab view's turned one.
@@ -372,6 +374,8 @@ private struct PresentedTabs: View {
                         Image(systemName: item.tab)
                             .font(.system(size: 60))
                         DeviceOrientationInfo(topEdges: screen.topEdges)
+                        Toggle("Outlines", isOn: $showsOutlines)
+                            .fixedSize()
                         Button("Close") {
                             isPresented = false
                         }
@@ -566,17 +570,46 @@ private struct UprightTabMenuItemStyle<Base: TabMenuItemStyle>: TabMenuItemStyle
     let base: Base
     
     func makeBody(configuration: Configuration) -> some View {
+        UprightTabMenuItem(orientations: orientations, content: base.makeBody(configuration: configuration))
+    }
+}
+
+/// A tab item in an `AutoRotatingView` of its own, outlined when the outlines are on.
+private struct UprightTabMenuItem<Content: View>: View {
+    let orientations: [FUInterfaceOrientation]
+    let content: Content
+    @AppStorage(TopEdgesOutline.key) private var showsOutlines = true
+    
+    var body: some View {
         AutoRotatingView(orientations) {
             ZStack {
-                base.makeBody(configuration: configuration)
+                content
             }
             /// The content's frame and centre.
-            .border(.red)
-            .overlay(Crosshair().stroke(.red, lineWidth: 1))
+            .modifier(TopEdgesOutline(color: .red, isShown: showsOutlines))
         }
         /// The `AutoRotatingView`'s frame and centre, which the content turns around.
-        .border(.blue)
-        .overlay(Crosshair().stroke(.blue, lineWidth: 1))
+        .modifier(TopEdgesOutline(color: .blue, isShown: showsOutlines))
+    }
+}
+
+/// A view's frame and a crosshair on its centre, for seeing where content turns around.
+private struct TopEdgesOutline: ViewModifier {
+    /// The stored setting for whether the outlines show.
+    static let key = "FUTopEdgesShowsOutlines"
+    let color: Color
+    let isShown: Bool
+    
+    func body(content: Content) -> some View {
+        content
+            .overlay {
+                if isShown {
+                    Rectangle()
+                        .strokeBorder(color, lineWidth: 1)
+                    Crosshair()
+                        .stroke(color, lineWidth: 1)
+                }
+            }
     }
 }
 
