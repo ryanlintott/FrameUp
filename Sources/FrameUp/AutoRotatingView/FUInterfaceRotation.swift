@@ -39,7 +39,7 @@ public enum FUInterfaceRotation: Hashable, Sendable, CaseIterable {
 
     /// The rotation nearest an angle, or nil if the angle is more than a degree from a quarter turn.
     init?(exactly angle: Angle) {
-        guard abs(angle.degrees - Double(angle.quarterTurns) * 90) < 1 else { return nil }
+        guard abs(angle.degrees.remainder(dividingBy: 90)) < 1 else { return nil }
         self.init(angle)
     }
 

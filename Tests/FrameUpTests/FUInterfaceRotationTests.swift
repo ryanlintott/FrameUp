@@ -20,6 +20,21 @@ struct FUInterfaceRotationTests {
         #expect(FUInterfaceRotation(.degrees(degrees)) == expected)
     }
 
+    /// Angles within a degree of a quarter turn map to a rotation, whichever way round they went.
+    @Test(arguments: [
+        (-270.0, FUInterfaceRotation.degrees90), (-180, .degrees180), (-90, .degrees270), (0, .zero),
+        (90, .degrees90), (180, .degrees180), (270, .degrees270), (360, .zero)
+    ])
+    func exactlyFromQuarterAngle(degrees: Double, expected: FUInterfaceRotation) {
+        #expect(FUInterfaceRotation(exactly: .degrees(degrees)) == expected)
+    }
+
+    /// Angles between quarter turns have no exact rotation.
+    @Test(arguments: [45.0, -45, 135, -135, 88])
+    func exactlyFromOtherAngle(degrees: Double) {
+        #expect(FUInterfaceRotation(exactly: .degrees(degrees)) == nil)
+    }
+
     /// A quarter turn clockwise puts the view's top at the interface's right, which is trailing left to right and leading right to left.
     @Test func quarterClockwise() {
         let rotation = FUInterfaceRotation.degrees90
