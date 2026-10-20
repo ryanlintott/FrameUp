@@ -143,22 +143,9 @@ struct AutoRotatingLayer<Content: View>: View {
         return isOn && !Set(systemOrientations).isSubset(of: allowedOrientations)
     }
 
-    /// How the content moves while the system turns the interface. An enclosing `.system` layer sets it for the layers inside, so they stay in step.
-    private var rotationBehavior: FUCounterRotationStyle {
-        if let enclosingCounterRotation, !enclosingCounterRotation.isHeld {
-            return enclosingCounterRotation
-        }
-        return counterRotation
-    }
-
-    /// True when the content is hosted so UIKit can hold it still while the system turns the interface.
-    private var isHostedToHoldStill: Bool {
-        rotationBehavior.isHeld && hasUnallowedSystemOrientations
-    }
-
-    /// True when the orientations change as soon as the device turns, and the system's rotation carries the change. Otherwise they change in step with the system's turn.
-    private var changesAsDeviceTurns: Bool {
-        rotationBehavior == .system && enclosingCounterRotation?.isHeld != true && deviceScreen == .outer
+    /// How the content handles the system's turn of the interface.
+    private var systemTurnHandling: SystemTurnHandling {
+        SystemTurnHandling(counterRotation: counterRotation, enclosingCounterRotation: enclosingCounterRotation, hasUnallowedSystemOrientations: hasUnallowedSystemOrientations, deviceScreen: deviceScreen)
     }
 
     /// True for the outermost layer, which starts the turns every layer inside it takes.
@@ -192,7 +179,7 @@ struct AutoRotatingLayer<Content: View>: View {
             }
         case .device:
             /// The system's rotation, which starts a moment later, carries the change.
-            guard isOn && changesAsDeviceTurns && !state.isAwaitingScreenLayout else { return state }
+            guard isOn && systemTurnHandling == .changesAsDeviceTurns && !state.isAwaitingScreenLayout else { return state }
             state.turnStart = nil
             state = updatingOrientations(state, interfaceOrientation: turn.interfaceOrientation)
         case .contentOnly:
@@ -206,7 +193,7 @@ struct AutoRotatingLayer<Content: View>: View {
             if state.isAwaitingScreenLayout {
                 return movingToScreen(state)
             }
-            if changesAsDeviceTurns {
+            if systemTurnHandling == .changesAsDeviceTurns {
                 /// The orientations changed when the device turned, unless its notification arrives after the system's turn has started. Then the system's rotation carries the change, as it would have after a `.device` turn.
                 guard let newInterfaceOrientation = turn.interfaceOrientation, newInterfaceOrientation != state.interfaceOrientation else { return state }
                 state.turnStart = nil
@@ -331,7 +318,7 @@ struct AutoRotatingLayer<Content: View>: View {
 
     /// An animation timed like the system's turn while it's under way and the content is held still, or nil.
     private func heldTurnAnimation(_ clock: TurnClock?, state: TurnState) -> Animation? {
-        guard isHostedToHoldStill, let clock, clock.isSystemTurning, currentTurnStart(clock, state: state) != nil, case let .system(_, startTime, duration) = clock.turn?.kind else { return nil }
+        guard systemTurnHandling == .heldStill, let clock, clock.isSystemTurning, currentTurnStart(clock, state: state) != nil, case let .system(_, startTime, duration) = clock.turn?.kind else { return nil }
         return .systemTurn(startTime: startTime, duration: duration)
     }
 
@@ -352,7 +339,7 @@ struct AutoRotatingLayer<Content: View>: View {
                 let cornerRadii = fullProxy.fuConcentricCornerRadii(layoutDirection: layoutDirection)
                 let state = currentTurnState(clock)
 
-                if #available(iOS 17, *), isHostedToHoldStill {
+                if #available(iOS 17, *), systemTurnHandling == .heldStill {
                     let heldOrientations = heldOrientations(state)
                     /// A host inside another that holds for the same turn leaves it to that one.
                     RotationLockingHost(
@@ -439,7 +426,7 @@ struct AutoRotatingLayer<Content: View>: View {
                     .environment(\.fuSystemBar, turnedSystemBar?.rotated(by: .zero, container: CGRect(origin: .zero, size: targetFrame.size)))
                     .environment(\.fuSystemBarIsTurnStart, isTurnStartSystemBar)
                     .environment(\.interfaceRotation, FUInterfaceRotation(interfaceRotation))
-                    .environment(\.fuEnclosingCounterRotation, hasUnallowedSystemOrientations ? rotationBehavior : enclosingCounterRotation)
+                    .environment(\.fuEnclosingCounterRotation, SystemTurnHandling.passedOnCounterRotation(counterRotation, enclosing: enclosingCounterRotation, hasUnallowedSystemOrientations: hasUnallowedSystemOrientations))
                     .environment(\.autoRotatingOrientation, isOn ? state.contentOrientation : nil)
             }
             /// Turns around the frame's centre, as the system turns the interface.
