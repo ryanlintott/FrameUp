@@ -438,7 +438,8 @@ struct AutoRotatingLayer<Content: View>: View {
         let rotation = layerTurn.rotation(progress: progress) + (isHeldThroughTurn ? .degrees(hold!.angle.degrees * progress) : .zero)
         /// Until the content takes the turn its host holds, it stays in the frame from before it.
         let targetFrame = (holding != nil && !isHeldThroughTurn ? layoutFrame : frame).rotated(by: layerTurn.targetRotation)
-        let contentFrame = (turnStart?.frame ?? layoutFrame).rotated(by: layerTurn.startRotation).interpolated(to: targetFrame, progress: progress)
+        /// Only held content starts from the frame before the system's turn. Otherwise the system has already laid the frame out at its new size and turns it.
+        let contentFrame = (isHeldThroughTurn ? turnStart?.frame ?? layoutFrame : layoutFrame).rotated(by: layerTurn.startRotation).interpolated(to: targetFrame, progress: progress)
         let maxDimension = max(frame.size.width, frame.size.height)
         /// True until the bar's new measurement arrives or the turn ends. Inner layers follow the enclosing one, so all switch together.
         let isTurnStartSystemBar = isOutermost ? turnStart.map { progress < 1 && $0.systemBar == systemBar } ?? false : isEnclosingTurnStartSystemBar
