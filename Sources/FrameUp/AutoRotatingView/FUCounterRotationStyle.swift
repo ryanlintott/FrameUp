@@ -15,6 +15,8 @@ public enum FUCounterRotationStyle: Hashable, Sendable {
     /// The content takes its orientation as the device turns, and the system's own transition carries it.
     ///
     /// FrameUp adds no animation, so the content's position can drift and settle as the turn ends, and a half turn can distort it part way through.
+    ///
+    /// On a device, turning to or from an orientation the content doesn't allow, the content drifts off the centre of the screen part way through the turn and the edges of the turning window crop it, so it looks squeezed towards the middle before it grows back. Use ``hold`` to keep it still.
     case system
     /// The content stays completely still on the screen.
     ///
