@@ -10,38 +10,38 @@ import Testing
 @testable import FrameUp
 
 struct CornerInsetsTests {
-    /// The iPhone Duo's outer screen in portrait, measured: the capsule at top trailing and rounded corners elsewhere.
-    static let duoOuter = FUCornerInsets(
-        topLeading: CGSize(width: 8, height: 8),
-        topTrailing: CGSize(width: 84, height: 170),
-        bottomLeading: CGSize(width: 8, height: 8),
-        bottomTrailing: CGSize(width: 59, height: 59)
+    /// The iPhone Duo's outer screen in portrait, measured: the capsule at top right and rounded corners elsewhere.
+    static let duoOuter = PhysicalCornerInsets(
+        topLeft: CGSize(width: 8, height: 8),
+        topRight: CGSize(width: 84, height: 170),
+        bottomLeft: CGSize(width: 8, height: 8),
+        bottomRight: CGSize(width: 59, height: 59)
     )
 
-    /// Portrait content in a landscapeLeft interface has the capsule at its top leading corner, lying on its side, as measured with reserved regions.
+    /// Portrait content in a landscapeLeft interface has the capsule at its top left corner, lying on its side, as measured with reserved regions.
     @Test func duoOuterLandscapeLeft() {
-        let expected = FUCornerInsets(
-            topLeading: CGSize(width: 170, height: 84),
-            topTrailing: CGSize(width: 59, height: 59),
-            bottomLeading: CGSize(width: 8, height: 8),
-            bottomTrailing: CGSize(width: 8, height: 8)
+        let expected = PhysicalCornerInsets(
+            topLeft: CGSize(width: 170, height: 84),
+            topRight: CGSize(width: 59, height: 59),
+            bottomLeft: CGSize(width: 8, height: 8),
+            bottomRight: CGSize(width: 8, height: 8)
         )
-        #expect(Self.duoOuter.rotatedInsets(by: .degrees(90), layoutDirection: .leftToRight) == expected)
+        #expect(Self.duoOuter.rotatedInsets(quarterTurns: 1) == expected)
     }
 
     @Test func halfTurnKeepsSizes() {
-        let expected = FUCornerInsets(
-            topLeading: CGSize(width: 59, height: 59),
-            topTrailing: CGSize(width: 8, height: 8),
-            bottomLeading: CGSize(width: 84, height: 170),
-            bottomTrailing: CGSize(width: 8, height: 8)
+        let expected = PhysicalCornerInsets(
+            topLeft: CGSize(width: 59, height: 59),
+            topRight: CGSize(width: 8, height: 8),
+            bottomLeft: CGSize(width: 84, height: 170),
+            bottomRight: CGSize(width: 8, height: 8)
         )
-        #expect(Self.duoOuter.rotatedInsets(by: .degrees(180), layoutDirection: .leftToRight) == expected)
+        #expect(Self.duoOuter.rotatedInsets(quarterTurns: 2) == expected)
     }
 
     @Test(arguments: Array(stride(from: -720.0, through: 720.0, by: 90)))
     func turningBackReturnsTheSameInsets(degrees: Double) {
-        let once = Self.duoOuter.rotatedInsets(by: .degrees(degrees), layoutDirection: .leftToRight)
-        #expect(once.rotatedInsets(by: .degrees(-degrees), layoutDirection: .leftToRight) == Self.duoOuter)
+        let once = Self.duoOuter.rotatedInsets(quarterTurns: Angle.degrees(degrees).quarterTurns)
+        #expect(once.rotatedInsets(quarterTurns: Angle.degrees(-degrees).quarterTurns) == Self.duoOuter)
     }
 }

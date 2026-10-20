@@ -24,20 +24,30 @@ struct CGSizeRotationTests {
         (.degrees(-90), swapped)
     ])
     func quarterTurnsSwapWidthAndHeight(angle: Angle, expected: CGSize) {
-        #expect(Self.container.rotated(by: angle) == expected)
+        #expect(Self.container.rotated(quarterTurns: angle.quarterTurns) == expected)
     }
 
     /// Rotation angles accumulate rather than resetting so they can be any number of turns away from zero.
     @Test(arguments: [-720.0, -450, -360, 360, 450, 720])
     func equivalentAngles(degrees: Double) {
         let equivalent = Angle.degrees(degrees.truncatingRemainder(dividingBy: 360))
-        #expect(Self.container.rotated(by: .degrees(degrees)) == Self.container.rotated(by: equivalent))
+        #expect(Self.container.rotated(quarterTurns: Angle.degrees(degrees).quarterTurns) == Self.container.rotated(quarterTurns: equivalent.quarterTurns))
     }
 
     /// Angles that are not quarter turns are matched to the nearest one.
     @Test(arguments: [46.0, 89.0, 90.0, 91.0, 134.0])
     func nearestQuarterTurn(degrees: Double) {
-        #expect(Self.container.rotated(by: .degrees(degrees)) == Self.swapped)
+        #expect(Self.container.rotated(quarterTurns: Angle.degrees(degrees).quarterTurns) == Self.swapped)
+    }
+}
+
+/// Quarter turns are signed and not wrapped, so they say which way and how far.
+struct QuarterTurnsTests {
+    @Test(arguments: [
+        (0.0, 0), (90, 1), (-90, -1), (180, 2), (-180, -2), (450, 5), (-450, -5), (46, 1), (44, 0), (-46, -1)
+    ] as [(Double, Int)])
+    func signedAndNotWrapped(degrees: Double, expected: Int) {
+        #expect(Angle.degrees(degrees).quarterTurns == expected)
     }
 }
 
@@ -109,7 +119,7 @@ struct InterfaceTurnTests {
         (.landscapeRight, .degrees(-180), .landscapeLeft)
     ])
     func turnGivesNewOrientation(from: FUInterfaceOrientation, angle: Angle, expected: FUInterfaceOrientation) {
-        #expect(from.rotated(by: angle) == expected)
+        #expect(FUInterfaceRotation(exactly: angle).map { from.rotated(by: $0) } == expected)
     }
 
     /// A window that resizes without turning reports no turn, and stays in its orientation.
@@ -119,7 +129,7 @@ struct InterfaceTurnTests {
     }
 
     @Test func partTurnHasNoOrientation() {
-        #expect(FUInterfaceOrientation.portrait.rotated(by: .degrees(45)) == nil)
+        #expect(FUInterfaceRotation(exactly: .degrees(45)) == nil)
     }
 }
 

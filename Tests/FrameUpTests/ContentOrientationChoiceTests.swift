@@ -5,6 +5,7 @@
 //  Created by Ryan Lintott on 2026-10-16.
 //
 
+#if os(iOS)
 import SwiftUI
 import Testing
 @testable import FrameUp
@@ -98,3 +99,4 @@ struct ContentOrientationChoiceTests {
         #expect(Set(expected) == Set(FUInterfaceOrientation.allCases))
     }
 }
+#endif

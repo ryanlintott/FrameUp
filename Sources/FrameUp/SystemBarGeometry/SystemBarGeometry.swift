@@ -44,13 +44,8 @@ public struct SystemBarGeometry: Equatable, Sendable {
 
 /// A system bar in physical terms, so it can be turned with the content of an `AutoRotatingView` like its safe area.
 internal struct SystemBar: Equatable, Sendable {
-    /// Edges in clockwise order, starting at the top.
-    enum Side: Int, CaseIterable, Sendable {
-        case top, right, bottom, left
-    }
-
     let kind: SystemBarGeometry.Kind
-    let side: Side
+    let physicalEdge: PhysicalEdge
     let depth: CGFloat
     /// How far the free part of the bar is from the end of the bar reached first going clockwise round the container: the left end of a top bar, the top of a right one, the right end of a bottom one, and the bottom of a left one.
     let clockwiseStart: CGFloat
@@ -65,9 +60,8 @@ internal struct SystemBar: Equatable, Sendable {
     ///   - angle: The turn of the view the bar is seen from.
     ///   - container: That view's frame, the container the turned bar is described in.
     func rotated(by angle: Angle, container: CGRect) -> SystemBar {
-        let quarterTurns = (Int((angle.degrees / 90).rounded()) % 4 + 4) % 4
-        let side = Side(rawValue: (self.side.rawValue - quarterTurns + 4) % 4) ?? self.side
-        return SystemBar(kind: kind, side: side, depth: depth, clockwiseStart: clockwiseStart, clockwiseEnd: clockwiseEnd, reservedDepth: reservedDepth, containerFrame: container)
+        let physicalEdge = self.physicalEdge.rotated(quarterTurns: -angle.quarterTurns)
+        return SystemBar(kind: kind, physicalEdge: physicalEdge, depth: depth, clockwiseStart: clockwiseStart, clockwiseEnd: clockwiseEnd, reservedDepth: reservedDepth, containerFrame: container)
     }
 
     /// The bar with layout-relative names.
@@ -76,7 +70,7 @@ internal struct SystemBar: Equatable, Sendable {
         /// Whether the bar's start, its leading or top end, is the end reached first going clockwise.
         let startsClockwise: Bool
         let edge: Edge
-        switch side {
+        switch physicalEdge {
         case .top:
             edge = .top
             startsClockwise = isLeftToRight
@@ -115,20 +109,20 @@ extension SystemBar {
     init?(toolbarEdge: HorizontalEdge?, contentSize: CGSize, safeAreaInsets: EdgeInsets, reservedFrames: [CGRect], layoutDirection: LayoutDirection) {
         let isLeftToRight = layoutDirection == .leftToRight
         guard let toolbarEdge else {
-            let insets = safeAreaInsets.named(for: layoutDirection)
+            let insets = PhysicalEdgeInsets(safeAreaInsets, layoutDirection: layoutDirection)
             /// Read clockwise along the bottom, from right to left.
-            self.init(kind: .bottom, side: .bottom, depth: Self.bottomBarHeight + insets.bottom, clockwiseStart: insets.trailing, clockwiseEnd: insets.leading, reservedDepth: 0, containerFrame: Self.window(contentSize: contentSize, safeAreaInsets: safeAreaInsets))
+            self.init(kind: .bottom, physicalEdge: .bottom, depth: Self.bottomBarHeight + insets.bottom, clockwiseStart: insets.right, clockwiseEnd: insets.left, reservedDepth: 0, containerFrame: Self.window(contentSize: contentSize, safeAreaInsets: safeAreaInsets))
             return
         }
         guard let toolbar = SystemToolbarVerticalGeometry(edge: toolbarEdge, contentSize: contentSize, safeAreaInsets: safeAreaInsets, reservedFrames: reservedFrames) else { return nil }
-        let side: Side = (toolbarEdge == .leading) == isLeftToRight ? .left : .right
+        let physicalEdge: PhysicalEdge = (toolbarEdge == .leading) == isLeftToRight ? .left : .right
         /// Read clockwise, a right toolbar runs top to bottom and a left one bottom to top.
         self.init(
             kind: .verticalToolbar,
-            side: side,
+            physicalEdge: physicalEdge,
             depth: toolbar.width,
-            clockwiseStart: side == .right ? toolbar.topPadding : toolbar.bottomPadding,
-            clockwiseEnd: side == .right ? toolbar.bottomPadding : toolbar.topPadding,
+            clockwiseStart: physicalEdge == .right ? toolbar.topPadding : toolbar.bottomPadding,
+            clockwiseEnd: physicalEdge == .right ? toolbar.bottomPadding : toolbar.topPadding,
             reservedDepth: toolbar.reservedWidth,
             containerFrame: Self.window(contentSize: contentSize, safeAreaInsets: safeAreaInsets)
         )

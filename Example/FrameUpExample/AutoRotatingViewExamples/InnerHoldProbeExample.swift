@@ -11,7 +11,7 @@ import SwiftUI
 #if os(iOS)
 /// A full-screen rectangle in an `AutoRotatingView`, for checking how it turns and holds on each screen of a foldable iPhone.
 ///
-/// Launch with `-FUInnerHoldProbeScreen` to show it at launch. `-FUProbeAllowed portrait,landscapeLeft` sets the allowed orientations (default portrait), `-FUProbeBehavior lockedOrientation` the system rotation behaviour (default locked), and `-FUProbeNested YES` adds a nested `AutoRotatingView` that turns to stay upright. Turns and screen changes are logged:
+/// Launch with `-FUInnerHoldProbeScreen` to show it at launch. `-FUProbeAllowed portrait,landscapeLeft` sets the allowed orientations (default portrait), `-FUProbeBehavior system` the counter-rotation style (default hold), and `-FUProbeNested YES` adds a nested `AutoRotatingView` that turns to stay upright. Turns and screen changes are logged:
 /// `xcrun simctl spawn booted log stream --level info --predicate 'category == "InnerHoldProbe"'`
 @available(iOS 17, *)
 struct InnerHoldProbeExample: View {
@@ -19,10 +19,10 @@ struct InnerHoldProbeExample: View {
         let names = UserDefaults.standard.string(forKey: "FUProbeAllowed")?.split(separator: ",").map(String.init) ?? ["portrait"]
         return FUInterfaceOrientation.allCases.filter { names.contains(String(describing: $0)) }
     }()
-    let systemRotation: FUSystemRotationBehavior = UserDefaults.standard.string(forKey: "FUProbeBehavior") == "lockedOrientation" ? .lockedOrientation : .locked
+    let counterRotation: FUCounterRotationStyle = UserDefaults.standard.string(forKey: "FUProbeBehavior") == "system" ? .system : .hold
     
     var body: some View {
-        AutoRotatingView(allowedOrientations, systemRotation: systemRotation) {
+        AutoRotatingView(allowedOrientations, counterRotation: counterRotation) {
             InnerHoldProbeRectangle()
                 .ignoresSafeArea()
         }

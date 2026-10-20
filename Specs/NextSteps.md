@@ -18,6 +18,14 @@ It measures after applying the padding (`.padding(insets).onSizeChange`), so the
 
 Untested. Decide whether the padding is meant to be relative to the space offered or to the content, then check it in a preview with a `Text`.
 
+## Check `AutoRotatingView(topEdges:)` and its tab bar right to left
+
+Added 2026-10-17. The turn clock, the UIKit hold and the reworked tab bar (masked items sized to their label, the bar's depth animating with the turn, a fixed item order) were only checked left to right.
+
+- Launch the Top Edges example right to left (`-AppleLanguages "(ar)" -AppleTextDirection YES -NSForceRightToLeftWritingDirection YES`) on an iPhone, the iPhone Duo's outer and inner screens, and an iPad.
+- Check that the tab view's top faces the right edge in each orientation, that the system's bar lands on the tab view's bottom through every turn, and that the tab items are centred and keep their order without jumping.
+- Do the same in Wordhord, whose covers and tab bar use the same views.
+
 ## Example app
 
 - `SizeMatchingViewExample` calls `onSizeChange`, which is deprecated from visionOS 2, so it warns when the example app is built for visionOS. It could use `onGeometryChange(for:of:action:)` directly. `OnSizeChangeExample` demonstrates `onSizeChange` itself, so its warning is expected.

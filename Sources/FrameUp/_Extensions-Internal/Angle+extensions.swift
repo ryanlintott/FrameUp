@@ -19,4 +19,9 @@ internal extension Angle {
     func closestEquivalent(to angle: Angle) -> Angle {
         .degrees(degrees + (angle.degrees - degrees).remainder(dividingBy: 360))
     }
+
+    /// Number of quarter turns clockwise to the nearest quarter turn, negative anticlockwise and not wrapped, so -90 degrees is -1 and 450 degrees is 5.
+    var quarterTurns: Int {
+        Int((degrees / 90).rounded())
+    }
 }

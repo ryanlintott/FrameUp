@@ -65,18 +65,18 @@ internal enum ContentOrientationChoice {
 }
 
 internal extension FUInterfaceOrientation {
-    /// The orientations a foldable iPhone is most likely held in on a screen, most likely first, just after moving there from this orientation on the other screen.
+    /// The orientations a foldable iPhone is most likely held in after moving to a screen from this orientation on the other, most likely first.
     ///
-    /// These are the user's estimates of how the iPhone Duo is held as it folds and unfolds, not measurements. Unfolding is harder to predict than folding. Each screen names its orientations as `AutoRotatingView` does there.
+    /// Estimates of how the device is held, not measurements.
     /// - Parameter screen: The screen the device has moved to.
     func likelyOrientations(afterMovingTo screen: FUDeviceScreen) -> [Self] {
         switch (screen, self) {
-        /// Folding, from the inner screen to the outer.
+        // Folding, from the inner screen to the outer.
         case (.outer, .portrait), (.outer, .landscapeRight):
             [.portrait, .landscapeLeft, .landscapeRight, .portraitUpsideDown]
         case (.outer, .landscapeLeft), (.outer, .portraitUpsideDown):
             [.portrait, .landscapeRight, .landscapeLeft, .portraitUpsideDown]
-        /// Unfolding, from the outer screen to the inner.
+        // Unfolding, from the outer screen to the inner.
         case (.inner, .portrait):
             [.landscapeRight, .portrait, .portraitUpsideDown, .landscapeLeft]
         case (.inner, .landscapeRight):

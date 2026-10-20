@@ -415,7 +415,7 @@ private struct PresentedTabs: View {
 private struct TabBarPlacement: ViewModifier {
     let screen: TopEdgesScreen
     @Binding var tab: String
-    @Environment(\.interfaceTurn) private var turn
+    @Environment(\.interfaceRotation) private var turn
     @Environment(\.autoRotatingHeldTurnAnimation) private var heldTurnAnimation
     /// The orientation the tab view presents in, which changes as a turn starts.
     @Environment(\.autoRotatingOrientation) private var presentedOrientation
@@ -474,7 +474,7 @@ private struct SystemBarTabs: View {
     let depth: CGFloat
     @Binding var tab: String
     let orientations: [FUInterfaceOrientation]
-    @Environment(\.interfaceTurn) private var turn
+    @Environment(\.interfaceRotation) private var turn
     @Environment(\.layoutDirection) private var layoutDirection
     @Environment(\.autoRotatingHeldTurnAnimation) private var heldTurnAnimation
     

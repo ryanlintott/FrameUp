@@ -1,53 +1,54 @@
 //
-//  FUInterfaceTurnTests.swift
+//  FUInterfaceRotationTests.swift
 //  FrameUp
 //
 //  Created by Ryan Lintott on 2026-10-16.
 //
 
+#if os(iOS)
 import SwiftUI
 import Testing
 @testable import FrameUp
 
-/// How a view is turned relative to the interface, and where its edges are.
-struct FUInterfaceTurnTests {
+/// How a view is rotated relative to the interface, and where its edges are.
+struct FUInterfaceRotationTests {
     @Test(arguments: [
-        (0.0, FUInterfaceTurn.none), (90, .quarterClockwise), (180, .half), (270, .quarterCounterclockwise),
-        (-90, .quarterCounterclockwise), (-180, .half), (450, .quarterClockwise), (88, .quarterClockwise)
+        (0.0, FUInterfaceRotation.zero), (90, .degrees90), (180, .degrees180), (270, .degrees270),
+        (-90, .degrees270), (-180, .degrees180), (450, .degrees90), (88, .degrees90)
     ])
-    func fromAngle(degrees: Double, expected: FUInterfaceTurn) {
-        #expect(FUInterfaceTurn(.degrees(degrees)) == expected)
+    func fromAngle(degrees: Double, expected: FUInterfaceRotation) {
+        #expect(FUInterfaceRotation(.degrees(degrees)) == expected)
     }
 
     /// A quarter turn clockwise puts the view's top at the interface's right, which is trailing left to right and leading right to left.
     @Test func quarterClockwise() {
-        let turn = FUInterfaceTurn.quarterClockwise
-        #expect(turn.interfaceEdge(of: .top, layoutDirection: .leftToRight) == .trailing)
-        #expect(turn.interfaceEdge(of: .top, layoutDirection: .rightToLeft) == .leading)
-        #expect(turn.interfaceEdge(of: .leading, layoutDirection: .leftToRight) == .top)
-        #expect(turn.localEdge(of: .top, layoutDirection: .leftToRight) == .leading)
-        #expect(turn.localEdge(of: .bottom, layoutDirection: .leftToRight) == .trailing)
-        #expect(turn.isSideways)
+        let rotation = FUInterfaceRotation.degrees90
+        #expect(rotation.interfaceEdge(of: .top, layoutDirection: .leftToRight) == .trailing)
+        #expect(rotation.interfaceEdge(of: .top, layoutDirection: .rightToLeft) == .leading)
+        #expect(rotation.interfaceEdge(of: .leading, layoutDirection: .leftToRight) == .top)
+        #expect(rotation.localEdge(of: .top, layoutDirection: .leftToRight) == .leading)
+        #expect(rotation.localEdge(of: .bottom, layoutDirection: .leftToRight) == .trailing)
+        #expect(rotation.isSideways)
     }
 
-    /// The two conversions undo each other, for every turn, edge and direction.
-    @Test(arguments: FUInterfaceTurn.allCases, [LayoutDirection.leftToRight, .rightToLeft])
-    func conversionsAreInverse(turn: FUInterfaceTurn, layoutDirection: LayoutDirection) {
+    /// The two conversions undo each other, for every rotation, edge and direction.
+    @Test(arguments: FUInterfaceRotation.allCases, [LayoutDirection.leftToRight, .rightToLeft])
+    func conversionsAreInverse(rotation: FUInterfaceRotation, layoutDirection: LayoutDirection) {
         for edge in Edge.allCases {
-            #expect(turn.localEdge(of: turn.interfaceEdge(of: edge, layoutDirection: layoutDirection), layoutDirection: layoutDirection) == edge)
+            #expect(rotation.localEdge(of: rotation.interfaceEdge(of: edge, layoutDirection: layoutDirection), layoutDirection: layoutDirection) == edge)
         }
     }
 
-    /// The turn agrees with how the safe area is turned: an inset on the interface's edge lands on the view's edge `localEdge(of:)` names.
-    @Test(arguments: FUInterfaceTurn.allCases)
-    func agreesWithTheSafeArea(turn: FUInterfaceTurn) {
-        let insets = EdgeInsets(top: 1, leading: 0, bottom: 0, trailing: 0).rotated(by: turn.angle, layoutDirection: .leftToRight)
-        let local = turn.localEdge(of: .top, layoutDirection: .leftToRight)
+    /// The rotation agrees with how the safe area is turned: an inset on the interface's edge lands on the view's edge `localEdge(of:)` names.
+    @Test(arguments: FUInterfaceRotation.allCases)
+    func agreesWithTheSafeArea(rotation: FUInterfaceRotation) {
+        let insets = PhysicalEdgeInsets(top: 1).rotated(quarterTurns: rotation.quarterTurns)
+        let local = rotation.localEdge(of: .top, layoutDirection: .leftToRight)
         let value: CGFloat = switch local {
         case .top: insets.top
         case .bottom: insets.bottom
-        case .leading: insets.leading
-        case .trailing: insets.trailing
+        case .leading: insets.left
+        case .trailing: insets.right
         }
         #expect(value == 1)
     }
@@ -91,3 +92,4 @@ struct SystemBarPlacementTests {
         #expect(placement.insets == EdgeInsets())
     }
 }
+#endif

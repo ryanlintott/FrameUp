@@ -1,5 +1,5 @@
 //
-//  InterfaceOrientation-extension.swift
+//  FUInterfaceOrientation.swift
 //  FrameUp
 //
 //  Created by Ryan Lintott on 2022-05-23.
@@ -8,6 +8,7 @@
 #if os(iOS)
 import SwiftUI
 
+/// An orientation of the device, named for the way it's held. Landscape right is the device turned clockwise from portrait, the opposite of UIKit's interface orientation names.
 public enum FUInterfaceOrientation: CaseIterable, Sendable {
     case portrait
     case landscapeRight
@@ -33,64 +34,45 @@ internal extension FUInterfaceOrientation {
         }
     }
     
-    /// The rotation angle required to change this orientation and a new orientation.
-    func rotation(to newOrientation: Self) -> Angle {
-        switch (self, newOrientation) {
-        case (.portrait, .landscapeLeft), (.landscapeLeft, .portraitUpsideDown), (.portraitUpsideDown, .landscapeRight), (.landscapeRight, .portrait):
-            return .degrees(-90)
-        case (.portrait, .landscapeRight), (.landscapeRight, .portraitUpsideDown), (.portraitUpsideDown, .landscapeLeft), (.landscapeLeft, .portrait):
-            return .degrees(90)
-        case (.portrait, .portraitUpsideDown), (.landscapeRight, .landscapeLeft), (.portraitUpsideDown, .portrait), (.landscapeLeft, .landscapeRight):
-            return .degrees(180)
-        default:
-            return .zero
+    private var rotationFromPortrait: FUInterfaceRotation {
+        switch self {
+        case .portrait: .zero
+        case .landscapeRight: .degrees270
+        case .landscapeLeft: .degrees90
+        case .portraitUpsideDown: .degrees180
         }
     }
     
-    /// The orientation this one becomes when the interface turns by an angle, as reported by a transition coordinator's `targetTransform`, or nil if the angle isn't a multiple of a quarter turn.
-    func rotated(by angle: Angle) -> Self? {
-        Self.allCases.first { abs((rotation(to: $0).degrees + angle.degrees).remainder(dividingBy: 360)) < 1 }
+    init(rotationFromPortrait: FUInterfaceRotation) {
+        self = switch rotationFromPortrait {
+        case .zero: .portrait
+        case .degrees270: .landscapeRight
+        case .degrees90: .landscapeLeft
+        case .degrees180: .portraitUpsideDown
+        }
+    }
+    
+    /// How far this orientation is rotated clockwise relative to another. A quarter turn anticlockwise is ``FUInterfaceRotation/degrees270``.
+    func rotation(from other: Self) -> FUInterfaceRotation {
+        rotationFromPortrait - other.rotationFromPortrait
+    }
+    
+    /// The orientation this one becomes when the interface turns by a rotation, as reported by a transition coordinator's `targetTransform`.
+    func rotated(by rotation: FUInterfaceRotation) -> Self {
+        .init(rotationFromPortrait: rotationFromPortrait + rotation)
     }
     
     /// The orientation in a list that is the smallest turn from this one. A quarter turn is nearer than a half turn, and the first in the list wins a tie.
     func nearest(in orientations: [Self]) -> Self? {
-        orientations.min { abs(rotation(to: $0).degrees) < abs(rotation(to: $1).degrees) }
-    }
-    
-    var name: String {
-        switch self {
-        case .portrait:
-            return "portrait"
-        case .landscapeLeft:
-            return "landscapeLeft"
-        case .landscapeRight:
-            return "landscapeRight"
-        case .portraitUpsideDown:
-            return "portraitUpsideDown"
-        }
-    }
-}
-
-@available(iOS 15, * )
-internal extension FUInterfaceOrientation {
-    init?(_ interfaceOrientation: InterfaceOrientation) {
-        switch interfaceOrientation {
-        case .landscapeLeft: self = .landscapeLeft
-        case .landscapeRight: self = .landscapeRight
-        case .portrait: self = .portrait
-        case .portraitUpsideDown: self = .portraitUpsideDown
-        default: return nil
-        }
+        orientations.min { rotation(from: $0).shortestQuarterTurns < rotation(from: $1).shortestQuarterTurns }
     }
 }
 
 internal extension FUInterfaceOrientation {
-    /// The interface orientation of the app's window scene.
-    ///
-    /// This reads the app's foreground window scene rather than the view's own. That's only right where an app has one, but the orientation only matters on an iPhone, which does.
+    /// The interface orientation of the app's foreground window scene.
     @MainActor
     static var windowScene: Self? {
-        /// At launch the scene can still be inactive, so an active one is preferred but not required.
+        /// At launch the scene can still be inactive.
         let scenes = UIApplication.shared.connectedScenes
             .compactMap { $0 as? UIWindowScene }
             .filter { $0.session.role == .windowApplication }
@@ -118,37 +100,29 @@ internal extension Dictionary where Key == FUInterfaceOrientation, Value == FUIn
         Dictionary(orientations.map { ($0, $0) }, uniquingKeysWith: { first, _ in first })
     }
 }
+
 internal extension FUInterfaceOrientation {
-    /// The edge of the device, in its own portrait, that faces up in this orientation. Leading and trailing are the left and right edges.
-    var upEdge: Edge {
-        switch self {
-        case .portrait: .top
-        case .portraitUpsideDown: .bottom
-        /// Turned clockwise, the device's left edge is at the top.
-        case .landscapeRight: .leading
-        case .landscapeLeft: .trailing
-        }
+    /// The edge of the device, in its own portrait, that faces up in this orientation. Turned clockwise, the device's left edge is at the top.
+    var upEdge: PhysicalEdge {
+        PhysicalEdge.top.rotated(by: rotationFromPortrait)
     }
     
-    /// The way the device is held when an edge of it, in its own portrait, faces up. Leading and trailing are the left and right edges.
-    init(up edge: Edge) {
-        switch edge {
-        case .top: self = .portrait
-        case .bottom: self = .portraitUpsideDown
-        /// Content in landscape right turns a quarter turn anticlockwise in a portrait frame, so its top faces the left edge.
-        case .leading: self = .landscapeRight
-        case .trailing: self = .landscapeLeft
+    /// The way the device is held when an edge of it, in its own portrait, faces up.
+    init(up edge: PhysicalEdge) {
+        self = switch edge {
+        case .top: .portrait
+        /// Turned clockwise, the device's left edge is at the top.
+        case .left: .landscapeRight
+        case .bottom: .portraitUpsideDown
+        case .right: .landscapeLeft
         }
     }
     
     /// The orientation content presents in this orientation so that its top points to an edge as the user sees it.
-    /// - Parameter edge: Where the content's top points as the user sees it: `.top` for upright, `.leading` and `.trailing` for the user's left and right, `.bottom` for upside down.
-    func presenting(up edge: Edge) -> Self {
-        /// Edges in clockwise order, both around the device and around the user's view of it.
-        let clockwise: [Edge] = [.top, .trailing, .bottom, .leading]
-        let upIndex = clockwise.firstIndex(of: upEdge) ?? 0
-        let offset = clockwise.firstIndex(of: edge) ?? 0
-        return Self(up: clockwise[(upIndex + offset) % clockwise.count])
+    /// - Parameter edge: Where the content's top points as the user sees it: `.top` for upright, `.left` and `.right` for the user's left and right, `.bottom` for upside down.
+    func contentOrientation(topAt edge: PhysicalEdge) -> Self {
+        /// Holding the device with `edge` up turns it from portrait by the same amount as moving the content's top from the user's top to `edge`.
+        rotated(by: Self(up: edge).rotationFromPortrait)
     }
 }
 #endif

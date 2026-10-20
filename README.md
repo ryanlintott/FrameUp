@@ -131,10 +131,10 @@ AutoRotatingView([.portrait, .landscapeLeft, .landscapeRight]) {
 
 The content is laid out in all the available space including any safe area around it, with a matching safe area re-created inside the rotation. Content can use `ignoresSafeArea()` to go edge to edge, or respect the safe area and stay clear of the real unsafe regions, in every orientation, and it turns around the centre of the safe area.
 
-When the device turns to an orientation the app supports but the content doesn't, the system turns the interface, and the content turns back to keep its orientation. `systemRotation` sets how it moves during that turn:
+When the device turns to an orientation the app supports but the content doesn't, the system turns the interface, and the content turns back to keep its orientation. `counterRotation` sets how it moves during that turn:
 
-- `.lockedOrientation` (the default) changes the content as the device turns, and the system's animation carries it. It keeps its orientation, but its position drifts and settles as the turn ends, and a half turn distorts it part way through.
-- `.locked` keeps the content completely still on the screen (iOS 17 and later). It's hosted in a view of its own that UIKit turns back in step with the system's rotation, so preferences set inside it, such as a navigation title or toolbar, don't reach views outside.
+- `.system` (the default) changes the content as the device turns, and the system's animation carries it. It keeps its orientation, but its position drifts and settles as the turn ends, and a half turn distorts it part way through.
+- `.hold` keeps the content completely still on the screen (iOS 17 and later). It's hosted in a view of its own that UIKit turns back in step with the system's rotation, so preferences set inside it, such as a navigation title or toolbar, don't reach views outside.
 
 A window that resizes without turning, such as on an iPad, isn't a rotation, and the content just resizes.
 
@@ -143,7 +143,7 @@ The content can read its orientation from the `autoRotatingOrientation` environm
 An `AutoRotatingView` inside another turns relative to it. Here the panel stays still while its title turns to stay upright:
 
 ```swift
-AutoRotatingView([.portrait], systemRotation: .locked) {
+AutoRotatingView([.portrait], counterRotation: .hold) {
     Panel()
         .overlay {
             AutoRotatingView {

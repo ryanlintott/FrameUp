@@ -36,13 +36,13 @@ internal extension CGSize {
         proportionableSize.swappingWidthAndHeight.size
     }
     
-    /// This size as seen from inside a rotation of the supplied angle.
+    /// This size as seen from inside a rotation of the supplied number of quarter turns.
     ///
-    /// Angles are matched to the nearest quarter turn, where a rotation either leaves a size as it is or swaps its width and height.
-    /// - Parameter angle: Rotation applied to the view this size is measured in.
+    /// A quarter turn either leaves a size as it is or swaps its width and height.
+    /// - Parameter quarterTurns: Quarter turns applied to the view this size is measured in.
     /// - Returns: This size, with its width and height swapped by an odd number of quarter turns.
-    func rotated(by angle: Angle) -> CGSize {
-        Int((angle.degrees / 90).rounded()) % 2 == 0 ? self : swappingWidthAndHeight
+    func rotated(quarterTurns: Int) -> CGSize {
+        quarterTurns % 2 == 0 ? self : swappingWidthAndHeight
     }
     
     init(width: CGFloat, aspectRatio: CGFloat) {

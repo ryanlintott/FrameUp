@@ -6,10 +6,10 @@
 |---|---|
 | Scope | **Both** the bottom bar (by convention: 50 pt plus the bottom safe area) and the measured vertical toolbar. |
 | Measuring | **A root modifier**, `.measuresSystemBarGeometry()`, outside any rotation. `AutoRotatingView` and `AutoRotatingView(topEdges:)` turn the value for their content. |
-| Edges | **Layout-relative**, like SwiftUI's `EdgeInsets`, `safeAreaInset(edge:)` and `toolbarVerticalEdge`. This includes `FUInterfaceTurn`'s edges. |
-| Helpers | **`systemBarInset`** and **`FUInterfaceTurn`** (replaces the earlier `autoRotatingUp`). |
+| Edges | **Layout-relative**, like SwiftUI's `EdgeInsets`, `safeAreaInset(edge:)` and `toolbarVerticalEdge`. This includes `FUInterfaceRotation`'s edges. |
+| Helpers | **`systemBarInset`** and **`FUInterfaceRotation`** (replaces the earlier `autoRotatingUp`). |
 | `systemBarInset` away from the bar | The bar is always drawn where the system's bar is, reaching past the view if need be; the view's content is inset only by the overlap. The view doesn't have to ignore the safe area or reach the screen's edge. |
-| Turn value | `FUInterfaceTurn`, an enum of four quarter turns relative to the interface, with `interfaceEdge(of:)` and `localEdge(of:)`. |
+| Turn value | `FUInterfaceRotation`, an enum of four quarter turns relative to the interface, with `interfaceEdge(of:)` and `localEdge(of:)`. |
 
 A public tool that tells a view **where the system would put its tab bar**, in that view's own frame, even inside `AutoRotatingView` or `AutoRotatingView(topEdges:)`. It's there to help an app place its own bar; it isn't a bar. `TabMenu` stays a plain view the app places, and `.tabMenu` keeps its own placement rules, rebuilt on top of this tool.
 
@@ -24,8 +24,8 @@ Inside `AutoRotatingView` (and so inside `AutoRotatingView(topEdges:)`, which is
 | Safe area | **Yes** | Read outside the rotation, turned into the content's frame, and applied with `HeldLayout`, animated with the turn. |
 | Container corner insets and radii | **Yes**, through `AutoRotatingGeometryProxy` | SwiftUI's own values describe the unturned container. |
 | Size | **Yes** | The content's frame is the turned size. |
-| `reservedRegions` (camera, hinge) | **Yes, once settled** | SwiftUI maps them through the rotation, inside the `.locked` host too (probe, below). During a turn, fold or window change they can be stale for a few layout passes. |
-| `toolbarVerticalEdge` | **No, and stale** | Not turned. Inside the `.locked` host it's also stuck: it read `leading` in every state while outside it changed between `leading`, `trailing` and nil (probe, below). |
+| `reservedRegions` (camera, hinge) | **Yes, once settled** | SwiftUI maps them through the rotation, inside the `.hold` host too (probe, below). During a turn, fold or window change they can be stale for a few layout passes. |
+| `toolbarVerticalEdge` | **No, and stale** | Not turned. Inside the `.hold` host it's also stuck: it read `leading` in every state while outside it changed between `leading`, `trailing` and nil (probe, below). |
 | `tabMenuVerticalEdge`, `tabMenuGeometry` | **No** | Same: environment values in the interface's frame. |
 
 So an app could already read the safe area correctly inside a rotation, but it can't tell which part of it is the system column, which edge the column is on, or where the camera is.
@@ -84,12 +84,12 @@ func systemBarInset<V: View>(@ViewBuilder content: (SystemBarGeometry) -> V) -> 
 - The bar is drawn where the system's bar is, ignoring the safe area on the bar's edge itself, even where that's past the view's own frame (like a `background` that reaches out). The view's content is inset only by the part of the bar that overlaps it, plus `reservedDepth` where the system gives no safe area. A view that fills the container, like Wordhord's book frame, gets the whole bar; a view nowhere near that edge gets no inset.
 - It only places and sizes. Spreading, grouping and styling the items stay with the app.
 
-### Which edge is which: `FUInterfaceTurn`
+### Which edge is which: `FUInterfaceRotation`
 
 How a view is turned relative to the interface the system laid out, whatever the interface's orientation. The interface's top is always the top. Outside any rotation it's `.none`; inside a turned-back `AutoRotatingView`, such as each upright tab item, it's `.none` again.
 
 ```swift
-public enum FUInterfaceTurn: Hashable, Sendable, CaseIterable {
+public enum FUInterfaceRotation: Hashable, Sendable, CaseIterable {
     case none
     case quarterClockwise
     case half
@@ -105,7 +105,7 @@ public enum FUInterfaceTurn: Hashable, Sendable, CaseIterable {
 }
 
 extension EnvironmentValues {
-    public var interfaceTurn: FUInterfaceTurn { get }   // .none outside any rotation
+    public var interfaceRotation: FUInterfaceRotation { get }   // .none outside any rotation
 }
 ```
 
@@ -120,7 +120,7 @@ Edges are layout-relative, like the rest of this tool.
 - **Safe area:** always turned correctly inside, and it animates through the turn with the system's timing (for example top 82 → 0 and bottom 34 → 84 over the turn).
 - **Reserved regions, settled:** mapped correctly inside in every state. Outer landscape, column on the left: the column-top occlusion is `(-84,0 84×82)` outside and `(350,-84 82×84)` inside, the content's top-right corner. Inner screen: the hinge division `(455,0 40×669)` outside becomes `(-34,455 669×40)` inside. In the right split window, the column-top occlusion lands in the content's bottom safe area, as it should.
 - **Reserved regions, mid-change:** for a few passes after a fold, a turn or a split, both sides can report stale frames: outside, an occlusion outside the window; inside, a frame left unturned (`(455,-81 40×669)` for the hinge) or off the content (`y 626` in a 469-high frame). They settle within the change.
-- **`toolbarVerticalEdge`:** inside it read `leading` in all 222 logs. Outside it was `leading` 10 times, `trailing` 16 times and nil 7 times. The value doesn't reach hosted content, so nothing inside a locked rotation can use it.
+- **`toolbarVerticalEdge`:** inside it read `leading` in all 222 logs. Outside it was `leading` 10 times, `trailing` 16 times and nil 7 times. The value doesn't reach hosted content, so nothing inside a held rotation can use it.
 
 **Where the column is, as the user sees it** (checked in every orientation with `TopEdgesExample`'s toolbar check, which logs `toolbar check ok/MISMATCH`):
 
@@ -142,8 +142,8 @@ A dictionary for `AutoRotatingView(topEdges:)` that keeps content facing away fr
 ## Steps
 
 1. ~~**Probe**~~ (done, results above): in the example's `-FUTopEdgesScreen`, log `reservedRegions` and the safe area from inside the turned content (inner and outer screens, all orientations, left split window) and compare them with the same values measured outside. This decides whether the rotation can rely on SwiftUI's reserved regions or must turn its own.
-2. ~~`SystemBarGeometry`, the root modifier, and turning it in `AutoRotatingView`.~~ Done: `Sources/FrameUp/SystemBarGeometry/`, tests in `SystemBarGeometryTests`. Internally the bar is kept in physical terms (`SystemBar`: side, depth, usable insets read clockwise round the container) and turned exactly like the safe area; the public value names it for the layout direction. The root modifier keeps the last good measurement and ignores reserved regions outside the window. The turned value changes at once when the content takes its new rotation, not with the turn's timing like the safe area; `systemBarInset` (step 3) will need to animate its placement the way `HeldLayout` does. Unit tests for turning a geometry by each quarter turn, for both kinds and every edge.
-3. ~~`systemBarInset` and `FUInterfaceTurn`~~ Done: `SystemBarInset.swift`, `FUInterfaceTurn.swift`, tests in `SystemBarPlacementTests` and `FUInterfaceTurnTests`. Changes from the design: the bar view fills the whole bar, from the container's edge to its depth, so a background covers it, and the app keeps items in the usable part with `usableStart`/`usableEnd`. `FUInterfaceTurn`'s edge conversions take a `layoutDirection:` parameter, since leading and trailing depend on it. Each `AutoRotatingView` sets an internal coordinate space on its turned frame, so `systemBarInset` can place the bar from anywhere inside. Through a turn (fixed 2026-10-16, checked from recordings of the Duo's outer screen):
+2. ~~`SystemBarGeometry`, the root modifier, and turning it in `AutoRotatingView`.~~ Done: `Sources/FrameUp/SystemBarGeometry/`, tests in `SystemBarGeometryTests`. Internally the bar is kept in physical terms (`SystemBar`: physicalEdge, depth, usable insets read clockwise round the container) and turned exactly like the safe area; the public value names it for the layout direction. The root modifier keeps the last good measurement and ignores reserved regions outside the window. The turned value changes at once when the content takes its new rotation, not with the turn's timing like the safe area; `systemBarInset` (step 3) will need to animate its placement the way `HeldLayout` does. Unit tests for turning a geometry by each quarter turn, for both kinds and every edge.
+3. ~~`systemBarInset` and `FUInterfaceRotation`~~ Done: `SystemBarInset.swift`, `FUInterfaceRotation.swift`, tests in `SystemBarPlacementTests` and `FUInterfaceRotationTests`. Changes from the design: the bar view fills the whole bar, from the container's edge to its depth, so a background covers it, and the app keeps items in the usable part with `usableStart`/`usableEnd`. `FUInterfaceRotation`'s edge conversions take a `layoutDirection:` parameter, since leading and trailing depend on it. Each `AutoRotatingView` sets an internal coordinate space on its turned frame, so `systemBarInset` can place the bar from anywhere inside. Through a turn (fixed 2026-10-16, checked from recordings of the Duo's outer screen):
    - Each `AutoRotatingView` keeps its content's turned bar from when the turn starts until the new measurement arrives, since the root measures it a layout pass after the content takes its new rotation. Without this, the old bar turned by the new rotation pushed the content over for the whole turn.
    - `HeldLayout` animates the content frame's size in layout (`animatableFrame(_:)`), as it already did the safe area, so the content changes shape with the turn instead of taking its final shape as it starts. `systemBarInset` places the bar against that animating size.
    - Content that fills an enclosing `AutoRotatingView` takes the safe area that view is moving to, not each step of its animation, so a nested layer's safe area doesn't swing round mid-turn.

@@ -69,7 +69,7 @@ final class TurnClockTests: XCTestCase {
         XCTAssertFalse(TurnClock(turn: nil, progress: 1, announcement: announcement).isAnnouncedTurnPending)
         let id = announcement.nextID()
         XCTAssertTrue(TurnClock(turn: nil, progress: 1, announcement: announcement).isAnnouncedTurnPending)
-        let turn = AutoRotatingTurn(id: id, kind: .own, interfaceOrientation: nil, animation: nil)
+        let turn = AutoRotatingTurn(id: id, kind: .contentOnly, interfaceOrientation: nil, animation: nil)
         XCTAssertFalse(TurnClock(turn: turn, progress: 1, announcement: announcement).isAnnouncedTurnPending)
     }
 
@@ -85,7 +85,7 @@ final class TurnClockTests: XCTestCase {
 
     func testOwnTurnProgressSteps() {
         let values = progress { id in
-            AutoRotatingTurn(id: id, kind: .own, interfaceOrientation: nil, animation: .easeInOut(duration: 0.3))
+            AutoRotatingTurn(id: id, kind: .contentOnly, interfaceOrientation: nil, animation: .easeInOut(duration: 0.3))
         }
         let steps = values.filter { $0 > 0.01 && $0 < 0.99 }
         XCTAssertGreaterThan(steps.count, 3, "progress seen: \(values)")

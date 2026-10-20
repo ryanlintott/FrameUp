@@ -12,7 +12,7 @@ import SwiftUI
 struct AutoRotatingViewFullscreenExample: View {
     @State private var isPresented: Bool = false
     @State private var isAnimated: Bool = true
-    @State private var systemRotation: FUSystemRotationBehavior = .exampleDefault
+    @State private var counterRotation: FUCounterRotationStyle = .exampleDefault
     @State private var portrait: Bool = true
     @State private var landscapeLeft: Bool = true
     @State private var landscapeRight: Bool = true
@@ -142,8 +142,8 @@ struct AutoRotatingViewFullscreenExample: View {
             .toggleStyle(.button)
             .font(.caption)
             
-            Picker("System Rotation", selection: $systemRotation) {
-                ForEach(FUSystemRotationBehavior.exampleCases, id: \.self) { behavior in
+            Picker("Counter Rotation", selection: $counterRotation) {
+                ForEach(FUCounterRotationStyle.exampleCases, id: \.self) { behavior in
                     Text("\(behavior)").tag(behavior)
                 }
             }
@@ -169,7 +169,7 @@ struct AutoRotatingViewFullscreenExample: View {
             
             Text("The blue rectangles are the container's corner insets and the yellow outline its rounded corners, both turned with the content, so they should always sit on the screen's own corners and camera.")
             
-            Text("Turn off an orientation and rotate the device to it. The system turns the interface, and the content turns back to keep its orientation. Choose how it moves during the turn: lockedOrientation keeps its orientation while the system's animation carries it, and locked keeps it completely still (iOS 17 and later).")
+            Text("Turn off an orientation and rotate the device to it. The system turns the interface, and the content turns back to keep its orientation. Choose how it moves during the turn: system keeps its orientation while the system's animation carries it, and hold keeps it completely still (iOS 17 and later).")
             
             Text("Rotate the device to an orientation the app does not support, such as upside down on an iPhone without a Home button, to see the view rotate on its own. Changing the allowed orientations also rotates it without moving the device.")
             
@@ -184,7 +184,7 @@ struct AutoRotatingViewFullscreenExample: View {
         .frame(maxHeight: .infinity, alignment: .top)
         .navigationTitle("Fullscreen")
         .fullScreenCover(isPresented: $isPresented) {
-            AutoRotatingView(allowedOrientations, systemRotation: systemRotation, animation: isAnimated ? .default : nil) { geometry in
+            AutoRotatingView(allowedOrientations, counterRotation: counterRotation, animation: isAnimated ? .default : nil) { geometry in
                 rotatingContent(geometry)
             }
             .overlay(alignment: .bottom) {

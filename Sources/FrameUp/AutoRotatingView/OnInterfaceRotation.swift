@@ -10,33 +10,16 @@ import SwiftUI
 import UIKit
 
 internal extension Angle {
-    /// The turn of the interface that a transition coordinator's `targetTransform` describes.
-    ///
-    /// A half turn's transform doesn't say which way the system turns, and the sign of its zero component varies. The system always turns a half turn the way a positive angle describes (measured in iOS 27), so a half turn is always 180 degrees.
+    /// The turn of the interface that a transition coordinator's `targetTransform` describes. A half turn is always 180 degrees, the way the system turns it.
     init(interfaceTurn transform: CGAffineTransform) {
         let angle = Angle(radians: atan2(Double(transform.b), Double(transform.a)))
         self = abs(abs(angle.degrees) - 180) < 1 ? .degrees(180) : angle
     }
 }
 
-/// A view controller that has no view of its own to show, and passes on the system's interface rotations.
+/// A view controller that passes on the system's interface rotations. It is never given a place in the view hierarchy.
 fileprivate final class InterfaceRotationViewController: UIViewController {
     var action: (Angle, UIViewControllerTransitionCoordinator) -> Void = { _, _ in }
-
-    /// SwiftUI can hand the status bar to this view controller, which then passes it back to the SwiftUI content it's in.
-    override var preferredStatusBarStyle: UIStatusBarStyle {
-        parent?.preferredStatusBarStyle ?? super.preferredStatusBarStyle
-    }
-
-    override var prefersStatusBarHidden: Bool {
-        parent?.prefersStatusBarHidden ?? super.prefersStatusBarHidden
-    }
-
-    override func loadView() {
-        let view = UIView()
-        view.isUserInteractionEnabled = false
-        self.view = view
-    }
 
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
@@ -44,15 +27,37 @@ fileprivate final class InterfaceRotationViewController: UIViewController {
     }
 }
 
-fileprivate struct InterfaceRotationReader: UIViewControllerRepresentable {
-    let action: (Angle, UIViewControllerTransitionCoordinator) -> Void
+/// An empty view that keeps an ``InterfaceRotationViewController`` as a child of the view controller it's in.
+///
+/// Added this way, rather than through a representable, the child isn't a view controller SwiftUI places in its own hierarchy, so it stays out of the status bar's way.
+fileprivate final class InterfaceRotationAnchorView: UIView {
+    let viewController = InterfaceRotationViewController()
 
-    func makeUIViewController(context: Context) -> InterfaceRotationViewController {
-        InterfaceRotationViewController()
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+        viewController.willMove(toParent: nil)
+        viewController.removeFromParent()
+        guard window != nil, let parent = enclosingViewController else { return }
+        parent.addChild(viewController)
+        viewController.didMove(toParent: parent)
     }
 
-    func updateUIViewController(_ viewController: InterfaceRotationViewController, context: Context) {
-        viewController.action = action
+    private var enclosingViewController: UIViewController? {
+        sequence(first: next, next: { $0?.next }).lazy.compactMap { $0 as? UIViewController }.first
+    }
+}
+
+fileprivate struct InterfaceRotationReader: UIViewRepresentable {
+    let action: (Angle, UIViewControllerTransitionCoordinator) -> Void
+
+    func makeUIView(context: Context) -> InterfaceRotationAnchorView {
+        let view = InterfaceRotationAnchorView()
+        view.isUserInteractionEnabled = false
+        return view
+    }
+
+    func updateUIView(_ view: InterfaceRotationAnchorView, context: Context) {
+        view.viewController.action = action
     }
 }
 
