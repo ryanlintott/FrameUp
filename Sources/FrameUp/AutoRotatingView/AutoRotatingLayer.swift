@@ -12,18 +12,12 @@ import SwiftUI
 ///
 /// `init(topEdges:)` uses two: a portrait layer fixed to the device, and a layer inside it that turns the content. A separate type means `AutoRotatingView` never contains itself.
 struct AutoRotatingLayer<Content: View>: View {
-    /// The current orientation of the content relative to the device.
-    @State private var contentOrientation: FUInterfaceOrientation? = nil
-    /// The current orientation of the device.
-    @State private var interfaceOrientation: FUInterfaceOrientation? = nil
+    /// The orientations of the content and the turn it's taking.
+    @State private var state = TurnState()
     @Environment(\.layoutDirection) private var layoutDirection
-    /// The rotation of the content relative to the interface. It accumulates so animations take the shortest path.
-    @State private var contentRotation: Angle = .zero
     @State private var deviceScreen: FUDeviceScreen = .outer
     /// True once the device is known to fold.
     @State private var hasInnerScreen = false
-    /// True from when the hinge reports a new screen until the interface is laid out there.
-    @State private var isAwaitingScreenLayout = false
     /// The interface orientation the system is expected to turn to after the device turned. Outermost layer only.
     @State private var expectedInterfaceOrientation: FUInterfaceOrientation? = nil
     /// The device orientation on the screen the view just left, a guide to how the device is held on the new one.
@@ -36,10 +30,6 @@ struct AutoRotatingLayer<Content: View>: View {
     @State private var turn: AutoRotatingTurn? = nil
     /// What this view knows of the system's turn before its state changes. Outermost layer only.
     @State private var announcement = TurnAnnouncement()
-    /// Where the content was when it took the latest turn, or nil if it has changed without a turn since.
-    @State private var turnStart: TurnStart? = nil
-    /// The id of the latest outermost turn this view has taken or passed over.
-    @State private var takenTurnID: Int? = nil
     /// The clock of the outermost layer, or nil if this is the outermost.
     @Environment(\.fuTurnClock) private var enclosingClock
     @Environment(\.fuEnclosingCounterRotation) private var enclosingCounterRotation
@@ -86,10 +76,10 @@ struct AutoRotatingLayer<Content: View>: View {
             /// Arriving on the outer screen, the system picks the supported orientation nearest the device's.
             return nearestSupportedOrientation
         } else if let sceneOrientation = FUInterfaceOrientation.windowScene {
-            return sceneOrientation == interfaceOrientation ? nil : sceneOrientation
-        } else if let newSupportedOrientation = InfoDictionary.supportedInterfaceOrientations.first(where: { $0 == deviceOrientation }), newSupportedOrientation != interfaceOrientation {
+            return sceneOrientation == state.interfaceOrientation ? nil : sceneOrientation
+        } else if let newSupportedOrientation = InfoDictionary.supportedInterfaceOrientations.first(where: { $0 == deviceOrientation }), newSupportedOrientation != state.interfaceOrientation {
             return newSupportedOrientation
-        } else if interfaceOrientation == nil {
+        } else if state.interfaceOrientation == nil {
             return [.portrait, .landscapeLeft, .landscapeRight, .portraitUpsideDown].first(where: { InfoDictionary.supportedInterfaceOrientations.contains($0) })
         } else {
             return nil
@@ -105,19 +95,6 @@ struct AutoRotatingLayer<Content: View>: View {
             preferredOrder: allowedOrientations,
             screenChange: isChangingDeviceScreen ? ContentOrientationChoice.ScreenChange(to: deviceScreen, from: previousScreenOrientation) : nil
         )
-    }
-
-    private var turnState: TurnState {
-        TurnState(interfaceOrientation: interfaceOrientation, contentOrientation: contentOrientation, contentRotation: contentRotation, turnStart: turnStart, isAwaitingScreenLayout: isAwaitingScreenLayout, takenTurnID: takenTurnID)
-    }
-
-    private func store(_ state: TurnState) {
-        interfaceOrientation = state.interfaceOrientation
-        contentOrientation = state.contentOrientation
-        contentRotation = state.contentRotation
-        turnStart = state.turnStart
-        isAwaitingScreenLayout = state.isAwaitingScreenLayout
-        takenTurnID = state.takenTurnID
     }
 
     /// The state with a new interface orientation, and the content turned to match.
@@ -140,7 +117,7 @@ struct AutoRotatingLayer<Content: View>: View {
     }
 
     func updateOrientations(interfaceOrientation newInterfaceOrientation: FUInterfaceOrientation?, orientationMap: [FUInterfaceOrientation: FUInterfaceOrientation]? = nil, isChangingDeviceScreen: Bool = false) {
-        store(updatingOrientations(turnState, interfaceOrientation: newInterfaceOrientation, orientationMap: orientationMap, isChangingDeviceScreen: isChangingDeviceScreen))
+        state = updatingOrientations(state, interfaceOrientation: newInterfaceOrientation, orientationMap: orientationMap, isChangingDeviceScreen: isChangingDeviceScreen)
     }
 
     /// The orientation the content follows: the device's on the outer screen, and the interface's on the inner screen, where the system turns the interface with the device.
@@ -163,7 +140,7 @@ struct AutoRotatingLayer<Content: View>: View {
         let newInterfaceOrientation = newInterfaceOrientation(deviceOrientation: UIDevice.current.orientation.interfaceOrientation, isChangingDeviceScreen: isChangingDeviceScreen)
         /// When the interface has already turned, or the view is appearing, the content takes its place at once.
         withAnimation(isAppearing || isChangingDeviceScreen || newInterfaceOrientation != nil ? nil : animation) {
-            turnStart = nil
+            state.turnStart = nil
             updateOrientations(interfaceOrientation: newInterfaceOrientation, orientationMap: orientationMap, isChangingDeviceScreen: isChangingDeviceScreen)
         }
     }
@@ -214,7 +191,7 @@ struct AutoRotatingLayer<Content: View>: View {
     }
 
     private func take(_ turn: AutoRotatingTurn, startFrame: LayerFrame? = nil) {
-        store(taking(turn, startFrame: startFrame, from: turnState))
+        state = taking(turn, startFrame: startFrame, from: state)
     }
 
     /// The state once this layer takes a turn, keeping where the content was so it can turn from there with the turn's progress.
@@ -271,7 +248,6 @@ struct AutoRotatingLayer<Content: View>: View {
 
     /// The state as this layer is laid out. A layer inside another takes the outermost turn in the same layout pass, so it never hands on a turn it hasn't taken.
     private func currentTurnState(_ clock: TurnClock?) -> TurnState {
-        let state = turnState
         guard !isOutermost, let turn = clock?.turn, let takenTurnID = state.takenTurnID, turn.id != takenTurnID else { return state }
         return taking(turn, from: state)
     }
@@ -280,11 +256,11 @@ struct AutoRotatingLayer<Content: View>: View {
     ///
     /// When the device turns to a supported orientation, the system turns the interface a moment later, in ``interfaceWillRotate(by:coordinator:)``. Otherwise the content turns on its own.
     func deviceOrientationDidChange() {
-        guard isOutermost && deviceScreen == .outer && !isAwaitingScreenLayout else { return }
+        guard isOutermost && deviceScreen == .outer && !state.isAwaitingScreenLayout else { return }
         let deviceOrientation = UIDevice.current.orientation.interfaceOrientation
         /// The notification can arrive after the system's turn to that orientation has started.
         if let deviceOrientation, announcement.isSystemTurning(to: deviceOrientation) { return }
-        if let deviceOrientation, deviceOrientation != (interfaceOrientation ?? FUInterfaceOrientation.windowScene), InfoDictionary.supportedInterfaceOrientations.contains(deviceOrientation) {
+        if let deviceOrientation, deviceOrientation != (state.interfaceOrientation ?? FUInterfaceOrientation.windowScene), InfoDictionary.supportedInterfaceOrientations.contains(deviceOrientation) {
             expectedInterfaceOrientation = deviceOrientation
             start(AutoRotatingTurn(id: announcement.nextID(), kind: .device, interfaceOrientation: deviceOrientation, animation: nil))
             /// If the system doesn't turn, the content turns back to the interface on its own.
@@ -303,7 +279,7 @@ struct AutoRotatingLayer<Content: View>: View {
         guard isOutermost else { return }
         let expectedOrientation = expectedInterfaceOrientation
         expectedInterfaceOrientation = nil
-        if isAwaitingScreenLayout {
+        if state.isAwaitingScreenLayout {
             /// The interface moves between screens without an animation.
             start(AutoRotatingTurn(id: announcement.nextID(), kind: .screen, interfaceOrientation: nil, animation: nil))
             return
@@ -312,7 +288,7 @@ struct AutoRotatingLayer<Content: View>: View {
         guard abs(angle.degrees) > 1 else { return }
         let startTime = CACurrentMediaTime()
         let duration = coordinator.transitionDuration
-        let newInterfaceOrientation = expectedOrientation ?? FUInterfaceRotation(exactly: angle).flatMap { (interfaceOrientation ?? FUInterfaceOrientation.windowScene)?.rotated(by: $0) }
+        let newInterfaceOrientation = expectedOrientation ?? FUInterfaceRotation(exactly: angle).flatMap { (state.interfaceOrientation ?? FUInterfaceOrientation.windowScene)?.rotated(by: $0) }
         let turn = AutoRotatingTurn(id: announcement.systemTurnID(for: coordinator), kind: .system(angle: angle, startTime: startTime, duration: duration), interfaceOrientation: newInterfaceOrientation, animation: .systemTurn(startTime: startTime, duration: duration))
         /// Set now, before the system lays the interface out for the turn.
         announcement.interfaceOrientation = newInterfaceOrientation
@@ -335,7 +311,7 @@ struct AutoRotatingLayer<Content: View>: View {
         }
         guard screen != deviceScreen else { return }
         /// Read on the old screen, before the view moves.
-        let previousOrientation = isFirstReport ? nil : followedOrientation(interfaceOrientation: interfaceOrientation)
+        let previousOrientation = isFirstReport ? nil : followedOrientation(interfaceOrientation: state.interfaceOrientation)
         withAnimation(nil) {
             previousScreenOrientation = previousOrientation
             deviceScreen = screen
@@ -345,17 +321,17 @@ struct AutoRotatingLayer<Content: View>: View {
             changeOrientations(isChangingDeviceScreen: true)
             return
         }
-        isAwaitingScreenLayout = true
+        state.isAwaitingScreenLayout = true
         /// If the interface isn't laid out on the new screen by then, the content moves there anyway.
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            guard isAwaitingScreenLayout else { return }
+            guard state.isAwaitingScreenLayout else { return }
             moveToScreen()
         }
     }
 
     private func moveToScreen() {
         withAnimation(nil) {
-            store(movingToScreen(turnState))
+            state = movingToScreen(state)
         }
     }
 
@@ -499,7 +475,7 @@ struct AutoRotatingLayer<Content: View>: View {
         }
         .modifier(OutermostTurnClock(isOutermost: isOutermost, turn: turn, announcement: announcement))
         .onChange(of: orientationMap) { newValue in
-            contentOrientation = nil
+            state.contentOrientation = nil
             changeOrientations(orientationMap: newValue)
         }
         .onInterfaceRotation(interfaceWillRotate(by:coordinator:))
@@ -516,7 +492,7 @@ struct AutoRotatingLayer<Content: View>: View {
         }
         .onAppear {
             /// A turn started before this view appeared is already in its orientations.
-            takenTurnID = enclosingClock?.turn?.id ?? 0
+            state.takenTurnID = enclosingClock?.turn?.id ?? 0
             changeOrientations(isAppearing: true)
         }
         .onHingeScreenChange(changeScreen(to:isFirstReport:))
@@ -525,12 +501,18 @@ struct AutoRotatingLayer<Content: View>: View {
 
 /// The orientations of a layer's content and the turn it's taking, which a turn changes together.
 struct TurnState: Equatable {
-    var interfaceOrientation: FUInterfaceOrientation?
-    var contentOrientation: FUInterfaceOrientation?
-    var contentRotation: Angle
-    var turnStart: TurnStart?
-    var isAwaitingScreenLayout: Bool
-    var takenTurnID: Int?
+    /// The current orientation of the interface.
+    var interfaceOrientation: FUInterfaceOrientation? = nil
+    /// The current orientation of the content relative to the device.
+    var contentOrientation: FUInterfaceOrientation? = nil
+    /// The rotation of the content relative to the interface. It accumulates so animations take the shortest path.
+    var contentRotation: Angle = .zero
+    /// Where the content was when it took the latest turn, or nil if it has changed without a turn since.
+    var turnStart: TurnStart? = nil
+    /// True from when the hinge reports a new screen until the interface is laid out there.
+    var isAwaitingScreenLayout = false
+    /// The id of the latest outermost turn this view has taken or passed over.
+    var takenTurnID: Int? = nil
 }
 
 /// Where a layer's content was when it took a turn.
