@@ -369,42 +369,29 @@ struct AutoRotatingLayer<Content: View>: View {
     ///   - state: The state as this layer is laid out.
     ///   - hold: How a host holds the content still through the system's turn, or nil when it isn't hosted.
     private func turningContent(frame: LayerFrame, clock: TurnClock?, state: TurnState, hold: RotationHold?, cornerInsets: PhysicalCornerInsets, cornerRadii: PhysicalCornerRadii?) -> some View {
-        let turnStart = currentTurnStart(clock, state: state)
         /// The rotation of the content relative to the interface.
         let interfaceRotation = isOn ? state.contentRotation : state.contentRotation.closestEquivalent(to: .zero)
-        /// The hold while the host keeps the frame from before the turn.
-        let holding = hold.flatMap { $0.isReleased ? nil : $0 }
-        let isHoldTurn = hold?.isFor(clock?.turn) ?? false
-        /// True once the content has taken the turn its host holds it through.
-        let isHeldThroughTurn = holding != nil && isHoldTurn && turnStart != nil
-        /// Done once the host has handed over the new frame, even if the clock is a frame behind.
-        let progress = isHoldTurn && hold?.isReleased == true ? 1 : clock?.progress ?? 1
-        /// Content that keeps its orientation turns exactly as far as the interface; content that turns to a new one takes the short way.
-        let layerTurn = LayerTurn(enclosing: enclosingContentRotation, start: turnStart?.rotation ?? interfaceRotation, target: interfaceRotation, isShortWay: turnStart.map { !$0.keepsOrientation } ?? false)
-        let layoutFrame = holding?.frame ?? frame
-        /// The host turns the old frame back by the system's turn, so the content inside turns as far again.
-        let rotation = layerTurn.rotation(progress: progress) + (isHeldThroughTurn ? .degrees(hold!.angle.degrees * progress) : .zero)
-        /// Until the content takes the turn its host holds, it stays in the frame from before it.
-        let targetFrame = (holding != nil && !isHeldThroughTurn ? layoutFrame : frame).rotated(by: layerTurn.targetRotation)
-        /// Only held content starts from the frame before the system's turn. Otherwise the system has already laid the frame out at its new size and turns it.
-        let contentFrame = (isHeldThroughTurn ? turnStart?.frame ?? layoutFrame : layoutFrame).rotated(by: layerTurn.startRotation).interpolated(to: targetFrame, progress: progress)
-        let maxDimension = max(frame.size.width, frame.size.height)
-        /// True until the bar's new measurement arrives or the turn ends. Inner layers follow the enclosing one, so all switch together.
-        let isTurnStartSystemBar = isOutermost ? turnStart.map { progress < 1 && $0.systemBar == systemBar } ?? false : isEnclosingTurnStartSystemBar
-        let turnedSystemBar = systemBar?.rotated(by: isTurnStartSystemBar ? layerTurn.startRotation : layerTurn.targetRotation, container: .zero)
+        let turnGeometry = LayerTurnGeometry(
+            frame: frame,
+            interfaceRotation: interfaceRotation,
+            turnStart: currentTurnStart(clock, state: state),
+            hold: hold,
+            turn: clock?.turn,
+            clockProgress: clock?.progress ?? 1,
+            enclosingContentRotation: enclosingContentRotation,
+            enclosingSafeAreaTurn: enclosingSafeAreaTurn,
+            systemBar: systemBar,
+            enclosingIsTurnStartSystemBar: isOutermost ? nil : isEnclosingTurnStartSystemBar
+        )
+        let targetQuarterTurns = turnGeometry.layerTurn.targetRotation.quarterTurns
         let geometry = AutoRotatingGeometryProxy(
-            cornerInsets: cornerInsets.rotatedInsets(quarterTurns: layerTurn.targetRotation.quarterTurns),
-            cornerRadii: cornerRadii?.rotated(quarterTurns: layerTurn.targetRotation.quarterTurns),
+            cornerInsets: cornerInsets.rotatedInsets(quarterTurns: targetQuarterTurns),
+            cornerRadii: cornerRadii?.rotated(quarterTurns: targetQuarterTurns),
             layoutDirection: layoutDirection
         )
+        let maxDimension = max(frame.size.width, frame.size.height)
+        let contentFrame = turnGeometry.contentFrame
         let contentInsets = contentFrame.safeAreaInsets
-        /// The frame's safe area once the turn is over, moved on by what the enclosing turn has still to move.
-        let frameTargetInsets = if holding != nil && !isHeldThroughTurn {
-            layoutFrame.safeAreaInsets
-        } else {
-            frame.safeAreaInsets + (enclosingSafeAreaTurn.map { $0.target - $0.current } ?? PhysicalEdgeInsets())
-        }
-        let targetInsets = frameTargetInsets.rotated(quarterTurns: layerTurn.targetRotation.quarterTurns)
 
         return Color.clear.overlay {
             ZStack {
@@ -417,20 +404,20 @@ struct AutoRotatingLayer<Content: View>: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .safeAreaInsets(contentInsets.edgeInsets(layoutDirection: layoutDirection))
                     .frame(width: contentFrame.size.width, height: contentFrame.size.height)
-                    .environment(\.fuSafeAreaTurn, SafeAreaTurn(current: contentInsets, target: targetInsets))
-                    .environment(\.autoRotatingTargetSafeAreaInsets, targetInsets.edgeInsets(layoutDirection: layoutDirection))
+                    .environment(\.fuSafeAreaTurn, SafeAreaTurn(current: contentInsets, target: turnGeometry.targetInsets))
+                    .environment(\.autoRotatingTargetSafeAreaInsets, turnGeometry.targetInsets.edgeInsets(layoutDirection: layoutDirection))
                     .environment(\.fuAnimatedFrameSize, contentFrame.size)
                     .coordinateSpace(name: SystemBarContainerSpace())
                     .environment(\.layoutDirection, layoutDirection)
-                    .environment(\.fuEnclosingContentRotation, layerTurn.contentRotation)
-                    .environment(\.fuSystemBar, turnedSystemBar?.rotated(by: .zero, container: CGRect(origin: .zero, size: targetFrame.size)))
-                    .environment(\.fuSystemBarIsTurnStart, isTurnStartSystemBar)
+                    .environment(\.fuEnclosingContentRotation, turnGeometry.layerTurn.contentRotation)
+                    .environment(\.fuSystemBar, turnGeometry.systemBar)
+                    .environment(\.fuSystemBarIsTurnStart, turnGeometry.isTurnStartSystemBar)
                     .environment(\.interfaceRotation, FUInterfaceRotation(interfaceRotation))
                     .environment(\.fuEnclosingCounterRotation, SystemTurnHandling.passedOnCounterRotation(counterRotation, enclosing: enclosingCounterRotation, hasUnallowedSystemOrientations: hasUnallowedSystemOrientations))
                     .environment(\.autoRotatingOrientation, isOn ? state.contentOrientation : nil)
             }
             /// Turns around the frame's centre, as the system turns the interface.
-            .rotationEffect(rotation)
+            .rotationEffect(turnGeometry.rotation)
         }
         /// Fixed left to right, as a mirrored right to left layout would turn the content the wrong way.
         .environment(\.layoutDirection, .leftToRight)
@@ -480,18 +467,6 @@ struct TurnState: Equatable {
     var isAwaitingScreenLayout = false
     /// The id of the latest outermost turn this view has taken or passed over.
     var takenTurnID: Int? = nil
-}
-
-/// Where a layer's content was when it took a turn.
-struct TurnStart: Equatable {
-    let id: Int
-    /// The content's rotation relative to the interface.
-    let rotation: Angle
-    /// True when the content turns back by exactly as much as the interface turns.
-    let keepsOrientation: Bool
-    /// The outermost layer's frame before the system's turn, or nil.
-    let frame: LayerFrame?
-    let systemBar: SystemBar?
 }
 
 /// Reads the clock of the outermost layer.
