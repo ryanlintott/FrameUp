@@ -150,36 +150,32 @@ internal struct LayerTurn: Equatable {
     }
 }
 
-/// Animates a count of the turns, and passes the latest turn's progress, how far the count is past the one before, to every `AutoRotatingView` inside.
-internal struct TurnClockDriver: ViewModifier, @preconcurrency Animatable {
+/// Animates a count of the turns, and passes the latest turn's progress, how far the count is past the one before, to its content and every `AutoRotatingView` inside. Outermost layer only.
+internal struct TurnClockDriver<Content: View>: View, @preconcurrency Animatable {
     var count: Double
     let turn: AutoRotatingTurn?
     let announcement: TurnAnnouncement
-
-    init(turn: AutoRotatingTurn?, announcement: TurnAnnouncement) {
-        self.count = Double(turn?.id ?? 0)
-        self.turn = turn
-        self.announcement = announcement
-    }
+    let content: (TurnClock) -> Content
 
     var animatableData: Double {
         get { count }
         set { count = newValue }
     }
 
-    func body(content: Content) -> some View {
+    var body: some View {
         let progress = turn.map { min(max(count - Double($0.id - 1), 0), 1) } ?? 1
-        content
+        let clock = TurnClock(turn: turn, progress: progress, announcement: announcement)
+        content(clock)
             /// Turns are started without an animation, which the content keeps.
             .animation(nil, value: turn?.id)
-            .environment(\.fuTurnClock, TurnClock(turn: turn, progress: progress, announcement: announcement))
+            .environment(\.fuTurnClock, clock)
     }
 }
 
-internal extension View {
+internal extension TurnClockDriver {
     /// Starts the clock that every `AutoRotatingView` inside turns on. Only the progress takes the turn's animation; the content inside keeps none.
-    func turnClock(_ turn: AutoRotatingTurn?, announcement: TurnAnnouncement) -> some View {
-        modifier(TurnClockDriver(turn: turn, announcement: announcement))
+    static func start(_ turn: AutoRotatingTurn?, announcement: TurnAnnouncement, @ViewBuilder content: @escaping (TurnClock) -> Content) -> some View {
+        TurnClockDriver(count: Double(turn?.id ?? 0), turn: turn, announcement: announcement, content: content)
             .animation(turn?.animation, value: turn?.id)
     }
 }

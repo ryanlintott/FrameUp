@@ -34,8 +34,9 @@ final class TurnClockTests: XCTestCase {
         let recorder: Recorder
 
         var body: some View {
-            ProgressProbe(recorder: recorder)
-                .turnClock(turn, announcement: announcement)
+            TurnClockDriver.start(turn, announcement: announcement) { _ in
+                ProgressProbe(recorder: recorder)
+            }
         }
     }
 

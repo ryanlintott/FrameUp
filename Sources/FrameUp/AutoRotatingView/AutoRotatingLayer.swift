@@ -424,10 +424,15 @@ struct AutoRotatingLayer<Content: View>: View {
     }
 
     var body: some View {
-        TurnClockReader { clock in
-            layout(clock: clock)
+        Group {
+            if isOutermost {
+                TurnClockDriver.start(turn, announcement: announcement) { clock in
+                    layout(clock: clock)
+                }
+            } else {
+                layout(clock: enclosingClock)
+            }
         }
-        .modifier(OutermostTurnClock(isOutermost: isOutermost, turn: turn, announcement: announcement))
         .onChange(of: orientationMap) { newValue in
             state.contentOrientation = nil
             changeOrientations(orientationMap: newValue)
@@ -467,30 +472,5 @@ struct TurnState: Equatable {
     var isAwaitingScreenLayout = false
     /// The id of the latest outermost turn this view has taken or passed over.
     var takenTurnID: Int? = nil
-}
-
-/// Reads the clock of the outermost layer.
-private struct TurnClockReader<Content: View>: View {
-    @Environment(\.fuTurnClock) private var clock
-    let content: (TurnClock?) -> Content
-
-    var body: some View {
-        content(clock)
-    }
-}
-
-/// Runs the clock in the outermost layer, and passes the enclosing clock on in any other.
-private struct OutermostTurnClock: ViewModifier {
-    let isOutermost: Bool
-    let turn: AutoRotatingTurn?
-    let announcement: TurnAnnouncement
-
-    func body(content: Content) -> some View {
-        if isOutermost {
-            content.turnClock(turn, announcement: announcement)
-        } else {
-            content
-        }
-    }
 }
 #endif
