@@ -222,7 +222,7 @@ struct AutoRotatingLayer<Content: View>: View {
     ///   - turn: The turn.
     ///   - startFrame: This view's frame before the system's turn, for the outermost layer.
     ///   - state: The state before the turn.
-    private func taking(_ turn: AutoRotatingTurn, startFrame: LayerFrame? = nil, from state: TurnState) -> TurnState {
+    func taking(_ turn: AutoRotatingTurn, startFrame: LayerFrame? = nil, from state: TurnState) -> TurnState {
         var state = state
         state.takenTurnID = turn.id
         switch turn.kind {
@@ -246,8 +246,13 @@ struct AutoRotatingLayer<Content: View>: View {
             if state.isAwaitingScreenLayout {
                 return movingToScreen(state)
             }
-            /// The orientations may already have changed when the device turned.
-            guard !changesAsDeviceTurns, let interfaceOrientation = state.interfaceOrientation, let rotation = FUInterfaceRotation(exactly: angle) else { return state }
+            if changesAsDeviceTurns {
+                /// The orientations changed when the device turned, unless its notification arrives after the system's turn has started. Then the system's rotation carries the change, as it would have after a `.device` turn.
+                guard let newInterfaceOrientation = turn.interfaceOrientation, newInterfaceOrientation != state.interfaceOrientation else { return state }
+                state.turnStart = nil
+                return updatingOrientations(state, interfaceOrientation: newInterfaceOrientation)
+            }
+            guard let interfaceOrientation = state.interfaceOrientation, let rotation = FUInterfaceRotation(exactly: angle) else { return state }
             let newInterfaceOrientation = interfaceOrientation.rotated(by: rotation)
             let keepsOrientation = keepsOrientation(deviceOrientation: followedOrientation(interfaceOrientation: newInterfaceOrientation), contentOrientation: state.contentOrientation)
             let startRotation = state.contentRotation
@@ -519,7 +524,7 @@ struct AutoRotatingLayer<Content: View>: View {
 }
 
 /// The orientations of a layer's content and the turn it's taking, which a turn changes together.
-private struct TurnState: Equatable {
+struct TurnState: Equatable {
     var interfaceOrientation: FUInterfaceOrientation?
     var contentOrientation: FUInterfaceOrientation?
     var contentRotation: Angle
@@ -529,7 +534,7 @@ private struct TurnState: Equatable {
 }
 
 /// Where a layer's content was when it took a turn.
-private struct TurnStart: Equatable {
+struct TurnStart: Equatable {
     let id: Int
     /// The content's rotation relative to the interface.
     let rotation: Angle
