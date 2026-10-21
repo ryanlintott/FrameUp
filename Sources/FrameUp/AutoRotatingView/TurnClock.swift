@@ -38,11 +38,6 @@ internal struct TurnClock: Equatable {
     /// What the outermost `AutoRotatingView` knows of the system's turn before its state changes.
     let announcement: TurnAnnouncement
 
-    /// True when the system has announced a turn that hasn't been taken yet.
-    var isAnnouncedTurnPending: Bool {
-        announcement.id != (turn?.id ?? 0)
-    }
-
     /// True while the system's turn is under way.
     var isSystemTurning: Bool {
         guard case .system = turn?.kind else { return false }
@@ -56,13 +51,13 @@ internal struct TurnClock: Equatable {
 
 /// What the outermost `AutoRotatingView` knows of the system's turn from the moment it's announced.
 ///
-/// A reference type, so the layout at the new size, which comes before any state change, can see the turn.
+/// A reference type, so the system's turn and any host read and write it in UIKit callbacks without a state change.
 internal final class TurnAnnouncement {
     /// The id of the latest turn.
     var id = 0
     /// The interface orientation the system's latest turn is to.
     var interfaceOrientation: FUInterfaceOrientation? = nil
-    /// The outermost view's frame as it was last laid out before the latest turn was announced.
+    /// The outermost view's frame as of its latest layout. The system's turn reads it before the interface is laid out at its new size.
     var frame: LayerFrame? = nil
 
     private weak var systemTurnCoordinator: AnyObject? = nil

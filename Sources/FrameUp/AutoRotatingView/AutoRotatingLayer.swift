@@ -346,36 +346,48 @@ struct AutoRotatingLayer<Content: View>: View {
         return Set(FUInterfaceOrientation.allCases.filter { keepsOrientation(deviceOrientation: $0, contentOrientation: state.contentOrientation) })
     }
 
+    /// Keeps the outermost layer's frame for the system's next turn to start from.
+    private func keepFrame(_ frame: LayerFrame) {
+        if isOutermost {
+            announcement.frame = frame
+        }
+    }
+
     private func layout(clock: TurnClock?) -> some View {
         /// Outside the rotation, so its safe area insets are correct.
         GeometryReader { safeProxy in
             GeometryReader { fullProxy in
                 let frame = LayerFrame(size: fullProxy.size, safeAreaInsets: PhysicalEdgeInsets(safeProxy.safeAreaInsets, layoutDirection: layoutDirection))
-                /// The outermost layer keeps its frame from before a turn is announced, to turn from.
-                let _ = isOutermost && clock?.isAnnouncedTurnPending != true ? announcement.frame = frame : ()
                 let cornerInsets = fullProxy.fuContainerCornerInsets(layoutDirection: layoutDirection)
                 let cornerRadii = fullProxy.fuConcentricCornerRadii(layoutDirection: layoutDirection)
                 let state = currentTurnState(clock)
 
-                if #available(iOS 17, *), systemTurnHandling == .heldStill {
-                    let heldOrientations = heldOrientations(state)
-                    /// A host inside another that holds for the same turn leaves it to that one.
-                    RotationLockingHost(
-                        frame: frame,
-                        interfaceOrientation: state.interfaceOrientation,
-                        announcement: clock?.announcement,
-                        heldOrientations: heldOrientations.subtracting(enclosingHostHeldOrientations),
-                        heldTurnAnimation: heldTurnAnimation(clock, state: state),
-                        environment: environment
-                    ) { hold in
-                        turningContent(frame: frame, clock: clock, state: state, hold: hold, cornerInsets: cornerInsets, cornerRadii: cornerRadii)
-                            .environment(\.fuHostHeldOrientations, enclosingHostHeldOrientations.union(heldOrientations))
-                            /// The host's environment is read outside this view's clock.
-                            .environment(\.fuTurnClock, clock)
+                Group {
+                    if #available(iOS 17, *), systemTurnHandling == .heldStill {
+                        let heldOrientations = heldOrientations(state)
+                        /// A host inside another that holds for the same turn leaves it to that one.
+                        RotationLockingHost(
+                            frame: frame,
+                            interfaceOrientation: state.interfaceOrientation,
+                            announcement: clock?.announcement,
+                            heldOrientations: heldOrientations.subtracting(enclosingHostHeldOrientations),
+                            heldTurnAnimation: heldTurnAnimation(clock, state: state),
+                            environment: environment
+                        ) { hold in
+                            turningContent(frame: frame, clock: clock, state: state, hold: hold, cornerInsets: cornerInsets, cornerRadii: cornerRadii)
+                                .environment(\.fuHostHeldOrientations, enclosingHostHeldOrientations.union(heldOrientations))
+                                /// The host's environment is read outside this view's clock.
+                                .environment(\.fuTurnClock, clock)
+                        }
+                    } else {
+                        turningContent(frame: frame, clock: clock, state: state, hold: nil, cornerInsets: cornerInsets, cornerRadii: cornerRadii)
                     }
-                } else {
-                    turningContent(frame: frame, clock: clock, state: state, hold: nil, cornerInsets: cornerInsets, cornerRadii: cornerRadii)
                 }
+                /// The outermost layer keeps its latest frame, which the system's turn reads before the layout at the new size.
+                .onAppear {
+                    keepFrame(frame)
+                }
+                .onChange(of: frame, perform: keepFrame)
             }
             .ignoresSafeArea()
         }

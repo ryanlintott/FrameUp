@@ -64,16 +64,6 @@ final class TurnClockTests: XCTestCase {
         return recorder.progress
     }
 
-    /// Before the first turn nothing is pending, so held content is shown at once. A turn is pending from when it's announced until it's taken.
-    func testPendingOnlyBetweenAnnouncementAndTurn() {
-        let announcement = TurnAnnouncement()
-        XCTAssertFalse(TurnClock(turn: nil, progress: 1, announcement: announcement).isAnnouncedTurnPending)
-        let id = announcement.nextID()
-        XCTAssertTrue(TurnClock(turn: nil, progress: 1, announcement: announcement).isAnnouncedTurnPending)
-        let turn = AutoRotatingTurn(id: id, kind: .contentOnly, interfaceOrientation: nil, animation: nil)
-        XCTAssertFalse(TurnClock(turn: turn, progress: 1, announcement: announcement).isAnnouncedTurnPending)
-    }
-
     func testSystemTurnProgressSteps() {
         let values = progress { id in
             let timing = SystemTurnTiming(duration: 0.3)
