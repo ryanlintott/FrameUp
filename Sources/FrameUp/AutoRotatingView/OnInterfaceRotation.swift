@@ -30,9 +30,9 @@ fileprivate final class InterfaceRotationViewController: UIViewController {
     }
 }
 
-/// An empty view that keeps an ``InterfaceRotationViewController`` as a child of the view controller it's in.
+/// An empty view that keeps an ``InterfaceRotationViewController`` as a child of its window's root view controller.
 ///
-/// Added this way, rather than through a representable, the child isn't a view controller SwiftUI places in its own hierarchy, so it stays out of the status bar's way.
+/// Added this way, rather than through a representable, the child isn't a view controller SwiftUI places in its own hierarchy, so it stays out of the status bar's way. The root gets the system's own transition, where a view controller SwiftUI shows in a navigation stack gets one without the turn.
 fileprivate final class InterfaceRotationAnchorView: UIView {
     let viewController = InterfaceRotationViewController()
     /// Performed with the window when the view moves to one.
@@ -65,13 +65,9 @@ fileprivate final class InterfaceRotationAnchorView: UIView {
         }
         viewController.willMove(toParent: nil)
         viewController.removeFromParent()
-        guard window != nil, let parent = enclosingViewController else { return }
+        guard let parent = window?.rootViewController else { return }
         parent.addChild(viewController)
         viewController.didMove(toParent: parent)
-    }
-
-    private var enclosingViewController: UIViewController? {
-        sequence(first: next, next: { $0?.next }).lazy.compactMap { $0 as? UIViewController }.first
     }
 }
 
