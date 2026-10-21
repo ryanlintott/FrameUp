@@ -271,13 +271,8 @@ struct AutoRotatingLayer<Content: View>: View {
         }
         /// A window that resizes without turning has nothing to turn.
         guard !coordinator.targetTransform.isIdentity else { return }
-        /// An interface that turns without an animation has turned already, and the content takes its place at once.
-        guard coordinator.isAnimated else {
-            if sceneOrientation != state.interfaceOrientation {
-                changeOrientations(isAppearing: true)
-            }
-            return
-        }
+        /// An unanimated transition after the content has moved to a new screen has nothing left to turn. Any other is a turn that happens at once.
+        guard coordinator.isAnimated || sceneOrientation != state.interfaceOrientation else { return }
         /// A `.device` turn has already taken the new orientation.
         let newInterfaceOrientation = deviceTurnOrientation ?? FUInterfaceRotation(exactly: angle).flatMap { FUInterfaceOrientation.afterSystemTurn(by: $0, from: state.interfaceOrientation, sceneOrientation: sceneOrientation) }
         let systemTurn = announcement.systemTurn(for: coordinator)

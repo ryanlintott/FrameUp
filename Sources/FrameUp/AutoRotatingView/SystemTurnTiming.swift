@@ -58,9 +58,14 @@ internal final class SystemTurnTiming: NSObject {
             view.addSubview(probe)
         }
         probe.alpha = 0
-        if let systemAnimation = probe.layer.animation(forKey: "opacity") as? CABasicAnimation, let copy = systemAnimation.copy() as? CABasicAnimation {
-            animation = copy
+        guard let systemAnimation = probe.layer.animation(forKey: "opacity") as? CABasicAnimation, let copy = systemAnimation.copy() as? CABasicAnimation else {
+            /// Without an animation, the change happens at once.
+            probe.removeFromSuperview()
+            animation.duration = 0
+            begin()
+            return
         }
+        animation = copy
         /// Added in the same transaction as UIKit's animations, so it begins with them.
         let beginMarker = CABasicAnimation(keyPath: "zPosition")
         beginMarker.duration = duration
