@@ -41,7 +41,7 @@ These were measured on the iPhone 18 Pro and iPhone Duo simulators, iOS 27.0 and
 The review on 2026-10-20 listed the values that aren't derived from the system. The 0.1 s and 0.3 s fallbacks, the hard-coded curve and start time, the foreground scene and Info.plist orientations have since been replaced. What's left:
 
 - `isSystemRefusing` relies on the measured, undocumented fact that the system posts the device orientation notification inside its rotation animation. It's used only for upside down on an iPhone, and wasn't measured before iOS 27.
-- On iPad, `systemOrientations(in:)` follows the top view controller only when the app sets `UIRequiresFullScreen`, as UIKit documents. Not checked on an iPad.
+- On iPad, `systemOrientations(in:)` ignores the top view controller while the app multitasks: when it doesn't require the full screen and its Info.plist has every orientation, as `supportedInterfaceOrientations` documents. Tested as a rule and on the iPad Pro 11-inch simulator (iOS 27.0), but not with an app whose own view controller limits its orientations.
 - Before a layer is in a window, it uses the app's window scene only when there is exactly one, and otherwise has no scene orientation until the window arrives.
 - A half turn's screen rotation runs outside the app. Its timing is taken from the animation UIKit gives the app's own changes, which begins at the same commit, but the screen itself wasn't measured.
 - The fold and unfold orientation table in `ContentOrientationChoice` is an estimate.

@@ -150,13 +150,25 @@ internal extension FUInterfaceOrientation {
             if #available(iOS 26, *), let scene = window.windowScene, scene.effectiveGeometry.isInterfaceOrientationLocked {
                 return Self(windowScene: scene).map { [$0] } ?? []
             }
-            /// On iPad the system ignores the view controller unless the app requires the full screen.
-            let isViewControllerRespected = UIDevice.current.userInterfaceIdiom != .pad || Bundle.main.object(forInfoDictionaryKey: "UIRequiresFullScreen") as? Bool == true
-            if isViewControllerRespected, let viewController = window.topFullScreenViewController {
+            let isViewControllerFollowed = !Self.isMultitasking(
+                idiom: UIDevice.current.userInterfaceIdiom,
+                requiresFullScreen: Bundle.main.object(forInfoDictionaryKey: "UIRequiresFullScreen") as? Bool == true,
+                infoPlistOrientations: application.supportedInterfaceOrientations(for: nil)
+            )
+            if isViewControllerFollowed, let viewController = window.topFullScreenViewController {
                 mask.formIntersection(viewController.supportedInterfaceOrientations)
             }
         }
         return allCases.filter { mask.contains($0.mask) }
+    }
+
+    /// True when an app supports multitasking, so the system doesn't follow its view controllers' supported orientations. An iPad app opts out by requiring the full screen, or by not supporting every orientation in its Info.plist.
+    /// - Parameters:
+    ///   - idiom: The device's interface idiom.
+    ///   - requiresFullScreen: The app's `UIRequiresFullScreen` value.
+    ///   - infoPlistOrientations: The orientations in the app's Info.plist for the device.
+    static func isMultitasking(idiom: UIUserInterfaceIdiom, requiresFullScreen: Bool, infoPlistOrientations: UIInterfaceOrientationMask) -> Bool {
+        idiom == .pad && !requiresFullScreen && infoPlistOrientations.contains(.all)
     }
 
     /// The interface orientation mask of this orientation.
