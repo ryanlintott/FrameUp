@@ -30,6 +30,8 @@ struct AutoRotatingLayer<Content: View>: View {
     @State private var turn: AutoRotatingTurn? = nil
     /// What this view knows of the system's turn before its state changes. Outermost layer only.
     @State private var announcement = TurnAnnouncement()
+    /// The window scene this view is in, once it's in a window.
+    @State private var windowScene = WindowSceneReference()
     /// The clock of the outermost layer, or nil if this is the outermost.
     @Environment(\.fuTurnClock) private var enclosingClock
     @Environment(\.fuEnclosingCounterRotation) private var enclosingCounterRotation
@@ -75,7 +77,7 @@ struct AutoRotatingLayer<Content: View>: View {
         if isChangingDeviceScreen, deviceScreen == .outer, let nearestSupportedOrientation = deviceOrientation?.nearest(in: InfoDictionary.supportedInterfaceOrientations) {
             /// Arriving on the outer screen, the system picks the supported orientation nearest the device's.
             return nearestSupportedOrientation
-        } else if let sceneOrientation = FUInterfaceOrientation.windowScene {
+        } else if let sceneOrientation {
             return sceneOrientation == state.interfaceOrientation ? nil : sceneOrientation
         } else if let newSupportedOrientation = InfoDictionary.supportedInterfaceOrientations.first(where: { $0 == deviceOrientation }), newSupportedOrientation != state.interfaceOrientation {
             return newSupportedOrientation
@@ -84,6 +86,11 @@ struct AutoRotatingLayer<Content: View>: View {
         } else {
             return nil
         }
+    }
+
+    /// The interface orientation of this view's window scene. Before the view is in a window, the app's window scene when it has only one.
+    private var sceneOrientation: FUInterfaceOrientation? {
+        (windowScene.scene ?? .onlyApplicationScene).flatMap(FUInterfaceOrientation.init(windowScene:))
     }
 
     /// The state with a new interface orientation, and the content turned to match.
@@ -230,14 +237,14 @@ struct AutoRotatingLayer<Content: View>: View {
         let deviceOrientation = UIDevice.current.orientation.interfaceOrientation
         /// The notification can arrive after the system's turn to that orientation has started.
         if let deviceOrientation, announcement.isSystemTurning(to: deviceOrientation) { return }
-        if let deviceOrientation, deviceOrientation != (state.interfaceOrientation ?? FUInterfaceOrientation.windowScene), InfoDictionary.supportedInterfaceOrientations.contains(deviceOrientation) {
+        if let deviceOrientation, deviceOrientation != (state.interfaceOrientation ?? sceneOrientation), InfoDictionary.supportedInterfaceOrientations.contains(deviceOrientation) {
             expectedInterfaceOrientation = deviceOrientation
             start(AutoRotatingTurn(id: announcement.nextID(), kind: .device, interfaceOrientation: deviceOrientation, animation: nil))
             /// If the system doesn't turn, the content turns back to the interface on its own.
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 guard expectedInterfaceOrientation == deviceOrientation else { return }
                 expectedInterfaceOrientation = nil
-                start(AutoRotatingTurn(id: announcement.nextID(), kind: .contentOnly, interfaceOrientation: FUInterfaceOrientation.windowScene, animation: animation))
+                start(AutoRotatingTurn(id: announcement.nextID(), kind: .contentOnly, interfaceOrientation: sceneOrientation, animation: animation))
             }
         } else {
             start(AutoRotatingTurn(id: announcement.nextID(), kind: .contentOnly, interfaceOrientation: nil, animation: animation))
@@ -256,7 +263,7 @@ struct AutoRotatingLayer<Content: View>: View {
         }
         /// A window that resizes without turning has nothing to turn.
         guard abs(angle.degrees) > 1 else { return }
-        let newInterfaceOrientation = expectedOrientation ?? FUInterfaceRotation(exactly: angle).flatMap { (state.interfaceOrientation ?? FUInterfaceOrientation.windowScene)?.rotated(by: $0) }
+        let newInterfaceOrientation = expectedOrientation ?? FUInterfaceRotation(exactly: angle).flatMap { (state.interfaceOrientation ?? sceneOrientation)?.rotated(by: $0) }
         let systemTurn = announcement.systemTurn(for: coordinator)
         let turn = AutoRotatingTurn(id: systemTurn.id, kind: .system(angle: angle, timing: systemTurn.timing), interfaceOrientation: newInterfaceOrientation, animation: .systemTurn(systemTurn.timing))
         /// Set now, before the system lays the interface out for the turn.
@@ -270,6 +277,14 @@ struct AutoRotatingLayer<Content: View>: View {
             systemTurn.timing.begin()
             start(turn, startFrame: startFrame)
         }
+    }
+
+    /// Brings the orientations up to date with the view's own window scene once it's in a window.
+    private func windowSceneDidChange(to scene: UIWindowScene) {
+        guard windowScene.scene !== scene else { return }
+        windowScene.scene = scene
+        guard FUInterfaceOrientation(windowScene: scene) != state.interfaceOrientation else { return }
+        changeOrientations(isAppearing: true)
     }
 
     /// Called when the hinge first reports the screen, and whenever the screen changes.
@@ -307,7 +322,7 @@ struct AutoRotatingLayer<Content: View>: View {
         state.isAwaitingScreenLayout = false
         /// The new screen's bar arrives with its layout.
         state.turnStart = nil
-        return updatingOrientations(state, interfaceOrientation: FUInterfaceOrientation.windowScene, isChangingDeviceScreen: true)
+        return updatingOrientations(state, interfaceOrientation: sceneOrientation, isChangingDeviceScreen: true)
     }
 
     /// The latest turn as this layer took it, or nil if it didn't take it or has changed since.
@@ -437,7 +452,7 @@ struct AutoRotatingLayer<Content: View>: View {
             state.contentOrientation = nil
             changeOrientations(orientationMap: newValue)
         }
-        .onInterfaceRotation(interfaceWillRotate(by:coordinator:in:))
+        .onInterfaceRotation(interfaceWillRotate(by:coordinator:in:), windowScene: windowSceneDidChange(to:))
         /// A layer inside another takes each turn the outermost one starts.
         .onChange(of: enclosingClock?.turn) { newValue in
             guard let newValue else { return }

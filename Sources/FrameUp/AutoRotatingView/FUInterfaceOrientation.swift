@@ -69,6 +69,25 @@ internal extension FUInterfaceOrientation {
 }
 
 internal extension FUInterfaceOrientation {
+    /// The interface orientation of a window scene.
+    @MainActor
+    init?(windowScene scene: UIWindowScene) {
+        let interfaceOrientation: UIInterfaceOrientation
+        if #available(iOS 16, *) {
+            interfaceOrientation = scene.effectiveGeometry.interfaceOrientation
+        } else {
+            interfaceOrientation = scene.interfaceOrientation
+        }
+        switch interfaceOrientation {
+        case .portrait: self = .portrait
+        case .portraitUpsideDown: self = .portraitUpsideDown
+        /// UIKit names the interface's turn, the opposite of the device's.
+        case .landscapeRight: self = .landscapeLeft
+        case .landscapeLeft: self = .landscapeRight
+        default: return nil
+        }
+    }
+
     /// The interface orientation of the app's foreground window scene.
     @MainActor
     static var windowScene: Self? {
@@ -77,21 +96,24 @@ internal extension FUInterfaceOrientation {
             .compactMap { $0 as? UIWindowScene }
             .filter { $0.session.role == .windowApplication }
         let scene = scenes.first { $0.activationState == .foregroundActive } ?? scenes.first
-        let interfaceOrientation: UIInterfaceOrientation?
-        if #available(iOS 16, *) {
-            interfaceOrientation = scene?.effectiveGeometry.interfaceOrientation
-        } else {
-            interfaceOrientation = scene?.interfaceOrientation
-        }
-        switch interfaceOrientation {
-        case .portrait: return .portrait
-        case .portraitUpsideDown: return .portraitUpsideDown
-        /// UIKit names the interface's turn, the opposite of the device's.
-        case .landscapeRight: return .landscapeLeft
-        case .landscapeLeft: return .landscapeRight
-        default: return nil
-        }
+        return scene.flatMap(Self.init(windowScene:))
     }
+}
+
+internal extension UIWindowScene {
+    /// The app's window scene when it has only one, or nil.
+    @MainActor
+    static var onlyApplicationScene: UIWindowScene? {
+        let scenes = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .filter { $0.session.role == .windowApplication }
+        return scenes.count == 1 ? scenes.first : nil
+    }
+}
+
+/// A window scene, held weakly.
+internal final class WindowSceneReference {
+    weak var scene: UIWindowScene? = nil
 }
 
 internal extension Dictionary where Key == FUInterfaceOrientation, Value == FUInterfaceOrientation {

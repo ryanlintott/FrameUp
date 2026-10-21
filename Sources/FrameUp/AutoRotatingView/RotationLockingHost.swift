@@ -206,7 +206,7 @@ internal final class RotationLockingViewController: UIViewController {
         guard coordinator.isAnimated, coordinator.transitionDuration > 0, abs(angle.degrees) > 1,
               let frame, let announcement,
               let rotation = FUInterfaceRotation(exactly: angle),
-              let newOrientation = (hostInterfaceOrientation ?? FUInterfaceOrientation.windowScene)?.rotated(by: rotation),
+              let newOrientation = (hostInterfaceOrientation ?? view.window?.windowScene.flatMap(FUInterfaceOrientation.init(windowScene:)))?.rotated(by: rotation),
               heldOrientations.contains(newOrientation)
         else { return }
         let systemTurn = announcement.systemTurn(for: coordinator)
