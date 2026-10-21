@@ -30,6 +30,7 @@ These were measured on the iPhone 18 Pro and iPhone Duo simulators, iOS 27.0 and
 | Inside held content, the scoped `animation(_:body:)` doesn't animate. `animation(_:value:)` does. | `autoRotatingHeldTurnAnimation` docs. |
 | In a reader whose layout direction differs from the app's, SwiftUI names system UI in a corner for the reader's direction but the rounded corners for the app's. | Corner insets are read in the caller's direction. |
 | On a device (iPhone 18 Pro, iOS 27.0.1), the system's turn starts about 1 ms after the device orientation notification, so `.system`'s new rotation is first drawn inside UIKit's rotation animation. The window has no transform: the system turns the display while the window's bounds animate. Core Animation animates the content layer's rotation and position separately, and SwiftUI places a turned layer by its corner, so the content's centre drifts about 140 pt off the window's centre mid-turn and the animated bounds crop it. Neither a scoped `transaction` without animation nor turning a zero-size frame at the centre changed it. | `FUCounterRotationStyle.system` docs: a known limitation; `.hold` avoids it. |
+| `UIApplication.supportedInterfaceOrientations(for:)` returns the Info.plist value (all four in the example app on the iPhone 18 Pro simulator), not what the device allows. With upside down in it, the iPhone 18 Pro still doesn't turn to upside down. | `FUInterfaceOrientation.systemOrientations(in:)` intersects the scene or app delegate's mask, or that value, with the top full-screen view controller's, and honours `isInterfaceOrientationLocked`. Upside down on an iPhone stays uncertain. |
 | A layer's `onAppear` runs before its `InterfaceRotationAnchorView` moves to a window. | The layer reads its own scene from `onInterfaceRotation(_:windowScene:)`, and until then uses the app's window scene only when there's exactly one. |
 | `ConcentricRectangle` and `ContainerRelativeShape` resolve against the unturned container. Setting a container shape inside `AutoRotatingView` would change the shape of style backgrounds even when nothing turns. | `AutoRotatingGeometryProxy.concentricCornerRadii`; no `containerShape` is set. |
 
@@ -38,6 +39,5 @@ These were measured on the iPhone 18 Pro and iPhone Duo simulators, iOS 27.0 and
 The review on 2026-10-20 listed the values that aren't derived from the system. The main ones:
 
 - The 0.1 s and 0.3 s fallbacks above.
-- Info.plist orientations stand in for the app's effective supported orientations.
 - The fold and unfold orientation table in `ContentOrientationChoice` is an estimate.
 - The 0.3 s default `animation` is a chosen default. It doesn't double for half turns.

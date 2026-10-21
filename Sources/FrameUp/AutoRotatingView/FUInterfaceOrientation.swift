@@ -111,9 +111,66 @@ internal extension UIWindowScene {
     }
 }
 
-/// A window scene, held weakly.
-internal final class WindowSceneReference {
-    weak var scene: UIWindowScene? = nil
+/// A window, held weakly, that compares by identity.
+internal struct WindowReference: Equatable {
+    weak var window: UIWindow? = nil
+
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.window === rhs.window
+    }
+}
+
+internal extension FUInterfaceOrientation {
+    /// The interface orientations the system can turn a window to: the app's or scene's supported orientations, and those of the view controller at the top of the window.
+    ///
+    /// No API reports that an iPhone without a Home button doesn't turn to upside down.
+    /// - Parameter window: The window, or nil for the app's supported orientations alone.
+    @MainActor
+    static func systemOrientations(in window: UIWindow?) -> [Self] {
+        let application = UIApplication.shared
+        var mask: UIInterfaceOrientationMask
+        if #available(iOS 27, *), let scene = window?.windowScene, let sceneMask = (scene.delegate as? UIWindowSceneDelegate)?.supportedInterfaceOrientations?(for: scene) {
+            mask = sceneMask
+        } else if let appMask = application.delegate?.application?(application, supportedInterfaceOrientationsFor: window) {
+            mask = appMask
+        } else {
+            /// The Info.plist value, or the platform's default.
+            mask = application.supportedInterfaceOrientations(for: window)
+        }
+        if let window {
+            if #available(iOS 26, *), let scene = window.windowScene, scene.effectiveGeometry.isInterfaceOrientationLocked {
+                return Self(windowScene: scene).map { [$0] } ?? []
+            }
+            /// On iPad the system ignores the view controller unless the app requires the full screen.
+            let isViewControllerRespected = UIDevice.current.userInterfaceIdiom != .pad || Bundle.main.object(forInfoDictionaryKey: "UIRequiresFullScreen") as? Bool == true
+            if isViewControllerRespected, let viewController = window.topFullScreenViewController {
+                mask.formIntersection(viewController.supportedInterfaceOrientations)
+            }
+        }
+        return allCases.filter { mask.contains($0.mask) }
+    }
+
+    /// The interface orientation mask of this orientation.
+    var mask: UIInterfaceOrientationMask {
+        switch self {
+        case .portrait: .portrait
+        case .portraitUpsideDown: .portraitUpsideDown
+        /// UIKit names the interface's turn, the opposite of the device's.
+        case .landscapeLeft: .landscapeRight
+        case .landscapeRight: .landscapeLeft
+        }
+    }
+}
+
+internal extension UIWindow {
+    /// The view controller whose supported orientations the system follows: the root, or the last one presented over the full screen.
+    var topFullScreenViewController: UIViewController? {
+        var viewController = rootViewController
+        while let presented = viewController?.presentedViewController, presented.presentationController?.shouldPresentInFullscreen == true, !presented.isBeingDismissed {
+            viewController = presented
+        }
+        return viewController
+    }
 }
 
 internal extension Dictionary where Key == FUInterfaceOrientation, Value == FUInterfaceOrientation {

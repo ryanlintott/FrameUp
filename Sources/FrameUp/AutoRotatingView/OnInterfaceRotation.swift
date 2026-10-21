@@ -35,8 +35,8 @@ fileprivate final class InterfaceRotationViewController: UIViewController {
 /// Added this way, rather than through a representable, the child isn't a view controller SwiftUI places in its own hierarchy, so it stays out of the status bar's way.
 fileprivate final class InterfaceRotationAnchorView: UIView {
     let viewController = InterfaceRotationViewController()
-    /// Performed with the window scene when the view moves to a window.
-    var windowSceneAction: (UIWindowScene) -> Void = { _ in }
+    /// Performed with the window when the view moves to one.
+    var windowAction: (UIWindow) -> Void = { _ in }
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -49,8 +49,8 @@ fileprivate final class InterfaceRotationAnchorView: UIView {
 
     override func didMoveToWindow() {
         super.didMoveToWindow()
-        if let windowScene = window?.windowScene {
-            windowSceneAction(windowScene)
+        if let window {
+            windowAction(window)
         }
         viewController.willMove(toParent: nil)
         viewController.removeFromParent()
@@ -66,7 +66,7 @@ fileprivate final class InterfaceRotationAnchorView: UIView {
 
 fileprivate struct InterfaceRotationReader: UIViewRepresentable {
     let action: (Angle, UIViewControllerTransitionCoordinator, UIView) -> Void
-    let windowSceneAction: (UIWindowScene) -> Void
+    let windowAction: (UIWindow) -> Void
 
     func makeUIView(context: Context) -> InterfaceRotationAnchorView {
         let view = InterfaceRotationAnchorView()
@@ -77,7 +77,7 @@ fileprivate struct InterfaceRotationReader: UIViewRepresentable {
 
     func updateUIView(_ view: InterfaceRotationAnchorView, context: Context) {
         view.viewController.action = action
-        view.windowSceneAction = windowSceneAction
+        view.windowAction = windowAction
     }
 }
 
@@ -85,9 +85,9 @@ internal extension View {
     /// Adds an action to perform when the system is about to turn the interface, with the angle of the turn, the coordinator of its animation, and a view in the window to measure the animation in.
     /// - Parameters:
     ///   - action: The action to perform when the system is about to turn the interface.
-    ///   - windowSceneAction: An action to perform with the view's window scene when it moves to a window, which is after it appears.
-    func onInterfaceRotation(_ action: @escaping (Angle, UIViewControllerTransitionCoordinator, UIView) -> Void, windowScene windowSceneAction: @escaping (UIWindowScene) -> Void) -> some View {
-        background(InterfaceRotationReader(action: action, windowSceneAction: windowSceneAction).allowsHitTesting(false).accessibilityHidden(true))
+    ///   - windowAction: An action to perform with the view's window when it moves to one, which is after it appears.
+    func onInterfaceRotation(_ action: @escaping (Angle, UIViewControllerTransitionCoordinator, UIView) -> Void, window windowAction: @escaping (UIWindow) -> Void) -> some View {
+        background(InterfaceRotationReader(action: action, windowAction: windowAction).allowsHitTesting(false).accessibilityHidden(true))
     }
 }
 #endif
