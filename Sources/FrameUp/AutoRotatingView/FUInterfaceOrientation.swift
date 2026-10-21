@@ -62,6 +62,15 @@ internal extension FUInterfaceOrientation {
         .init(rotationFromPortrait: rotationFromPortrait + rotation)
     }
     
+    /// The interface orientation once the system turns the interface by a rotation, as reported by a transition coordinator.
+    /// - Parameters:
+    ///   - rotation: The system's turn of the interface.
+    ///   - orientation: The interface orientation before the turn, if known.
+    ///   - sceneOrientation: The window scene's orientation, which has already turned by the time the coordinator reports the turn.
+    static func afterSystemTurn(by rotation: FUInterfaceRotation, from orientation: Self?, sceneOrientation: Self?) -> Self? {
+        orientation?.rotated(by: rotation) ?? sceneOrientation
+    }
+
     /// The orientation in a list that is the smallest turn from this one. A quarter turn is nearer than a half turn, and the first in the list wins a tie.
     func nearest(in orientations: [Self]) -> Self? {
         orientations.min { rotation(from: $0).shortestQuarterTurns < rotation(from: $1).shortestQuarterTurns }

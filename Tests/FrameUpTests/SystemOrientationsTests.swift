@@ -36,5 +36,12 @@ struct SystemOrientationsTests {
         }
         #expect(window.topFullScreenViewController === viewController)
     }
+
+    /// The scene has already turned when the coordinator reports the turn, so it's the new orientation as it is, not turned again.
+    @Test func newOrientationAfterSystemTurn() {
+        #expect(FUInterfaceOrientation.afterSystemTurn(by: .degrees90, from: .portrait, sceneOrientation: .landscapeLeft) == .landscapeLeft)
+        #expect(FUInterfaceOrientation.afterSystemTurn(by: .degrees270, from: .portrait, sceneOrientation: nil) == .landscapeRight)
+        #expect(FUInterfaceOrientation.afterSystemTurn(by: .degrees90, from: nil, sceneOrientation: .landscapeLeft) == .landscapeLeft)
+    }
 }
 #endif

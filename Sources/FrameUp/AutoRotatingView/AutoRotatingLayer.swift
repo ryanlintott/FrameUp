@@ -263,7 +263,7 @@ struct AutoRotatingLayer<Content: View>: View {
             }
             return
         }
-        let newInterfaceOrientation = FUInterfaceRotation(exactly: angle).flatMap { (state.interfaceOrientation ?? sceneOrientation)?.rotated(by: $0) }
+        let newInterfaceOrientation = FUInterfaceRotation(exactly: angle).flatMap { FUInterfaceOrientation.afterSystemTurn(by: $0, from: state.interfaceOrientation, sceneOrientation: sceneOrientation) }
         let systemTurn = announcement.systemTurn(for: coordinator)
         let turn = AutoRotatingTurn(id: systemTurn.id, kind: .system(angle: angle, timing: systemTurn.timing), interfaceOrientation: newInterfaceOrientation, animation: .systemTurn(systemTurn.timing))
         /// Set now, before the system lays the interface out for the turn.
