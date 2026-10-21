@@ -11,13 +11,14 @@ import Testing
 @testable import FrameUp
 
 /// Where a layer's content is, and how it's turned, at a step of a turn.
+@MainActor
 struct LayerTurnGeometryTests {
     static let portrait = LayerFrame(size: CGSize(width: 402, height: 874), safeAreaInsets: PhysicalEdgeInsets(top: 62, bottom: 34))
     static let landscape = LayerFrame(size: CGSize(width: 874, height: 402), safeAreaInsets: PhysicalEdgeInsets(left: 62, bottom: 21, right: 62))
     static let bar = SystemBar(kind: .verticalToolbar, physicalEdge: .right, depth: 84, clockwiseStart: 10, clockwiseEnd: 0, reservedDepth: 0)
 
     static func systemTurn(id: Int) -> AutoRotatingTurn {
-        AutoRotatingTurn(id: id, kind: .system(angle: .degrees(90), startTime: 0, duration: 0.3), interfaceOrientation: .landscapeLeft, animation: nil)
+        AutoRotatingTurn(id: id, kind: .system(angle: .degrees(90), timing: SystemTurnTiming(duration: 0.3)), interfaceOrientation: .landscapeLeft, animation: nil)
     }
 
     static func geometry(frame: LayerFrame = landscape, interfaceRotation: Angle = .degrees(-90), turnStart: TurnStart? = nil, hold: RotationHold? = nil, turn: AutoRotatingTurn? = systemTurn(id: 1), progress: Double, enclosingSafeAreaTurn: SafeAreaTurn? = nil, systemBar: SystemBar? = bar, enclosingIsTurnStartSystemBar: Bool? = nil) -> LayerTurnGeometry {
@@ -54,7 +55,7 @@ struct LayerTurnGeometryTests {
 
     /// Before the content takes the turn its host holds, it stays in the host's frame from before the turn and doesn't take the host's turn.
     @Test func heldBeforeTakingTurn() {
-        let hold = RotationHold(turnID: 1, duration: 0.3, angle: .degrees(90), frame: Self.portrait)
+        let hold = RotationHold(turnID: 1, timing: SystemTurnTiming(duration: 0.3), angle: .degrees(90), frame: Self.portrait)
         let geometry = Self.geometry(interfaceRotation: .zero, hold: hold, progress: 0.5)
         #expect(geometry.rotation == .zero)
         #expect(geometry.contentFrame == Self.portrait)
@@ -64,7 +65,7 @@ struct LayerTurnGeometryTests {
 
     /// Once the content has taken the turn its host holds, it turns as far again as the host turns the old frame back, starting from the frame before the turn.
     @Test func heldThroughTurn() {
-        let hold = RotationHold(turnID: 1, duration: 0.3, angle: .degrees(90), frame: Self.portrait)
+        let hold = RotationHold(turnID: 1, timing: SystemTurnTiming(duration: 0.3), angle: .degrees(90), frame: Self.portrait)
         let start = TurnStart(id: 1, rotation: .zero, keepsOrientation: true, frame: Self.portrait, systemBar: nil)
         let geometry = Self.geometry(turnStart: start, hold: hold, progress: 0.5)
         #expect(geometry.rotation == .degrees(-45) + .degrees(45))
@@ -74,7 +75,7 @@ struct LayerTurnGeometryTests {
 
     /// Once the host hands over the new frame the turn is done, even if the clock is behind.
     @Test func releasedHoldEndsTurn() {
-        let hold = RotationHold(turnID: 1, duration: 0.3, angle: .degrees(90), frame: Self.portrait, isReleased: true)
+        let hold = RotationHold(turnID: 1, timing: SystemTurnTiming(duration: 0.3), angle: .degrees(90), frame: Self.portrait, isReleased: true)
         let start = TurnStart(id: 1, rotation: .zero, keepsOrientation: true, frame: nil, systemBar: nil)
         let geometry = Self.geometry(turnStart: start, hold: hold, progress: 0.3)
         #expect(geometry.rotation == .degrees(-90))

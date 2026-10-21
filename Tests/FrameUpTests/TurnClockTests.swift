@@ -76,8 +76,9 @@ final class TurnClockTests: XCTestCase {
 
     func testSystemTurnProgressSteps() {
         let values = progress { id in
-            let startTime = CACurrentMediaTime()
-            return AutoRotatingTurn(id: id, kind: .system(angle: .degrees(90), startTime: startTime, duration: 0.3), interfaceOrientation: .landscapeLeft, animation: .systemTurn(startTime: startTime, duration: 0.3))
+            let timing = SystemTurnTiming(duration: 0.3)
+            timing.begin()
+            return AutoRotatingTurn(id: id, kind: .system(angle: .degrees(90), timing: timing), interfaceOrientation: .landscapeLeft, animation: .systemTurn(timing))
         }
         let steps = values.filter { $0 > 0.01 && $0 < 0.99 }
         XCTAssertGreaterThan(steps.count, 3, "progress seen: \(values)")

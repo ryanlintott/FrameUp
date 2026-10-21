@@ -12,8 +12,8 @@ import UIKit
 /// A change of orientation that the outermost `AutoRotatingView` starts and every one inside it takes, so they all move on one clock.
 internal struct AutoRotatingTurn: Equatable {
     enum Kind: Equatable {
-        /// The system turns the interface by an angle. `startTime` is from `CACurrentMediaTime()`.
-        case system(angle: Angle, startTime: TimeInterval, duration: TimeInterval)
+        /// The system turns the interface by an angle, with the timing of its animation.
+        case system(angle: Angle, timing: SystemTurnTiming)
         /// The device turned to an orientation the system is about to turn the interface to.
         case device
         /// The content turns on its own, without the system.
@@ -64,13 +64,13 @@ internal final class TurnAnnouncement {
     var id = 0
     /// The interface orientation the system's latest turn is to.
     var interfaceOrientation: FUInterfaceOrientation? = nil
-    /// When the system's latest turn ends, from `CACurrentMediaTime()`.
-    var endTime: TimeInterval = 0
     /// The outermost view's frame as it was last laid out before the latest turn was announced.
     var frame: LayerFrame? = nil
 
     private weak var systemTurnCoordinator: AnyObject? = nil
     private var systemTurnID = 0
+    /// The timing of the system's latest turn.
+    private var systemTurnTiming: SystemTurnTiming? = nil
 
     /// The id for a new turn.
     func nextID() -> Int {
@@ -78,18 +78,21 @@ internal final class TurnAnnouncement {
         return id
     }
 
-    /// The id of the system's turn in a transition, the same for the layer and any host, whichever asks first.
-    func systemTurnID(for coordinator: UIViewControllerTransitionCoordinator) -> Int {
+    /// The id and timing of the system's turn in a transition, the same for the layer and any host, whichever asks first.
+    @MainActor
+    func systemTurn(for coordinator: UIViewControllerTransitionCoordinator) -> (id: Int, timing: SystemTurnTiming) {
         if systemTurnCoordinator !== coordinator {
             systemTurnCoordinator = coordinator
             systemTurnID = nextID()
+            systemTurnTiming = SystemTurnTiming(coordinator: coordinator)
         }
-        return systemTurnID
+        return (systemTurnID, systemTurnTiming ?? SystemTurnTiming(coordinator: coordinator))
     }
 
     /// True while the system is turning the interface to an orientation.
+    @MainActor
     func isSystemTurning(to orientation: FUInterfaceOrientation) -> Bool {
-        interfaceOrientation == orientation && CACurrentMediaTime() < endTime
+        interfaceOrientation == orientation && systemTurnTiming?.isUnderway(at: CACurrentMediaTime()) == true
     }
 }
 
@@ -180,27 +183,25 @@ internal extension TurnClockDriver {
     }
 }
 
-/// An animation timed from when the system's turn started, rather than from SwiftUI's first frame, which can be a few frames later.
+/// An animation that follows the system's turn from when it began, rather than from SwiftUI's first frame.
 @available(iOS 17, *)
 internal struct SystemTurnAnimation: CustomAnimation {
-    /// When the turn started, from `CACurrentMediaTime()`.
-    let startTime: TimeInterval
-    let duration: TimeInterval
+    let timing: SystemTurnTiming
 
     func animate<V: VectorArithmetic>(value: V, time: TimeInterval, context: inout AnimationContext<V>) -> V? {
-        let elapsed = CACurrentMediaTime() - startTime
-        guard elapsed < duration else { return nil }
-        return value.scaled(by: UnitCurve.easeInOut.value(at: max(elapsed, 0) / duration))
+        let progress = MainActor.assumeIsolated { timing.progress(at: CACurrentMediaTime()) }
+        return progress.map { value.scaled(by: $0) }
     }
 }
 
 internal extension Animation {
-    /// An animation timed like the system's turn of the interface.
-    static func systemTurn(startTime: TimeInterval, duration: TimeInterval) -> Animation {
+    /// An animation timed like the system's turn of the interface. Before iOS 17 it has the turn's curve, timed from SwiftUI's first frame.
+    @MainActor
+    static func systemTurn(_ timing: SystemTurnTiming) -> Animation {
         if #available(iOS 17, *) {
-            Animation(SystemTurnAnimation(startTime: startTime, duration: duration))
+            Animation(SystemTurnAnimation(timing: timing))
         } else {
-            .easeInOut(duration: duration)
+            timing.swiftUIAnimation
         }
     }
 }

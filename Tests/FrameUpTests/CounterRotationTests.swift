@@ -18,7 +18,7 @@ struct CounterRotationTests {
         /// The host releases its hold from the completion of the transaction it adds the counter-rotation in.
         CATransaction.begin()
         CATransaction.setCompletionBlock { completed = CACurrentMediaTime() - start }
-        view.layer.addCounterRotation(by: angle, duration: 1)
+        view.layer.addCounterRotation(by: angle, timing: SystemTurnTiming(duration: 1))
         CATransaction.commit()
         CATransaction.flush()
         try? await Task.sleep(for: .milliseconds(500))

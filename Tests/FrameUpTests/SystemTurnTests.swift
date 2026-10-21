@@ -16,7 +16,7 @@ struct SystemTurnTests {
     let layer = AutoRotatingLayer([.portrait, .landscapeRight, .portraitUpsideDown], isOn: true, counterRotation: .system, animation: nil) { _ in Color.clear }
 
     func systemTurn(id: Int, from: FUInterfaceOrientation, to: FUInterfaceOrientation) -> AutoRotatingTurn {
-        AutoRotatingTurn(id: id, kind: .system(angle: to.rotation(from: from).angle, startTime: 0, duration: 0.3), interfaceOrientation: to, animation: nil)
+        AutoRotatingTurn(id: id, kind: .system(angle: to.rotation(from: from).angle, timing: SystemTurnTiming(duration: 0.3)), interfaceOrientation: to, animation: nil)
     }
 
     /// When the device's notification arrives after the system's turn has started, the system's turn changes the orientations.

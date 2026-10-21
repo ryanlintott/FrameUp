@@ -51,7 +51,7 @@ fileprivate final class PassThroughView: UIView {
 internal struct RotationHold {
     /// The id of the system's turn, shared with the outermost `AutoRotatingView`.
     let turnID: Int
-    let duration: TimeInterval
+    let timing: SystemTurnTiming
     /// The system's turn of the interface.
     let angle: Angle
     /// The host's frame before the turn, which the content keeps until the host hands it the new one.
@@ -71,18 +71,17 @@ internal extension CALayer {
 
     /// Turns the layer back by the system's turn of the interface, so it stays still on the screen.
     ///
-    /// Animating the rotation angle, rather than the transform, turns a half turn the way the angle says. Added in the system's transaction, it starts with the system's animations.
-    func addCounterRotation(by angle: Angle, duration: TimeInterval) {
+    /// Animating the rotation angle, rather than the transform, turns a half turn the way the angle says. Added in the system's transaction with the system's timing, it moves with the system's animations.
+    @MainActor
+    func addCounterRotation(by angle: Angle, timing: SystemTurnTiming) {
         CATransaction.begin()
         CATransaction.setDisableActions(true)
         setAffineTransform(CGAffineTransform(rotationAngle: -angle.radians))
         CATransaction.commit()
-        let animation = CABasicAnimation(keyPath: "transform.rotation.z")
+        let animation = timing.animation(keyPath: "transform.rotation.z")
         animation.fromValue = angle.radians
         animation.toValue = 0
         animation.isAdditive = true
-        animation.duration = duration
-        animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
         add(animation, forKey: Self.counterRotationKey)
     }
 }
@@ -210,13 +209,17 @@ internal final class RotationLockingViewController: UIViewController {
               let newOrientation = (hostInterfaceOrientation ?? FUInterfaceOrientation.windowScene)?.rotated(by: rotation),
               heldOrientations.contains(newOrientation)
         else { return }
-        let hold = RotationHold(turnID: announcement.systemTurnID(for: coordinator), duration: coordinator.transitionDuration, angle: angle, frame: frame)
+        let systemTurn = announcement.systemTurn(for: coordinator)
+        let hold = RotationHold(turnID: systemTurn.id, timing: systemTurn.timing, angle: angle, frame: frame)
         /// Set before the system lays the interface out at its new size.
         self.hold = hold
         let isAnimated = coordinator.animate(alongsideTransition: { [weak self] _ in
-            self?.counterRotate(hold)
+            guard let self else { return }
+            hold.timing.measure(in: view)
+            counterRotate(hold)
         })
         guard isAnimated else {
+            hold.timing.begin()
             self.hold = nil
             return
         }
@@ -251,7 +254,7 @@ internal final class RotationLockingViewController: UIViewController {
         }
         /// A UIKit animation of the transform would otherwise replace the counter-rotation.
         UIView.performWithoutAnimation {
-            hostingController.view.layer.addCounterRotation(by: hold.angle, duration: hold.duration)
+            hostingController.view.layer.addCounterRotation(by: hold.angle, timing: hold.timing)
         }
         CATransaction.commit()
     }

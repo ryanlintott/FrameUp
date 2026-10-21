@@ -188,7 +188,7 @@ struct AutoRotatingLayer<Content: View>: View {
             let startRotation = state.contentRotation
             state = updatingOrientations(state, interfaceOrientation: turn.interfaceOrientation)
             state.turnStart = TurnStart(id: turn.id, rotation: startRotation, keepsOrientation: state.contentRotation == startRotation, frame: nil, systemBar: systemBar)
-        case let .system(angle, _, _):
+        case let .system(angle, _):
             guard isOn else { return state }
             if state.isAwaitingScreenLayout {
                 return movingToScreen(state)
@@ -224,7 +224,7 @@ struct AutoRotatingLayer<Content: View>: View {
 
     /// Starts a turn when the device turns. Outermost layer only.
     ///
-    /// When the device turns to a supported orientation, the system turns the interface a moment later, in ``interfaceWillRotate(by:coordinator:)``. Otherwise the content turns on its own.
+    /// When the device turns to a supported orientation, the system turns the interface a moment later, in ``interfaceWillRotate(by:coordinator:in:)``. Otherwise the content turns on its own.
     private func deviceOrientationDidChange() {
         guard isOutermost && deviceScreen == .outer && !state.isAwaitingScreenLayout else { return }
         let deviceOrientation = UIDevice.current.orientation.interfaceOrientation
@@ -245,7 +245,7 @@ struct AutoRotatingLayer<Content: View>: View {
     }
 
     /// Starts the system's turn inside its animation, on a clock that starts with it. Outermost layer only.
-    private func interfaceWillRotate(by angle: Angle, coordinator: UIViewControllerTransitionCoordinator) {
+    private func interfaceWillRotate(by angle: Angle, coordinator: UIViewControllerTransitionCoordinator, in view: UIView) {
         guard isOutermost else { return }
         let expectedOrientation = expectedInterfaceOrientation
         expectedInterfaceOrientation = nil
@@ -256,18 +256,18 @@ struct AutoRotatingLayer<Content: View>: View {
         }
         /// A window that resizes without turning has nothing to turn.
         guard abs(angle.degrees) > 1 else { return }
-        let startTime = CACurrentMediaTime()
-        let duration = coordinator.transitionDuration
         let newInterfaceOrientation = expectedOrientation ?? FUInterfaceRotation(exactly: angle).flatMap { (state.interfaceOrientation ?? FUInterfaceOrientation.windowScene)?.rotated(by: $0) }
-        let turn = AutoRotatingTurn(id: announcement.systemTurnID(for: coordinator), kind: .system(angle: angle, startTime: startTime, duration: duration), interfaceOrientation: newInterfaceOrientation, animation: .systemTurn(startTime: startTime, duration: duration))
+        let systemTurn = announcement.systemTurn(for: coordinator)
+        let turn = AutoRotatingTurn(id: systemTurn.id, kind: .system(angle: angle, timing: systemTurn.timing), interfaceOrientation: newInterfaceOrientation, animation: .systemTurn(systemTurn.timing))
         /// Set now, before the system lays the interface out for the turn.
         announcement.interfaceOrientation = newInterfaceOrientation
-        announcement.endTime = startTime + duration
         let startFrame = announcement.frame
         let isQueued = coordinator.animate(alongsideTransition: { _ in
+            systemTurn.timing.measure(in: view)
             start(turn, startFrame: startFrame)
         })
         if !isQueued {
+            systemTurn.timing.begin()
             start(turn, startFrame: startFrame)
         }
     }
@@ -318,8 +318,8 @@ struct AutoRotatingLayer<Content: View>: View {
 
     /// An animation timed like the system's turn while it's under way and the content is held still, or nil.
     private func heldTurnAnimation(_ clock: TurnClock?, state: TurnState) -> Animation? {
-        guard systemTurnHandling == .heldStill, let clock, clock.isSystemTurning, currentTurnStart(clock, state: state) != nil, case let .system(_, startTime, duration) = clock.turn?.kind else { return nil }
-        return .systemTurn(startTime: startTime, duration: duration)
+        guard systemTurnHandling == .heldStill, let clock, clock.isSystemTurning, currentTurnStart(clock, state: state) != nil, case let .system(_, timing) = clock.turn?.kind else { return nil }
+        return .systemTurn(timing)
     }
 
     /// The interface orientations the host holds the content still for when the system turns to them.
@@ -437,7 +437,7 @@ struct AutoRotatingLayer<Content: View>: View {
             state.contentOrientation = nil
             changeOrientations(orientationMap: newValue)
         }
-        .onInterfaceRotation(interfaceWillRotate(by:coordinator:))
+        .onInterfaceRotation(interfaceWillRotate(by:coordinator:in:))
         /// A layer inside another takes each turn the outermost one starts.
         .onChange(of: enclosingClock?.turn) { newValue in
             guard let newValue else { return }

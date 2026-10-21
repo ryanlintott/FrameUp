@@ -5,7 +5,8 @@ Status: reference notes (2026-10-20). They describe the code as it is, and the m
 ## How a turn flows
 
 - **Outermost layer only.** Only the outermost `AutoRotatingLayer` listens to the device and the system. It starts each `AutoRotatingTurn`, and every layer inside takes the same turn and moves on its `TurnClock`.
-- **The turn clock.** `TurnClockDriver` animates a count of turns, and progress is how far the count is past the previous turn. A system turn's animation is `SystemTurnAnimation`, which reads `CACurrentMediaTime()` every frame, so progress matches the system's rotation however late SwiftUI draws its first frame.
+- **The turn clock.** `TurnClockDriver` animates a count of turns, and progress is how far the count is past the previous turn. A system turn's animation is `SystemTurnAnimation`, which reads `CACurrentMediaTime()` every frame against the turn's `SystemTurnTiming`, so progress matches the system's rotation however late SwiftUI draws its first frame.
+- **The turn's timing.** Inside `animate(alongsideTransition:)`, `SystemTurnTiming.measure(in:)` changes a probe view's alpha and copies the animation UIKit gives it: its duration and curve, or spring. A marker animation added in the same transaction reports the begin time in `animationDidStart`. The clock and the `.hold` counter-rotation both use it.
 - **Nested layers.** A nested layer takes the outermost turn in the same layout pass (`currentTurnState`) and stores it in `onChange`. It turns relative to the enclosing content (`ContentRotation`, `LayerTurn`).
 - **`.hold`.** `RotationLockingHost` keeps the content at its old size and adds a counter-rotation inside `coordinator.animate(alongsideTransition:)`, so it starts in the system's own transaction. When the counter-rotation ends, it hands over the new frame and removes the counter-rotation in one transaction.
 
@@ -16,7 +17,9 @@ These were measured on the iPhone 18 Pro and iPhone Duo simulators, iOS 27.0 and
 | Fact | Where it matters |
 | --- | --- |
 | SwiftUI lays the interface out at its new size before state set in `viewWillTransition` reaches the view. That layout has the new size and safe area but the old rotation. | `TurnAnnouncement` is a reference type, so that layout can see the turn and keep the frame from before it (`announcement.frame`). |
-| The system's rotation eases in and out, the same curve as `UnitCurve.easeInOut` and `CAMediaTimingFunction(.easeInEaseOut)`. | `SystemTurnAnimation`, `CALayer.addCounterRotation`. Not read from `completionCurve`. |
+| Inside `animate(alongsideTransition:)`, UIKit gives a view's change a `CABasicAnimation` with control points (0.42, 0), (0.58, 1), the coordinator's `transitionDuration` (0.3 s a quarter turn, 0.6 s a half turn) and `beginTime` 0. The window's own `bounds.size` and `position` animations have the same timing. `completionCurve` is `.easeInOut`. | `SystemTurnTiming` copies the animation rather than assuming the curve. |
+| The system's animations begin when the transaction is committed, 10 to 85 ms after `viewWillTransition` in the simulator. A clock started at `viewWillTransition` ran up to 0.35 of the turn ahead of the window's animated bounds. Timed from the marker's `beginTime`, it was within 0.006 at every frame. | `SystemTurnTiming.beginTime`; progress is 0 until it arrives. |
+| A half turn has no window animation in the app, but a change inside it still gets UIKit's animation with the half turn's duration. | Half turns are measured the same way. Their screen rotation runs outside the app, so its start isn't measured directly. |
 | `coordinator.transitionDuration` already doubles for a half turn. | Turn duration everywhere. |
 | A half turn's `targetTransform` doesn't say which way it turns. The system always turns it the positive way. | `Angle(interfaceTurn:)`. |
 | The transition's completion can run as soon as a half turn starts. | The host releases on its counter-rotation's own `CATransaction` completion. |
@@ -34,7 +37,6 @@ These were measured on the iPhone 18 Pro and iPhone Duo simulators, iOS 27.0 and
 The review on 2026-10-20 listed the values that aren't derived from the system. The main ones:
 
 - The 0.1 s and 0.3 s fallbacks above.
-- The hard-coded ease-in-out curve, rather than the coordinator's `completionCurve`.
 - `FUInterfaceOrientation.windowScene` reads the app's foreground scene, not the view's own.
 - Info.plist orientations stand in for the app's effective supported orientations.
 - The fold and unfold orientation table in `ContentOrientationChoice` is an estimate.
