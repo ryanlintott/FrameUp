@@ -37,8 +37,12 @@ These were measured on the iPhone 18 Pro and iPhone Duo simulators, iOS 27.0 and
 
 ## Known heuristics
 
-The review on 2026-10-20 listed the values that aren't derived from the system. The main ones:
+The review on 2026-10-20 listed the values that aren't derived from the system. The 0.1 s and 0.3 s fallbacks, the hard-coded curve and start time, the foreground scene and Info.plist orientations have since been replaced. What's left:
 
-- `isSystemRefusing` relies on the measured, undocumented fact that the system posts the device orientation notification inside its rotation animation.
+- `isSystemRefusing` relies on the measured, undocumented fact that the system posts the device orientation notification inside its rotation animation. It's used only for upside down on an iPhone, and wasn't measured before iOS 27.
+- On iPad, `systemOrientations(in:)` follows the top view controller only when the app sets `UIRequiresFullScreen`, as UIKit documents. Not checked on an iPad.
+- Before a layer is in a window, it uses the app's window scene only when there is exactly one, and otherwise has no scene orientation until the window arrives.
+- A half turn's screen rotation runs outside the app. Its timing is taken from the animation UIKit gives the app's own changes, which begins at the same commit, but the screen itself wasn't measured.
 - The fold and unfold orientation table in `ContentOrientationChoice` is an estimate.
-- The 0.3 s default `animation` is a chosen default. It doesn't double for half turns.
+- The 0.3 s default `animation` is a chosen default. It doesn't double for half turns. It could instead follow the last `SystemTurnTiming` the app saw, which would match the system after the first turn but not before it.
+- Out of scope for the review: the system bar sizes in `SystemBarGeometry`, the 1° tolerance in `FUInterfaceRotation(exactly:)` and `Angle(interfaceTurn:)`, and the half turn's direction.
