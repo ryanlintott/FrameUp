@@ -10,7 +10,7 @@ import SwiftUI
 
 /// How an `AutoRotatingView` layer's content handles the system's turn of the interface.
 internal enum SystemTurnHandling: Equatable {
-    /// The orientations change at once as the system's turn starts, and the system's rotation carries the change.
+    /// The orientations change as soon as the device turns, and the system's rotation carries the change.
     case changesAsDeviceTurns
     /// The orientations change in step with the system's turn.
     case changesWithSystemTurn

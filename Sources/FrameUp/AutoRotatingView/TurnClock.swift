@@ -14,6 +14,8 @@ internal struct AutoRotatingTurn: Equatable {
     enum Kind: Equatable {
         /// The system turns the interface by an angle, with the timing of its animation.
         case system(angle: Angle, timing: SystemTurnTiming)
+        /// The device turned to an orientation the system has started turning the interface to.
+        case device
         /// The content turns on its own, without the system.
         case contentOnly
         /// The interface has arrived on another screen of a foldable iPhone, without an animation.
