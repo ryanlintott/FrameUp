@@ -256,6 +256,13 @@ struct AutoRotatingLayer<Content: View>: View {
         }
         /// A window that resizes without turning has nothing to turn.
         guard abs(angle.degrees) > 1 else { return }
+        /// An interface that turns without an animation has turned already, and the content takes its place at once.
+        guard coordinator.isAnimated else {
+            if sceneOrientation != state.interfaceOrientation {
+                changeOrientations(isAppearing: true)
+            }
+            return
+        }
         let newInterfaceOrientation = FUInterfaceRotation(exactly: angle).flatMap { (state.interfaceOrientation ?? sceneOrientation)?.rotated(by: $0) }
         let systemTurn = announcement.systemTurn(for: coordinator)
         let turn = AutoRotatingTurn(id: systemTurn.id, kind: .system(angle: angle, timing: systemTurn.timing), interfaceOrientation: newInterfaceOrientation, animation: .systemTurn(systemTurn.timing))
@@ -300,12 +307,15 @@ struct AutoRotatingLayer<Content: View>: View {
             return
         }
         state.isAwaitingScreenLayout = true
-        /// If the interface isn't laid out on the new screen by then, the content moves there anyway.
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            guard state.isAwaitingScreenLayout else { return }
-            withAnimation(nil) {
-                state = movingToScreen(state)
-            }
+        /// The scene can be on the new screen already.
+        windowSceneGeometryDidChange()
+    }
+
+    /// Moves the content to a new screen once the window scene is there, which it reports by a change of its effective geometry.
+    private func windowSceneGeometryDidChange() {
+        guard state.isAwaitingScreenLayout, let screen = window.window?.windowScene?.screen, FUDeviceScreen(screen) == deviceScreen else { return }
+        withAnimation(nil) {
+            state = movingToScreen(state)
         }
     }
 
@@ -445,7 +455,7 @@ struct AutoRotatingLayer<Content: View>: View {
             state.contentOrientation = nil
             changeOrientations(orientationMap: newValue)
         }
-        .onInterfaceRotation(interfaceWillRotate(by:coordinator:in:), window: windowDidChange(to:))
+        .onInterfaceRotation(interfaceWillRotate(by:coordinator:in:), window: windowDidChange(to:), geometry: windowSceneGeometryDidChange)
         /// A layer inside another takes each turn the outermost one starts.
         .onChange(of: enclosingClock?.turn) { newValue in
             guard let newValue else { return }

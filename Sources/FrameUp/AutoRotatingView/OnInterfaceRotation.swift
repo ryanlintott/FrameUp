@@ -37,6 +37,9 @@ fileprivate final class InterfaceRotationAnchorView: UIView {
     let viewController = InterfaceRotationViewController()
     /// Performed with the window when the view moves to one.
     var windowAction: (UIWindow) -> Void = { _ in }
+    /// Performed when the window scene's effective geometry changes.
+    var geometryAction: () -> Void = { }
+    private var geometryObservation: NSKeyValueObservation? = nil
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -51,6 +54,14 @@ fileprivate final class InterfaceRotationAnchorView: UIView {
         super.didMoveToWindow()
         if let window {
             windowAction(window)
+        }
+        geometryObservation = nil
+        if #available(iOS 16, *), let windowScene = window?.windowScene {
+            geometryObservation = windowScene.observe(\.effectiveGeometry) { [weak self] _, _ in
+                MainActor.assumeIsolated {
+                    self?.geometryAction()
+                }
+            }
         }
         viewController.willMove(toParent: nil)
         viewController.removeFromParent()
@@ -67,6 +78,7 @@ fileprivate final class InterfaceRotationAnchorView: UIView {
 fileprivate struct InterfaceRotationReader: UIViewRepresentable {
     let action: (Angle, UIViewControllerTransitionCoordinator, UIView) -> Void
     let windowAction: (UIWindow) -> Void
+    let geometryAction: () -> Void
 
     func makeUIView(context: Context) -> InterfaceRotationAnchorView {
         let view = InterfaceRotationAnchorView()
@@ -78,6 +90,7 @@ fileprivate struct InterfaceRotationReader: UIViewRepresentable {
     func updateUIView(_ view: InterfaceRotationAnchorView, context: Context) {
         view.viewController.action = action
         view.windowAction = windowAction
+        view.geometryAction = geometryAction
     }
 }
 
@@ -86,8 +99,9 @@ internal extension View {
     /// - Parameters:
     ///   - action: The action to perform when the system is about to turn the interface.
     ///   - windowAction: An action to perform with the view's window when it moves to one, which is after it appears.
-    func onInterfaceRotation(_ action: @escaping (Angle, UIViewControllerTransitionCoordinator, UIView) -> Void, window windowAction: @escaping (UIWindow) -> Void) -> some View {
-        background(InterfaceRotationReader(action: action, windowAction: windowAction).allowsHitTesting(false).accessibilityHidden(true))
+    ///   - geometryAction: An action to perform when the window scene's effective geometry changes, such as when it moves to another screen. From iOS 16.
+    func onInterfaceRotation(_ action: @escaping (Angle, UIViewControllerTransitionCoordinator, UIView) -> Void, window windowAction: @escaping (UIWindow) -> Void, geometry geometryAction: @escaping () -> Void) -> some View {
+        background(InterfaceRotationReader(action: action, windowAction: windowAction, geometryAction: geometryAction).allowsHitTesting(false).accessibilityHidden(true))
     }
 }
 #endif

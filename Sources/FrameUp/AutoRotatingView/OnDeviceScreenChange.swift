@@ -16,6 +16,14 @@ public enum FUDeviceScreen: Hashable, Sendable, CaseIterable {
     case inner
 }
 
+internal extension FUDeviceScreen {
+    /// The device screen a screen is. The outer screen stays the main screen while the inner screen shows.
+    @MainActor
+    init(_ screen: UIScreen) {
+        self = screen.nativeBounds == UIScreen.main.nativeBounds ? .outer : .inner
+    }
+}
+
 /// Reports the device screen whenever it changes on a device with a hinge, and not again for the same screen.
 fileprivate struct OnDeviceScreenChange: ViewModifier {
     /// The action, with the new screen and whether it's the first report.
