@@ -12,7 +12,7 @@ import Foundation
 ///
 /// This only applies when the content keeps its orientation. When the content turns to a different orientation, it turns with the system's timing whichever behavior is set.
 public enum FUCounterRotationStyle: Hashable, Sendable {
-    /// The content takes its orientation as the device turns, and the system's own transition carries it.
+    /// The content takes its orientation as the system's turn starts, and the system's own transition carries it.
     ///
     /// FrameUp adds no animation, so the content's position can drift and settle as the turn ends, and a half turn can distort it part way through.
     ///

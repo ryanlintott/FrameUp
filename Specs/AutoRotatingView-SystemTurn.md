@@ -24,7 +24,7 @@ These were measured on the iPhone 18 Pro and iPhone Duo simulators, iOS 27.0 and
 | A half turn's `targetTransform` doesn't say which way it turns. The system always turns it the positive way. | `Angle(interfaceTurn:)`. |
 | The transition's completion can run as soon as a half turn starts. | The host releases on its counter-rotation's own `CATransaction` completion. |
 | The device orientation notification can arrive after the system's turn to that orientation has started. | `announcement.isSystemTurning(to:)` in `deviceOrientationDidChange`. |
-| After a device turn to a supported orientation, the system starts its turn a few milliseconds later. It doesn't turn when a view controller doesn't support the orientation, or for upside down on an iPhone without a Home button, and no API reports either. | The 0.1 s fallback in `deviceOrientationDidChange`. |
+| After a device turn to an orientation in the effective mask, the system starts its turn a few milliseconds later. An iPhone without a Home button doesn't turn to upside down even when the mask allows it, and no API reports that. The device orientation notification is posted inside the system's rotation animation when it turns: `UIView.inheritedAnimationDuration` is 0.3 (0.6 for a half turn) there, and 0 when the system doesn't turn. Measured on the iPhone 18 Pro (iOS 27.0) and the iPhone Duo's outer screen (iOS 27.1); not measured before iOS 27. | `deviceOrientationDidChange` changes nothing ahead of the system's turn, which carries the change. Content turns on its own at once for an orientation outside the mask, or for upside down on an iPhone when the notification has no animation (`isSystemRefusing`). |
 | The hinge reports a new screen before the interface moves there, while the scene still has the old screen's orientation. The interface then moves with an unanimated transition, by which time the scene has the new orientation. The scene moves between screens exactly when the hinge status changes. | `isAwaitingScreenLayout`, the `.screen` turn, and the 0.3 s fallback in `changeScreen`. |
 | `toolbarVerticalEdge` lags the turn by one layout pass. | `TurnStart.systemBar` keeps the bar from before the turn until the new measurement arrives. |
 | Inside held content, the scoped `animation(_:body:)` doesn't animate. `animation(_:value:)` does. | `autoRotatingHeldTurnAnimation` docs. |
@@ -38,6 +38,7 @@ These were measured on the iPhone 18 Pro and iPhone Duo simulators, iOS 27.0 and
 
 The review on 2026-10-20 listed the values that aren't derived from the system. The main ones:
 
-- The 0.1 s and 0.3 s fallbacks above.
+- The 0.3 s fallback above.
+- `isSystemRefusing` relies on the measured, undocumented fact that the system posts the device orientation notification inside its rotation animation.
 - The fold and unfold orientation table in `ContentOrientationChoice` is an estimate.
 - The 0.3 s default `animation` is a chosen default. It doesn't double for half turns.
