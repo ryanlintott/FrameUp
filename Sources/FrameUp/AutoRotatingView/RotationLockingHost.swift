@@ -203,7 +203,7 @@ internal final class RotationLockingViewController: UIViewController {
         }
         let angle = Angle(interfaceTurn: coordinator.targetTransform)
         /// A resize without a turn, or a change without an animation, takes the new layout at once.
-        guard coordinator.isAnimated, coordinator.transitionDuration > 0, abs(angle.degrees) > 1,
+        guard coordinator.isAnimated, coordinator.transitionDuration > 0, !coordinator.targetTransform.isIdentity,
               let frame, let announcement,
               let rotation = FUInterfaceRotation(exactly: angle),
               let newOrientation = FUInterfaceOrientation.afterSystemTurn(by: rotation, from: hostInterfaceOrientation, sceneOrientation: view.window?.windowScene.flatMap(FUInterfaceOrientation.init(windowScene:))),

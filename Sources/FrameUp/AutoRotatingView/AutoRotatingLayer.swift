@@ -255,7 +255,7 @@ struct AutoRotatingLayer<Content: View>: View {
             return
         }
         /// A window that resizes without turning has nothing to turn.
-        guard abs(angle.degrees) > 1 else { return }
+        guard !coordinator.targetTransform.isIdentity else { return }
         /// An interface that turns without an animation has turned already, and the content takes its place at once.
         guard coordinator.isAnimated else {
             if sceneOrientation != state.interfaceOrientation {
