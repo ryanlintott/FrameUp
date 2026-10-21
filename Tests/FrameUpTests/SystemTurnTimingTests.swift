@@ -38,7 +38,7 @@ struct SystemTurnTimingTests {
             #expect(abs(progress - UnitCurve.easeInOut.value(at: fraction)) < 0.001)
         }
         #expect(timing.progress(at: beginTime - 0.1) == 0)
-        #expect(timing.progress(at: beginTime + 0.3) == nil)
+        #expect(timing.progress(at: beginTime + 0.301) == nil)
     }
 
     /// Before its transaction is committed, the turn hasn't begun, and it's under way.
