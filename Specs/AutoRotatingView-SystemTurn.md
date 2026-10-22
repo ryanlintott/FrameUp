@@ -44,6 +44,5 @@ The review on 2026-10-20 listed the values that aren't derived from the system. 
 - On iPad, `systemOrientations(in:)` ignores the top view controller while the app multitasks: when it doesn't require the full screen and its Info.plist has every orientation, as `supportedInterfaceOrientations` documents. Tested as a rule and on the iPad Pro 11-inch simulator (iOS 27.0), but not with an app whose own view controller limits its orientations.
 - Before a layer is in a window, it uses the app's window scene only when there is exactly one, and otherwise has no scene orientation until the window arrives.
 - A half turn's screen rotation runs outside the app. Its timing is taken from the animation UIKit gives the app's own changes, which begins at the same commit, but the screen itself wasn't measured.
-- The fold and unfold orientation table in `ContentOrientationChoice` is an estimate.
 - The 0.3 s default `animation` is a chosen default. It doesn't double for half turns. It could instead follow the last `SystemTurnTiming` the app saw, which would match the system after the first turn but not before it.
 - Out of scope for the review: the system bar sizes in `SystemBarGeometry`, the 1° tolerance in `FUInterfaceRotation(exactly:)` and `Angle(interfaceTurn:)`, and the half turn's direction.

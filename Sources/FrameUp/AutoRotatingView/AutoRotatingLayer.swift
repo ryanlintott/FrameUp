@@ -98,9 +98,8 @@ struct AutoRotatingLayer<Content: View>: View {
     /// - Parameters:
     ///   - newInterfaceOrientation: The new interface orientation, or nil if it hasn't changed.
     ///   - orientationMap: An orientation map to use in place of the current one, when it's changing.
-    ///   - screenChange: The move between screens, when the state has just moved to the screen it's on.
     ///   - deviceOrientation: The device orientation.
-    func updatingOrientations(_ state: TurnState, interfaceOrientation newInterfaceOrientation: FUInterfaceOrientation?, orientationMap: [FUInterfaceOrientation: FUInterfaceOrientation]? = nil, screenChange: ContentOrientationChoice.ScreenChange? = nil, deviceOrientation: FUInterfaceOrientation? = UIDevice.current.orientation.interfaceOrientation) -> TurnState {
+    func updatingOrientations(_ state: TurnState, interfaceOrientation newInterfaceOrientation: FUInterfaceOrientation?, orientationMap: [FUInterfaceOrientation: FUInterfaceOrientation]? = nil, deviceOrientation: FUInterfaceOrientation? = UIDevice.current.orientation.interfaceOrientation) -> TurnState {
         var state = state
         if let newInterfaceOrientation {
             state.interfaceOrientation = newInterfaceOrientation
@@ -110,8 +109,7 @@ struct AutoRotatingLayer<Content: View>: View {
             interfaceOrientation: state.interfaceOrientation,
             currentOrientation: state.contentOrientation,
             orientationMap: orientationMap ?? self.orientationMap,
-            preferredOrder: allowedOrientations,
-            screenChange: screenChange
+            preferredOrder: allowedOrientations
         ) {
             state.contentOrientation = newContentOrientation
         }
@@ -307,23 +305,22 @@ struct AutoRotatingLayer<Content: View>: View {
         return true
     }
 
-    /// The state on a screen once the interface is there. A state not placed yet only takes the screen.
+    /// The state on a screen once the interface is there. There's no place on the new screen to keep, so the content chooses one as it does when it appears. A state not placed yet only takes the screen.
     /// - Parameters:
-    ///   - state: The state, still on the screen it was on.
+    ///   - state: The state on the screen it was on.
     ///   - screen: The screen the interface is on.
     ///   - sceneOrientation: The interface orientation there.
     ///   - deviceOrientation: The device orientation.
     func movingToScreen(_ state: TurnState, screen: FUDeviceScreen, sceneOrientation: FUInterfaceOrientation?, deviceOrientation: FUInterfaceOrientation? = UIDevice.current.orientation.interfaceOrientation) -> TurnState {
         guard screen != state.screen else { return state }
         var state = state
-        /// Read from the state while it's still on the screen it's leaving: a guide to how the device is held on the new one.
-        let previousOrientation = followedOrientation(interfaceOrientation: state.interfaceOrientation, screen: state.screen, deviceOrientation: deviceOrientation)
         let isPlaced = state.interfaceOrientation != nil
         state.screen = screen
         guard isPlaced else { return state }
         /// The new screen's bar arrives with its layout.
         state.turnStart = nil
-        return updatingOrientations(state, interfaceOrientation: sceneOrientation, screenChange: ContentOrientationChoice.ScreenChange(to: screen, from: previousOrientation), deviceOrientation: deviceOrientation)
+        state.contentOrientation = nil
+        return updatingOrientations(state, interfaceOrientation: sceneOrientation, deviceOrientation: deviceOrientation)
     }
 
     /// The latest turn as this layer took it, or nil if it didn't take it or has changed since.

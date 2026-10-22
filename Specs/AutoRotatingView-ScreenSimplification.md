@@ -2,6 +2,8 @@
 
 Status: built on branch `screen-from-scene` (2026-10-21), unit-tested, not yet checked by folding the Duo. It builds on `FUFoldability` and `FUDeviceScreen(windowScene:)`. `movingToScreen(_:screen:sceneOrientation:deviceOrientation:)` is the pure core the tests use; the internal two-argument `onHingeScreenChange` went with the layer's hinge path. The `deviceOrientationDidChange` guard doesn't move the state itself: the scene's geometry is stale in that notification, so it only ignores device turns until the KVO moves it.
 
+**Later the same day:** the estimate of how the device is held after a fold (`ScreenChange`, `likelyOrientations(afterMovingTo:)`) is gone too, and `previousScreenOrientation` with it. Folding from inner landscape left with the device upside down, the system put the outer screen in landscape, and the estimate said portrait, so the tabs were laid out away from the vertical bar. A move to another screen now clears the content orientation and chooses as on appearing: the device orientation's entry, then the interface orientation's (the one the system picked), then the first allowed orientation. The sections below describe the first version.
+
 ## Why
 
 Each `AutoRotatingLayer` learns its screen from SwiftUI's `onHingeChange`, which only reports changes. A layer created after the hinge settles never hears, keeps `deviceScreen = .outer`, and on the inner screen looks its map up with the device orientation, which is a quarter turn off (Wordhord's Duo cover). The local fix seeds the screen in `windowDidChange`, on top of the hinge path.
