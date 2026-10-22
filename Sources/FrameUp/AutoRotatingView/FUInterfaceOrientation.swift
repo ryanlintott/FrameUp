@@ -110,12 +110,18 @@ internal extension FUInterfaceOrientation {
 }
 
 internal extension UIWindowScene {
+    /// True for the app's own interactive window scene, not one on an external display. On an iPhone it's always on a built-in screen.
+    @MainActor
+    var isApplicationScene: Bool {
+        session.role == .windowApplication
+    }
+
     /// The app's window scene when it has only one, or nil.
     @MainActor
     static var onlyApplicationScene: UIWindowScene? {
         let scenes = UIApplication.shared.connectedScenes
             .compactMap { $0 as? UIWindowScene }
-            .filter { $0.session.role == .windowApplication }
+            .filter(\.isApplicationScene)
         return scenes.count == 1 ? scenes.first : nil
     }
 }

@@ -16,8 +16,8 @@ struct AutoRotatingLayer<Content: View>: View {
     @State private var state = TurnState()
     @Environment(\.layoutDirection) private var layoutDirection
     @State private var deviceScreen: FUDeviceScreen = .outer
-    /// True once the device is known to fold.
-    @State private var hasInnerScreen = false
+    /// True once the device is known to fold. It starts from what any view has learned, since a view that appears later may not get a first report before it lays out.
+    @State private var hasInnerScreen = FUFoldability.current == .foldable
     /// The interface orientation a `.device` turn took ahead of the system's turn to it. Outermost layer only.
     @State private var deviceTurnOrientation: FUInterfaceOrientation? = nil
     /// The device orientation on the screen the view just left, a guide to how the device is held on the new one.
@@ -290,15 +290,19 @@ struct AutoRotatingLayer<Content: View>: View {
         }
     }
 
-    /// Brings the orientations up to date with the view's own window once it's in one.
+    /// Brings the screen and orientations up to date with the view's own window once it's in one.
     private func windowDidChange(to newWindow: UIWindow) {
         guard window.window !== newWindow else { return }
         window = WindowReference(window: newWindow)
+        /// The hinge only reports changes, so a view that appears after it has settled takes its screen from its window scene.
+        if let screen = FUDeviceScreen(windowScene: newWindow.windowScene) {
+            changeScreen(to: screen, isFirstReport: true)
+        }
         guard sceneOrientation != state.interfaceOrientation else { return }
         changeOrientations(isAppearing: true)
     }
 
-    /// Called when the hinge first reports the screen, and whenever the screen changes.
+    /// Called with the screen the view starts on, from its window scene or the hinge's first report, and whenever the hinge changes the screen.
     private func changeScreen(to screen: FUDeviceScreen, isFirstReport: Bool) {
         if !hasInnerScreen {
             withAnimation(nil) {
