@@ -27,7 +27,7 @@ internal extension FUDeviceScreen {
 internal extension FUDeviceScreen {
     /// The screen a window scene is on, on a device that folds. Nil on a device that doesn't, or when the scene isn't the app's own interactive one.
     ///
-    /// It tells the screen at once, where the hinge only reports changes.
+    /// It tells the screen at once, where SwiftUI's `onHingeChange` only reports changes.
     @MainActor
     init?(windowScene: UIWindowScene?) {
         FUFoldability.update(from: windowScene)
@@ -43,16 +43,6 @@ internal extension FUDeviceScreen {
         return isSceneOnMainScreen ? .outer : .inner
     }
 }
-
-#if canImport(SwiftUICore, _version: 8.0.85)
-@available(iOS 27.1, *)
-internal extension FUDeviceScreen {
-    /// The screen a hinge status shows: the outer screen when it's closed, and the inner screen when it's open at all.
-    init(hingeStatus: DeviceHinge.Status) {
-        self = hingeStatus == .closed ? .outer : .inner
-    }
-}
-#endif
 
 /// The screens a view has been on, which tells when to report another.
 internal struct DeviceScreenReport: Hashable, Sendable {
@@ -131,64 +121,18 @@ fileprivate struct OnSceneScreenChange: ViewModifier {
     }
 }
 
-/// Reports the device screen whenever the hinge changes it, and not again for the same screen.
-///
-/// SwiftUI's `onHingeChange` only reports changes, so a view that appears after the hinge has settled hears nothing until the next fold or unfold. `FUDeviceScreen(windowScene:)` gives the screen a view starts on.
-fileprivate struct OnHingeScreenChange: ViewModifier {
-    let action: @MainActor (FUDeviceScreen) -> Void
-
-    /// The last screen reported, or nil before the first report.
-    @State private var reportedScreen: FUDeviceScreen? = nil
-
-    func body(content: Content) -> some View {
-        /// `onHingeChange` needs the iOS 27.1 SDK (SwiftUICore 8.0.85), which a compiler check can't detect.
-        #if canImport(SwiftUICore, _version: 8.0.85)
-        if #available(iOS 27.1, *) {
-            content
-                .onHingeChange { _, newContext in
-                    guard let hinge = newContext.hinge else { return }
-                    FUFoldability.hingeDidReport()
-                    report(FUDeviceScreen(hingeStatus: hinge.status))
-                }
-        } else {
-            content
-        }
-        #else
-        content
-        #endif
-    }
-
-    /// Passes on a screen that's new. The hinge reports every change of angle, so the same screen comes again and again.
-    private func report(_ screen: FUDeviceScreen) {
-        guard screen != reportedScreen else { return }
-        reportedScreen = screen
-        action(screen)
-    }
-}
-
 public extension View {
     /// Adds an action to perform when the view's window scene moves to another screen of a device that folds, such as the iPhone Duo.
     ///
     /// The screen comes from the view's own window scene, so it's known as soon as the view appears, and it changes when the interface has moved, just before the system lays it out on the new screen. On a device that doesn't fold the screen is nil. Before the app has a window scene a foldable iPhone can't be told apart, so the screen can start as nil and change once it's known.
     ///
-    /// ``SwiftUICore/View/onHingeScreenChange(_:)`` reports earlier, as the hinge moves, but only changes, and on the screen the interface is leaving.
+    /// SwiftUI's `onHingeChange` reports earlier, 55 to 500 milliseconds before the interface moves, but only changes, so a view that appears after the hinge has settled hears nothing until the next fold or unfold.
     /// - Parameters:
     ///   - initial: True to perform the action with the screen the view is on when it appears.
     ///   - action: The action to perform with the screen the view's window scene is on, or nil on a device that doesn't fold.
     /// - Returns: A view that performs the action when its window scene moves to another screen.
-    @preconcurrency func onDeviceScreenChange(initial: Bool = false, _ action: @escaping @MainActor (FUDeviceScreen?) -> Void) -> some View {
+    func onDeviceScreenChange(initial: Bool = false, _ action: @escaping @MainActor (FUDeviceScreen?) -> Void) -> some View {
         modifier(OnSceneScreenChange(initial: initial, action: action))
-    }
-
-    /// Adds an action to perform when the hinge of a device that folds, such as a foldable iPhone, first reports the screen the view is on, and whenever it moves the view to another screen.
-    ///
-    /// The hinge reports as it moves, 55 to 500 milliseconds before the interface moves to the new screen, so this suits work that should start early. To know the screen the view is on, use ``SwiftUICore/View/onDeviceScreenChange(initial:_:)``: it reports when the window scene has moved, and gives the screen a view starts on.
-    ///
-    /// The hinge's first report comes soon after launch. A view that appears after that hears nothing until the next fold or unfold. The action only runs on a device with a hinge. It needs iOS 27.1 and the iOS 27.1 SDK.
-    /// - Parameter action: The action to perform with the screen the hinge moves the view to.
-    /// - Returns: A view that performs the action when the hinge reports a new screen.
-    @preconcurrency func onHingeScreenChange(_ action: @escaping @MainActor (FUDeviceScreen) -> Void) -> some View {
-        modifier(OnHingeScreenChange(action: action))
     }
 }
 #endif

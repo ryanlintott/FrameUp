@@ -90,19 +90,5 @@ struct DeviceScreenReportTests {
         #expect(Self.reported([nil, nil, .inner], initial: true) == [nil, .inner])
         #expect(Self.reported([nil, nil, .inner], initial: false) == [.inner])
     }
-
-    #if canImport(SwiftUICore, _version: 8.0.85)
-    @Test func closedHingeIsTheOuterScreen() throws {
-        guard #available(iOS 27.1, *) else { return }
-        #expect(FUDeviceScreen(hingeStatus: .closed) == .outer)
-    }
-
-    @Test func openHingeIsTheInnerScreen() throws {
-        guard #available(iOS 27.1, *) else { return }
-        #expect(FUDeviceScreen(hingeStatus: .partiallyOpen) == .inner)
-        #expect(FUDeviceScreen(hingeStatus: .fullyOpen) == .inner)
-    }
-
-    #endif
 }
 #endif

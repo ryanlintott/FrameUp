@@ -58,12 +58,6 @@ internal enum FUFoldability: Hashable, Sendable {
         )
     }
 
-    /// Records a report from the hinge, which only a foldable device sends.
-    @MainActor
-    static func hingeDidReport() {
-        known = .foldable
-    }
-
     /// True on an iPhone with iOS 27.1, built with its SDK.
     @MainActor
     private static var sdkSupportsFolding: Bool {

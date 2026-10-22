@@ -83,7 +83,6 @@ For a feature-by-feature guide with examples, see the [README](https://github.co
 - ``FUInterfaceOrientation``
 - ``FUDeviceScreen``
 - ``SwiftUICore/View/onDeviceScreenChange(initial:_:)``
-- ``SwiftUICore/View/onHingeScreenChange(_:)``
 - ``SwiftUICore/View/rotationMatchingOrientation(_:isOn:withAnimation:)``
 
 ### Two-Sided Views

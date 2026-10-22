@@ -143,12 +143,20 @@ private struct TopEdgesRotation: View {
             logger.info("device screen \(newValue.map { "\($0)" } ?? "nil", privacy: .public) scene \(FUInterfaceOrientationName.scene, privacy: .public)")
             deviceScreen = newValue
         }
-        /// Logged only, to compare with the scene's move: the hinge reports earlier, on the screen the interface is leaving.
-        .onHingeScreenChange { logger.info("hinge screen \(String(describing: $0), privacy: .public)") }
+        .hingeLog()
     }
 }
 
 extension View {
+    /// Logs each change of the hinge's screen, to compare with the scene's move: the hinge reports earlier, on the screen the interface is leaving.
+    func hingeLog() -> some View {
+        #if canImport(SwiftUICore, _version: 8.0.85)
+        return modifier(HingeLog())
+        #else
+        return self
+        #endif
+    }
+
     /// Logs whether the system's vertical toolbar, once it has settled, is where the screen's dictionary expects it.
     func toolbarEdgeCheck(_ screen: TopEdgesScreen) -> some View {
         #if canImport(SwiftUICore, _version: 8.0.85)
@@ -160,6 +168,24 @@ extension View {
 }
 
 #if canImport(SwiftUICore, _version: 8.0.85)
+private struct HingeLog: ViewModifier {
+    /// Whether the hinge was last open, or nil before its first report. It reports every change of angle.
+    @State private var isOpen: Bool? = nil
+
+    func body(content: Content) -> some View {
+        if #available(iOS 27.1, *) {
+            content
+                .onHingeChange { _, newContext in
+                    guard let hinge = newContext.hinge, (hinge.status != .closed) != isOpen else { return }
+                    isOpen = hinge.status != .closed
+                    logger.info("hinge screen \(hinge.status == .closed ? "outer" : "inner", privacy: .public)")
+                }
+        } else {
+            content
+        }
+    }
+}
+
 private struct ToolbarEdgeCheck: ViewModifier {
     let screen: TopEdgesScreen
     
