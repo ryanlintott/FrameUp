@@ -41,6 +41,10 @@ internal enum ContentOrientationChoice {
             if let presentedOrientation {
                 return presentedOrientation
             }
+            /// The interface's entry places the content by the system's UI, such as the vertical bar, which the system set out for the interface orientation it picked. On the outer screen that differs from the device's when the device is in an orientation the system doesn't turn to. On the inner screen the device orientation is already the interface's.
+            if let interfaceEntry = interfaceOrientation.flatMap({ orientationMap[$0] }) {
+                return interfaceEntry
+            }
             if let likelyOrientation = screenChange.from?.likelyOrientations(afterMovingTo: screenChange.to).lazy.compactMap({ orientationMap[$0] }).first {
                 return likelyOrientation
             }

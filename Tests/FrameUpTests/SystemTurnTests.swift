@@ -21,7 +21,7 @@ struct SystemTurnTests {
 
     /// When the device's notification arrives after the system's turn has started, the system's turn changes the orientations.
     @Test func systemTurnBeforeDeviceTurnChangesOrientations() {
-        let before = TurnState(interfaceOrientation: .portrait, contentOrientation: .portrait, contentRotation: .zero, turnStart: nil, isAwaitingScreenLayout: false, takenTurnID: 1)
+        let before = TurnState(interfaceOrientation: .portrait, contentOrientation: .portrait, contentRotation: .zero, turnStart: nil, screen: .outer, takenTurnID: 1)
         let after = layer.taking(systemTurn(id: 2, from: .portrait, to: .landscapeRight), from: before)
         #expect(after.interfaceOrientation == .landscapeRight)
         #expect(after.turnStart == nil)
@@ -32,7 +32,7 @@ struct SystemTurnTests {
 
     /// After the device's turn, the system's turn to the same orientation leaves the orientations as they are.
     @Test func systemTurnAfterDeviceTurnKeepsOrientations() {
-        let before = TurnState(interfaceOrientation: .landscapeRight, contentOrientation: .landscapeRight, contentRotation: .zero, turnStart: nil, isAwaitingScreenLayout: false, takenTurnID: 1)
+        let before = TurnState(interfaceOrientation: .landscapeRight, contentOrientation: .landscapeRight, contentRotation: .zero, turnStart: nil, screen: .outer, takenTurnID: 1)
         var expected = before
         expected.takenTurnID = 2
         #expect(layer.taking(systemTurn(id: 2, from: .portrait, to: .landscapeRight), from: before) == expected)

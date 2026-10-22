@@ -1,6 +1,6 @@
 # AutoRotatingView: knowing the screen from the scene
 
-Status: proposal (2026-10-21). Nothing here is built. It builds on the uncommitted `FUFoldability` and `FUDeviceScreen(windowScene:)` on `dev`.
+Status: built on branch `screen-from-scene` (2026-10-21), unit-tested, not yet checked by folding the Duo. It builds on `FUFoldability` and `FUDeviceScreen(windowScene:)`. `movingToScreen(_:screen:sceneOrientation:deviceOrientation:)` is the pure core the tests use; the internal two-argument `onHingeScreenChange` went with the layer's hinge path. The `deviceOrientationDidChange` guard doesn't move the state itself: the scene's geometry is stale in that notification, so it only ignores device turns until the KVO moves it.
 
 ## Why
 

@@ -73,14 +73,21 @@ struct ContentOrientationChoiceTests {
             .landscapeLeft: .portrait
         ]
         let change = ContentOrientationChoice.ScreenChange(to: .inner, from: .portrait)
-        #expect(Self.choose(device: nil, current: .landscapeLeft, map: map, screenChange: change) == .portraitUpsideDown)
+        #expect(Self.choose(device: nil, interface: nil, current: .landscapeLeft, map: map, screenChange: change) == .portraitUpsideDown)
     }
 
     /// Skips likely orientations that aren't in the map.
     @Test func screenChangeSkipsMissingLikelyOrientations() {
         let map: [FUInterfaceOrientation: FUInterfaceOrientation] = [.landscapeLeft: .landscapeLeft]
         let change = ContentOrientationChoice.ScreenChange(to: .inner, from: .portrait)
-        #expect(Self.choose(device: nil, current: .portrait, map: map, screenChange: change) == .landscapeLeft)
+        #expect(Self.choose(device: nil, interface: nil, current: .portrait, map: map, screenChange: change) == .landscapeLeft)
+    }
+
+    /// Folding onto the outer screen held upside down, which the system doesn't turn to: the interface's entry wins over the guess, so the content sits by the system's bar, as in the Top Edges example folded from inner landscape left.
+    @Test func screenChangeUsesTheInterfaceEntryWhenTheDeviceHasNone() {
+        let foldableOuter: [FUInterfaceOrientation: FUInterfaceOrientation] = [.portrait: .landscapeLeft, .landscapeRight: .landscapeLeft, .landscapeLeft: .landscapeRight]
+        let change = ContentOrientationChoice.ScreenChange(to: .outer, from: .landscapeLeft)
+        #expect(Self.choose(device: .portraitUpsideDown, interface: .landscapeLeft, current: .portrait, map: foldableOuter, screenChange: change) == .landscapeRight)
     }
 
     /// The user's estimates of how the Duo is held after folding or unfolding.

@@ -58,8 +58,7 @@ internal extension FUDeviceScreen {
 ///
 /// SwiftUI's `onHingeChange` only reports changes, so a view that appears after the hinge has settled hears nothing until the next fold or unfold. `FUDeviceScreen(windowScene:)` gives the screen a view starts on.
 fileprivate struct OnDeviceScreenChange: ViewModifier {
-    /// The action, with the new screen and whether it's the first report.
-    let action: @MainActor (FUDeviceScreen, Bool) -> Void
+    let action: @MainActor (FUDeviceScreen) -> Void
 
     /// The last screen reported, or nil before the first report.
     @State private var reportedScreen: FUDeviceScreen? = nil
@@ -85,9 +84,8 @@ fileprivate struct OnDeviceScreenChange: ViewModifier {
     /// Passes on a screen that's new. The hinge reports every change of angle, so the same screen comes again and again.
     private func report(_ screen: FUDeviceScreen) {
         guard screen != reportedScreen else { return }
-        let isFirstReport = reportedScreen == nil
         reportedScreen = screen
-        action(screen, isFirstReport)
+        action(screen)
     }
 }
 
@@ -98,13 +96,6 @@ public extension View {
     /// - Parameter action: The action to perform with the screen the view is on.
     /// - Returns: A view that performs the action when a device with a hinge reports its screen.
     @preconcurrency func onHingeScreenChange(_ action: @escaping @MainActor (FUDeviceScreen) -> Void) -> some View {
-        modifier(OnDeviceScreenChange { screen, _ in action(screen) })
-    }
-}
-
-internal extension View {
-    /// Adds an action to perform when a device with a hinge first reports the screen the view is on, and whenever the view moves to another screen. The action passes the new screen, and true for the first report.
-    func onHingeScreenChange(_ action: @escaping @MainActor (FUDeviceScreen, Bool) -> Void) -> some View {
         modifier(OnDeviceScreenChange(action: action))
     }
 }
