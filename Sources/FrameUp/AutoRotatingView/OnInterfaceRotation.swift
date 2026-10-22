@@ -30,25 +30,13 @@ fileprivate final class InterfaceRotationViewController: UIViewController {
     }
 }
 
-/// An empty view that keeps an ``InterfaceRotationViewController`` as a child of its window's root view controller.
-///
-/// Added this way, rather than through a representable, the child isn't a view controller SwiftUI places in its own hierarchy, so it stays out of the status bar's way. The root gets the system's own transition, where a view controller SwiftUI shows in a navigation stack gets one without the turn.
-fileprivate final class InterfaceRotationAnchorView: UIView {
-    let viewController = InterfaceRotationViewController()
+/// An empty view that passes on its window when it moves to one, and its window scene's changes of effective geometry.
+internal class WindowSceneAnchorView: UIView {
     /// Performed with the window when the view moves to one.
     var windowAction: (UIWindow) -> Void = { _ in }
     /// Performed when the window scene's effective geometry changes.
     var geometryAction: () -> Void = { }
     private var geometryObservation: NSKeyValueObservation? = nil
-
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        viewController.anchorView = self
-    }
-
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
 
     override func didMoveToWindow() {
         super.didMoveToWindow()
@@ -63,6 +51,26 @@ fileprivate final class InterfaceRotationAnchorView: UIView {
                 }
             }
         }
+    }
+}
+
+/// An empty view that keeps an ``InterfaceRotationViewController`` as a child of its window's root view controller.
+///
+/// Added this way, rather than through a representable, the child isn't a view controller SwiftUI places in its own hierarchy, so it stays out of the status bar's way. The root gets the system's own transition, where a view controller SwiftUI shows in a navigation stack gets one without the turn.
+fileprivate final class InterfaceRotationAnchorView: WindowSceneAnchorView {
+    let viewController = InterfaceRotationViewController()
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        viewController.anchorView = self
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
         viewController.willMove(toParent: nil)
         viewController.removeFromParent()
         guard let parent = window?.rootViewController else { return }

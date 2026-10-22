@@ -66,6 +66,31 @@ struct DeviceScreenReportTests {
         #expect(UIDevice.current.isFoldable == (FUFoldability.current == .foldable))
     }
 
+    /// The screens reported as a view sees each one in turn.
+    static func reported(_ screens: [FUDeviceScreen?], initial: Bool) -> [FUDeviceScreen?] {
+        var report = DeviceScreenReport()
+        return screens.filter { report.see($0, initial: initial) }
+    }
+
+    /// The first screen is reported only when asked for, including nil on a device that doesn't fold.
+    @Test(arguments: [.outer, .inner, nil] as [FUDeviceScreen?])
+    func firstScreenIsReportedIfInitial(screen: FUDeviceScreen?) {
+        #expect(Self.reported([screen], initial: true) == [screen])
+        #expect(Self.reported([screen], initial: false) == [])
+    }
+
+    /// After the first, only a screen that differs from the last is reported.
+    @Test func onlyNewScreensAreReported() {
+        #expect(Self.reported([.outer, .outer, .inner, .inner, .outer], initial: true) == [.outer, .inner, .outer])
+        #expect(Self.reported([.outer, .outer, .inner, .inner, .outer], initial: false) == [.inner, .outer])
+    }
+
+    /// Before the app has a window scene a foldable can't be told apart, so its screen goes from nil to the one it's on.
+    @Test func screenBecomingKnownIsReported() {
+        #expect(Self.reported([nil, nil, .inner], initial: true) == [nil, .inner])
+        #expect(Self.reported([nil, nil, .inner], initial: false) == [.inner])
+    }
+
     #if canImport(SwiftUICore, _version: 8.0.85)
     @Test func closedHingeIsTheOuterScreen() throws {
         guard #available(iOS 27.1, *) else { return }

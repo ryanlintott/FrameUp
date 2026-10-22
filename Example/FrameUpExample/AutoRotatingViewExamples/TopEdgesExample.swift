@@ -54,15 +54,15 @@ enum TopEdgesScreen {
     case iPadCompact
     
     /// - Parameters:
-    ///   - hingeScreen: The screen of a foldable iPhone, or nil on one that doesn't fold.
+    ///   - deviceScreen: The screen of a foldable iPhone the window scene is on, or nil on one that doesn't fold.
     ///   - systemBar: The system's bar, measured outside the rotation. Only a window change moves the column to the left, never a turn, so the dictionary changes then.
     ///   - horizontalSizeClass: The window's horizontal size class, which on an iPad changes only as the window is resized (measured: compact below about 665 points wide).
-    init(hingeScreen: FUDeviceScreen?, systemBar: SystemBarGeometry?, horizontalSizeClass: UserInterfaceSizeClass?) {
+    init(deviceScreen: FUDeviceScreen?, systemBar: SystemBarGeometry?, horizontalSizeClass: UserInterfaceSizeClass?) {
         if UIDevice.current.userInterfaceIdiom == .pad {
             self = horizontalSizeClass == .compact ? .iPadCompact : .iPadRegular
             return
         }
-        switch hingeScreen {
+        switch deviceScreen {
         case .outer: self = .foldableOuter
         case .inner: self = systemBar?.kind == .verticalToolbar && systemBar?.edge == .leading ? .foldableInnerLeftWindow : .foldableInner
         case nil: self = .iPhone
@@ -122,14 +122,14 @@ struct TopEdgesProbe: View {
 @available(iOS 17, *)
 private struct TopEdgesRotation: View {
     @Binding var isPresented: Bool
-    /// The screen of a foldable iPhone, or nil on one that doesn't fold.
-    @State private var hingeScreen: FUDeviceScreen? = nil
+    /// The screen of a foldable iPhone the window scene is on, or nil on one that doesn't fold.
+    @State private var deviceScreen: FUDeviceScreen? = nil
     /// The system's bar outside the rotation.
     @Environment(\.systemBarGeometry) private var systemBar
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     
     var screen: TopEdgesScreen {
-        TopEdgesScreen(hingeScreen: hingeScreen, systemBar: systemBar, horizontalSizeClass: horizontalSizeClass)
+        TopEdgesScreen(deviceScreen: deviceScreen, systemBar: systemBar, horizontalSizeClass: horizontalSizeClass)
     }
     
     var body: some View {
@@ -139,7 +139,12 @@ private struct TopEdgesRotation: View {
         }
         .geometryProbe("outside")
         .toolbarEdgeCheck(screen)
-        .onHingeScreenChange { hingeScreen = $0 }
+        .onDeviceScreenChange(initial: true) { newValue in
+            logger.info("device screen \(newValue.map { "\($0)" } ?? "nil", privacy: .public) scene \(FUInterfaceOrientationName.scene, privacy: .public)")
+            deviceScreen = newValue
+        }
+        /// Logged only, to compare with the scene's move: the hinge reports earlier, on the screen the interface is leaving.
+        .onHingeScreenChange { logger.info("hinge screen \(String(describing: $0), privacy: .public)") }
     }
 }
 
