@@ -28,10 +28,10 @@ public struct AutoRotatingView<Content: View>: View {
 
     /// A view that rotates and resizes the content frame to match device orientation.
     /// - Parameters:
-    ///   - allowedOrientations: Set of allowed orientations for this view. Default is all.
+    ///   - allowedOrientations: Set of allowed orientations for this view. Default is all. Changing it isn't animated: the content takes its new place at once.
     ///   - isOn: Toggles ability to rotate views.
     ///   - counterRotation: How the content looks still while the system turns the interface to an orientation the content doesn't allow. It has no effect when the content turns to a different orientation.
-    ///   - animation: Animation for turns the content makes without the system, or nil for none. System turns use the system's timing.
+    ///   - animation: Animation for turns the content makes without the system, or nil for none. System turns use the system's timing, and a change of the allowed orientations or top edges isn't animated.
     ///   - content: Content to be rotated to match a device orientations from an allowed orientation set.
     public init(_ allowedOrientations: [FUInterfaceOrientation] = FUInterfaceOrientation.allCases, isOn: Bool = true, counterRotation: FUCounterRotationStyle = .system, animation: Animation? = .easeInOut(duration: 0.3), @ViewBuilder content: () -> Content) {
         /// Built here so state the caller reads in it is tracked from the first update.
@@ -43,10 +43,10 @@ public struct AutoRotatingView<Content: View>: View {
     ///
     /// The closure runs on every update, like a `GeometryReader`'s.
     /// - Parameters:
-    ///   - allowedOrientations: Set of allowed orientations for this view. Default is all.
+    ///   - allowedOrientations: Set of allowed orientations for this view. Default is all. Changing it isn't animated: the content takes its new place at once.
     ///   - isOn: Toggles ability to rotate views.
     ///   - counterRotation: How the content looks still while the system turns the interface to an orientation the content doesn't allow. It has no effect when the content turns to a different orientation.
-    ///   - animation: Animation for turns the content makes without the system, or nil for none. System turns use the system's timing.
+    ///   - animation: Animation for turns the content makes without the system, or nil for none. System turns use the system's timing, and a change of the allowed orientations or top edges isn't animated.
     ///   - content: Content to be rotated, built from the container geometry. See ``AutoRotatingGeometryProxy``.
     public init(_ allowedOrientations: [FUInterfaceOrientation] = FUInterfaceOrientation.allCases, isOn: Bool = true, counterRotation: FUCounterRotationStyle = .system, animation: Animation? = .easeInOut(duration: 0.3), @ViewBuilder content: @escaping (AutoRotatingGeometryProxy) -> Content) {
         self.mode = .allowed(allowedOrientations, counterRotation: counterRotation)
@@ -63,9 +63,9 @@ public struct AutoRotatingView<Content: View>: View {
     ///
     /// An orientation left out of the dictionary leaves the content where it is. When there's nowhere it is yet, such as on first appearing, the content takes the entry for the interface's orientation.
     /// - Parameters:
-    ///   - topEdges: Where the content's top points, layout-relative, in each orientation of the device.
+    ///   - topEdges: Where the content's top points, layout-relative, in each orientation of the device. Changing it isn't animated: the content takes its new place at once.
     ///   - isOn: Toggles ability to rotate views.
-    ///   - animation: Animation for turns the content makes without the system, or nil for none. System turns use the system's timing.
+    ///   - animation: Animation for turns the content makes without the system, or nil for none. System turns use the system's timing, and a change of the allowed orientations or top edges isn't animated.
     ///   - content: Content to turn, built from the container geometry. See ``AutoRotatingGeometryProxy``.
     @available(iOS 17, *)
     public init(topEdges: [FUInterfaceOrientation: Edge], isOn: Bool = true, animation: Animation? = .easeInOut(duration: 0.3), @ViewBuilder content: @escaping (AutoRotatingGeometryProxy) -> Content) {

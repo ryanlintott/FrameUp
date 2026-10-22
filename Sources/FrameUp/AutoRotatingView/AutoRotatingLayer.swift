@@ -129,15 +129,12 @@ struct AutoRotatingLayer<Content: View>: View {
         deviceOrientation.flatMap { orientationMap[$0] }.map { $0 == contentOrientation } ?? true
     }
 
-    /// Brings the orientations up to date when the view appears, comes back from the background, or its orientation map changes.
-    /// - Parameters:
-    ///   - orientationMap: An orientation map to use in place of the current one, when it's changing.
-    ///   - isAppearing: True when the view appears or comes back from the background.
-    private func changeOrientations(orientationMap: [FUInterfaceOrientation: FUInterfaceOrientation]? = nil, isAppearing: Bool = false) {
+    /// Brings the orientations up to date when the view appears, comes back from the background, or its orientation map changes. The content takes its place at once, without the animation: an app changes the map for a new context, such as another screen of a foldable iPhone, whose hinge reports before the interface moves there.
+    /// - Parameter orientationMap: An orientation map to use in place of the current one, when it's changing.
+    private func changeOrientations(orientationMap: [FUInterfaceOrientation: FUInterfaceOrientation]? = nil) {
         guard isOn else { return }
         let newInterfaceOrientation = newInterfaceOrientation(deviceOrientation: UIDevice.current.orientation.interfaceOrientation)
-        /// When the interface has already turned, or the view is appearing, the content takes its place at once.
-        withAnimation(isAppearing || newInterfaceOrientation != nil ? nil : animation) {
+        withAnimation(nil) {
             state.turnStart = nil
             state = updatingOrientations(state, interfaceOrientation: newInterfaceOrientation, orientationMap: orientationMap)
         }
@@ -287,7 +284,7 @@ struct AutoRotatingLayer<Content: View>: View {
         window = WindowReference(window: newWindow)
         moveToSceneScreen()
         guard sceneOrientation != state.interfaceOrientation else { return }
-        changeOrientations(isAppearing: true)
+        changeOrientations()
     }
 
     /// Moves the content to the screen of a foldable iPhone its window scene is on, if it isn't there. The outermost layer starts a turn, so the layers inside it move in the same layout pass.
@@ -474,13 +471,13 @@ struct AutoRotatingLayer<Content: View>: View {
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
             /// The device can fold or unfold in the background.
             moveToSceneScreen()
-            changeOrientations(isAppearing: true)
+            changeOrientations()
         }
         .onAppear {
             /// A turn started before this view appeared is already in its orientations.
             state.takenTurnID = enclosingClock?.turn?.id ?? 0
             moveToSceneScreen()
-            changeOrientations(isAppearing: true)
+            changeOrientations()
         }
     }
 }
